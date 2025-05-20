@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>楼西楼&nbsp;|&nbsp;藏书阁</title>
+    <link rel="shortcut icon" href="IMG_0048.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css"> 
+</head>
+<body>
+    <nav class="nav-container">
+        <div class="site-title">
+            <div class="logo">
+                <img src="IMG_0048.JPG" alt="藏书阁logo">
+            </div>
+            <h1>藏书阁</h1>
+            <div class="nav-icons">
+            </div>
+        </div>
+    </nav>
+    
+    <div class="book-grid" id="book-container">
+        <script>
+            fetch('books.json')
+            .then(response => response.json())
+            .then(bookData => {
+                const container = document.getElementById('book-container');
+                bookData.forEach(book => {
+                    container.appendChild(createBookCard(book));
+                });
+            })
+            .catch(error => console.error('图书数据加载失败:', error));
+
+            function createBookCard(book) {
+                const card = document.createElement('div');
+                card.className = 'book-card';
+                card.dataset.href = book.href;
+
+                const htmlContent = `
+                    <img class="cover" src="${book.cover}" alt="${book.title}" onerror="this.src='images/default-book.png';this.onerror=null">
+                    <div class="info">
+                        <h2 class="title">${book.title}</h2>
+                        <p class="author">${book.author}</p>
+                        <div class="hover-effect">点击以查看</div>
+                    </div>
+                `;
+                
+                card.innerHTML = htmlContent;
+                return card;
+            }
+        </script>
+    </div>
+    <div class="float-ball" id="floatBall">
+        <input type="text" class="search-bar">
+    </div>
+</body>
+</html>
+
+<script>
+    document.getElementById('book-container').addEventListener('click', (event) => {
+        const card = event.target.closest('.book-card');
+        if (card) window.location.href = card.dataset.href;
+    });
+
+    document.querySelectorAll('.info').forEach(info => {
+        let isAnimating = false;
+        
+        info.addEventListener('mouseenter', () => {
+            if (!isAnimating) {
+                isAnimating = true;
+                info.classList.add('active');
+                requestAnimationFrame(() => {
+                    isAnimating = false;
+                });
+            }
+        });
+
+        info.addEventListener('mouseleave', () => {
+            if (!isAnimating) {
+                isAnimating = true;
+                info.classList.remove('active');
+                requestAnimationFrame(() => {
+                    isAnimating = false;
+                });
+            }
+        });
+    });
+
+    const floatBall = document.getElementById('floatBall');
+    let isExpanded = false;
+    floatBall.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (!isExpanded) {
+            floatBall.classList.add('active');
+            isExpanded = true;
+        }
+    });
+    document.addEventListener('click', (e) => {
+        if (isExpanded && !floatBall.contains(e.target)) {
+            floatBall.classList.remove('active');
+            isExpanded = false;
+        }
+    });
+</script>
