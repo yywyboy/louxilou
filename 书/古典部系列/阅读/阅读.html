@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="GBK">
+    <style>
+        :root { --bg-color: rgba(255,255,255,0.9); }
+        body {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+            background: var(--bg-color);
+            backdrop-filter: blur(20px);
+            line-height: 1.8;
+            font-family: "SimHei", sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <article id="content"></article>
+    <script>
+    const params = new URLSearchParams(window.location.search);
+    fetch(params.get('file'))
+        .then(r => r.arrayBuffer())
+        .then(b => {
+            const decoder = new TextDecoder('GBK');
+            return decoder.decode(b);
+        })
+        .then(t => document.getElementById('content').innerText = t)
+        .catch(e => console.error('文件加载失败:', e));
+</script>
+
+</body>
+</html>
