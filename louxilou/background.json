@@ -1,0 +1,12 @@
+{
+  "backgrounds": [
+    {
+      "id": "main-bg",
+      "images": ["image/bg (1).jpg", "image/bg (1).png", "image/bg (2).png"],
+      "position": "center center",
+      "size": "cover",
+      "repeat": "no-repeat",
+      "attachment": "fixed"
+    }
+  ]
+}
