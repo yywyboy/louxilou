@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiMo - Creative Lab</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-color: #1a1a1a;
+            --secondary-color: #666666;
+            --light-gray: #fafafa;
+            --border-color: #e0e0e0;
+            --border-color-dark: #d0d0d0;
+            --white: #ffffff;
+            --transition: all 0.3s ease;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--white);
+            color: var(--primary-color);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .glass-menu {
+            position: fixed;
+            right: 32px;
+            bottom: 32px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .glass-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 8px 8px 16px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 50px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .menu-trigger {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-icon {
+            width: 22px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-trigger.active .menu-icon {
+            gap: 0;
+        }
+
+        .menu-bar {
+            width: 18px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .menu-trigger.active .menu-bar:nth-child(1) {
+            transform: rotate(45deg) translateY(3px);
+        }
+
+        .menu-trigger.active .menu-bar:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-trigger.active .menu-bar:nth-child(3) {
+            transform: rotate(-45deg) translateY(-3px);
+        }
+
+        .avatar-trigger {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar-trigger::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                #ff6b6b, #feca57, #48dbfb, #ff9ff3,
+                #54a0ff, #5f27cd, #ff6b6b
+            );
+            animation: rotate 3s linear infinite;
+        }
+
+        .avatar-trigger::after {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            background: var(--white);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .avatar-trigger .mode-icon {
+            position: relative;
+            z-index: 2;
+            font-size: 18px;
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .avatar-trigger:hover {
+            transform: scale(1.15);
+            box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        @keyframes rotate {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        body.dark-mode {
+            --primary-color: #ffffff;
+            --secondary-color: #a0a0a0;
+            --light-gray: #1a1a1a;
+            --border-color: #333333;
+            --border-color-dark: #444444;
+            --white: #0a0a0a;
+        }
+
+        body.dark-mode .glass-button {
+            background: rgba(20, 20, 20, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        body.dark-mode .menu-card {
+            background: rgba(20, 20, 20, 0.95);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body.dark-mode .menu-card-header,
+        body.dark-mode .nav-item span,
+        body.dark-mode .nav-item svg {
+            color: var(--primary-color);
+        }
+
+        body.dark-mode .nav-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        body.dark-mode .avatar-trigger::after {
+            background: var(--white);
+        }
+
+        .menu-card {
+            position: absolute;
+            right: 0;
+            bottom: 72px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 24px;
+            min-width: 280px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
+        }
+
+        .menu-card.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .menu-card-header {
+            font-size: 11px;
+            letter-spacing: 3px;
+            color: var(--secondary-color);
+            text-transform: uppercase;
+            margin-bottom: 16px;
+            font-weight: 500;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            border-radius: 16px;
+            text-decoration: none;
+            color: var(--secondary-color);
+            transition: all 0.2s ease;
+            margin-bottom: 8px;
+        }
+
+        .nav-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+            color: var(--primary-color);
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            stroke: currentColor;
+            stroke-width: 2;
+            fill: none;
+        }
+
+        .nav-item span {
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .glass-menu {
+                right: 16px;
+                bottom: 16px;
+            }
+
+            .menu-card {
+                right: 0;
+                left: 16px;
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="glass-menu">
+        <div class="glass-button">
+            <div class="menu-trigger" id="menuTrigger">
+                <div class="menu-icon">
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                    <span class="menu-bar"></span>
+                </div>
+            </div>
+            <div class="avatar-trigger" id="avatarTrigger">
+                <span class="mode-icon" id="modeIcon">🌙</span>
+            </div>
+        </div>
+        
+        <div class="menu-card" id="menuCard">
+            <div class="menu-card-header">Navigation</div>
+            <a href="#products" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                </svg>
+                <span>Products</span>
+            </a>
+            <a href="#showcase" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <rect x="2" y="3" width="20" height="14"/>
+                    <polyline points="8 21 12 17 16 21"/>
+                    <line x1="12" y1="21" x2="12" y2="17"/>
+                </svg>
+                <span>Showcase</span>
+            </a>
+            <a href="#features" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Features</span>
+            </a>
+            <a href="#contact" class="nav-item">
+                <svg viewBox="0 0 24 24">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                    <polyline points="22,6 12,13 2,6"/>
+                </svg>
+                <span>Contact</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        const menuTrigger = document.getElementById('menuTrigger');
+        const avatarTrigger = document.getElementById('avatarTrigger');
+        const modeIcon = document.getElementById('modeIcon');
+        const menuCard = document.getElementById('menuCard');
+        const body = document.body;
+
+        let isDarkMode = false;
+
+        menuTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menuTrigger.classList.toggle('active');
+            menuCard.classList.toggle('active');
+        });
+
+        avatarTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isDarkMode = !isDarkMode;
+            
+            if (isDarkMode) {
+                body.classList.add('dark-mode');
+                modeIcon.textContent = '☀️';
+            } else {
+                body.classList.remove('dark-mode');
+                modeIcon.textContent = '🌙';
+            }
+
+            menuCard.classList.remove('active');
+            menuTrigger.classList.remove('active');
+        });
+
+        document.addEventListener('click', (event) => {
+            if (!menuTrigger.contains(event.target) && !menuCard.contains(event.target)) {
+                menuTrigger.classList.remove('active');
+                menuCard.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+
+</html>
