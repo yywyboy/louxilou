@@ -19,7 +19,7 @@ const closeMenu = () => {
 }
 
 const menuItems = [
-  { path: '/living-room', name: '待客厅', icon: 'lounge' },
+  { path: '/', name: '待客厅', icon: 'lounge' },
   { path: '/library', name: '藏书阁', icon: 'library' },
   { path: '/observation', name: '观景台', icon: 'view' },
   { path: '/reading-room', name: '阅读区', icon: 'reading' },
@@ -147,34 +147,49 @@ if (typeof document !== 'undefined') {
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  transition: all 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: width 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+              transform 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+              opacity 0.55s cubic-bezier(0.32, 0.72, 0, 1),
+              box-shadow 0.55s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
-  width: auto;
+  width: 100px;
   height: auto;
   margin-left: auto;
 }
 
 .glass-container.expanded {
-  min-width: 240px;
-  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  width: 260px;
+  transition: width 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+              box-shadow 0.65s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .glass-content {
   overflow: hidden;
   max-height: 0;
   opacity: 0;
-  transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transition-delay: 0s;
+  transform: translateY(-15px) scale(0.92);
+  transform-origin: bottom center;
+  transition: max-height 0.45s cubic-bezier(0.55, 0, 1, 0.45),
+              opacity 0.35s cubic-bezier(0.55, 0, 1, 0.45),
+              transform 0.45s cubic-bezier(0.55, 0, 1, 0.45),
+              padding 0.45s cubic-bezier(0.55, 0, 1, 0.45);
   width: 100%;
   box-sizing: border-box;
+  padding: 0 20px;
 }
 
 .glass-container.expanded .glass-content {
   max-height: 650px;
   opacity: 1;
   padding: 24px 20px 0;
-  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  transition-delay: 0.1s;
+  transform: translateY(0) scale(1);
+  transition: max-height 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+              opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.65s cubic-bezier(0.23, 1, 0.32, 1),
+              padding 0.65s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: 0.08s;
   width: 100%;
   box-sizing: border-box;
 }
@@ -182,35 +197,54 @@ if (typeof document !== 'undefined') {
 .glass-controls {
   display: flex;
   align-items: center;
-  gap: 0;
-  padding: 12px 12px 12px 20px;
-  transition: all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  justify-content: space-between;
+  gap: 8px;
+  padding: 8px;
+  transition: all 0.55s cubic-bezier(0.32, 0.72, 0, 1);
+  justify-content: flex-end;
   width: 100%;
   box-sizing: border-box;
 }
 
 .glass-container.expanded .glass-controls {
-  padding: 12px 20px 16px;
+  padding: 12px 16px;
+  justify-content: space-between;
+  transition: all 0.65s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .bottom-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0;
+  transform: scale(0.8) translateX(-10px);
+  transition: opacity 0.4s cubic-bezier(0.55, 0, 1, 0.45),
+              transform 0.4s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.glass-container.expanded .bottom-nav {
+  opacity: 1;
+  transform: scale(1) translateX(0);
+  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: 0.15s;
 }
 
 .bottom-nav-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 10px;
   border-radius: 10px;
   text-decoration: none;
   color: var(--secondary-color, #666666);
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 500;
+  white-space: nowrap;
+  min-width: 50px;
 }
 
 .bottom-nav-item:hover {
@@ -232,6 +266,18 @@ if (typeof document !== 'undefined') {
   height: 32px;
   background: var(--border-color, #e0e0e0);
   margin: 0 12px;
+  opacity: 0;
+  transform: scaleY(0);
+  transition: opacity 0.35s cubic-bezier(0.55, 0, 1, 0.45),
+              transform 0.35s cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+.glass-container.expanded .divider {
+  opacity: 1;
+  transform: scaleY(1);
+  transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1),
+              transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
+  transition-delay: 0.2s;
 }
 
 .right-controls {

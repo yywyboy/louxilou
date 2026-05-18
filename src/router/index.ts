@@ -11,13 +11,13 @@ import Settings from '../views/Settings.vue'
 const routes = [
   {
     path: '/',
-    name: 'Home',
-    component: Home
-  },
-  {
-    path: '/living-room',
     name: 'LivingRoom',
     component: LivingRoom
+  },
+  {
+    path: '/home',
+    name: 'Home',
+    component: Home
   },
   {
     path: '/library',
