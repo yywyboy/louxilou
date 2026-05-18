@@ -19,16 +19,16 @@ const closeMenu = () => {
 }
 
 const menuItems = [
-  { path: '/', name: '待客厅', icon: 'lounge' },
-  { path: '/about', name: '藏书阁', icon: 'library' },
-  { path: '/articles', name: '观景台', icon: 'view' },
-  { path: '/contact', name: '阅读区', icon: 'reading' },
-  { path: '/', name: '聊天室', icon: 'chat' }
+  { path: '/living-room', name: '待客厅', icon: 'lounge' },
+  { path: '/library', name: '藏书阁', icon: 'library' },
+  { path: '/observation', name: '观景台', icon: 'view' },
+  { path: '/reading-room', name: '阅读区', icon: 'reading' },
+  { path: '/chat-room', name: '聊天室', icon: 'chat' }
 ]
 
 const bottomItems = [
-  { path: '/', name: '个人', icon: 'user' },
-  { path: '/', name: '设置', icon: 'settings' }
+  { path: '/profile', name: '个人', icon: 'user' },
+  { path: '/settings', name: '设置', icon: 'settings' }
 ]
 
 const handleClickOutside = (e: MouseEvent) => {

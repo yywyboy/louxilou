@@ -1,8 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
-import About from '../views/About.vue'
-import Articles from '../views/Articles.vue'
-import Contact from '../views/Contact.vue'
+import LivingRoom from '../views/LivingRoom.vue'
+import Library from '../views/Library.vue'
+import Observation from '../views/Observation.vue'
+import ReadingRoom from '../views/ReadingRoom.vue'
+import ChatRoom from '../views/ChatRoom.vue'
+import Profile from '../views/Profile.vue'
+import Settings from '../views/Settings.vue'
 
 const routes = [
   {
@@ -11,19 +15,39 @@ const routes = [
     component: Home
   },
   {
-    path: '/about',
-    name: 'About',
-    component: About
+    path: '/living-room',
+    name: 'LivingRoom',
+    component: LivingRoom
   },
   {
-    path: '/articles',
-    name: 'Articles',
-    component: Articles
+    path: '/library',
+    name: 'Library',
+    component: Library
   },
   {
-    path: '/contact',
-    name: 'Contact',
-    component: Contact
+    path: '/observation',
+    name: 'Observation',
+    component: Observation
+  },
+  {
+    path: '/reading-room',
+    name: 'ReadingRoom',
+    component: ReadingRoom
+  },
+  {
+    path: '/chat-room',
+    name: 'ChatRoom',
+    component: ChatRoom
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: Settings
   }
 ]
 
