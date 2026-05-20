@@ -12,6 +12,7 @@ const toggleMenu = () => {
 const toggleDarkMode = () => {
   isDarkMode.value = !isDarkMode.value
   document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light')
+  document.dispatchEvent(new Event('themechange'))
 }
 
 const closeMenu = () => {
