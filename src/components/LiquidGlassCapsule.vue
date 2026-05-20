@@ -122,6 +122,7 @@ if (typeof document !== 'undefined') {
             </div>
           </div>
           <div class="avatar-trigger" @click.stop="toggleDarkMode">
+            <img src="/p.png" alt="Avatar" class="avatar-image" />
             <span class="mode-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
           </div>
         </div>
@@ -371,12 +372,27 @@ if (typeof document !== 'undefined') {
   z-index: 1;
 }
 
-.avatar-trigger .mode-icon {
+.avatar-image {
   position: relative;
   z-index: 2;
-  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.avatar-trigger .mode-icon {
+  position: absolute;
+  z-index: 3;
+  font-size: 10px;
   color: var(--primary-color, #1a1a1a);
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  bottom: 2px;
+  right: 2px;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 2px;
 }
 
 .avatar-trigger:hover {
