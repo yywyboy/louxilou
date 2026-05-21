@@ -6,29 +6,31 @@
     </div>
     
     <div class="gallery-grid">
-      <div
-        v-for="(image, index) in filteredImages"
-        :key="image.src"
-        class="gallery-item"
-        @click="openLightbox(index)"
-      >
-        <div class="image-wrapper">
-          <img 
-            :src="image.src" 
-            :alt="image.alt" 
-            class="gallery-image"
-            loading="lazy"
-          />
-          <div class="image-overlay">
-            <span class="overlay-icon">👁️</span>
-            <span class="overlay-text">查看大图</span>
+      <TransitionGroup name="gallery" tag="div" class="gallery-list">
+        <div
+          v-for="(image, index) in displayedImages"
+          :key="image.src"
+          class="gallery-item"
+          @click="openLightbox(filteredImages.indexOf(image))"
+        >
+          <div class="image-wrapper">
+            <img 
+              :src="image.src" 
+              :alt="image.alt" 
+              class="gallery-image"
+              loading="lazy"
+            />
+            <div class="image-overlay">
+              <span class="overlay-icon">👁️</span>
+              <span class="overlay-text">查看大图</span>
+            </div>
+          </div>
+          <div class="image-info">
+            <span class="image-title">{{ image.alt }}</span>
+            <span class="image-category">{{ getCategoryLabel(image.category) }}</span>
           </div>
         </div>
-        <div class="image-info">
-          <span class="image-title">{{ image.alt }}</span>
-          <span class="image-category">{{ getCategoryLabel(image.category) }}</span>
-        </div>
-      </div>
+      </TransitionGroup>
     </div>
     
     <div class="search-container">
@@ -87,6 +89,7 @@ const lightboxOpen = ref(false)
 const currentIndex = ref(0)
 const isSearchOpen = ref(false)
 const selectedCategory = ref('all')
+const debouncedCategory = ref('all')
 
 const categories = [
   { label: '全部', value: 'all' },
@@ -97,27 +100,72 @@ const categories = [
   { label: '美食料理', value: 'food' }
 ]
 
-const getCategory = (index: number) => {
-  const categoryOrder = ['nature', 'city', 'portrait', 'animal', 'food']
-  return categoryOrder[index % categoryOrder.length]
-}
-
 const getCategoryLabel = (value: string) => {
   const cat = categories.find(c => c.value === value)
   return cat ? cat.label : value
 }
 
-const images = Array.from({ length: 36 }, (_, i) => ({
-  src: `/photos/photo (${i + 1}).jpg`,
-  alt: `风景 ${i + 1}`,
-  category: getCategory(i)
-}))
+const images = [
+  { src: '/photos/photo (1).jpg', alt: '枯萎荷叶', category: 'nature' },
+  { src: '/photos/photo (2).jpg', alt: '挂枝银杏', category: 'nature' },
+  { src: '/photos/photo (3).jpg', alt: '枯萎荷叶', category: 'nature' },
+  { src: '/photos/photo (4).jpg', alt: '夜景烟花', category: 'nature' },
+  { src: '/photos/photo (5).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (6).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (7).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (8).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (9).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (10).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (11).jpg', alt: '散落银杏', category: 'nature' },
+  { src: '/photos/photo (12).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (13).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (14).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (15).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (16).jpg', alt: '夜景烟花', category: 'city' },
+  { src: '/photos/photo (17).jpg', alt: '红色枫叶', category: 'nature' },
+  { src: '/photos/photo (18).jpg', alt: '红色枫叶', category: 'nature' },
+  { src: '/photos/photo (19).jpg', alt: '红色枫叶', category: 'nature' },
+  { src: '/photos/photo (20).jpg', alt: '挂枝银杏', category: 'nature' },
+  { src: '/photos/photo (21).jpg', alt: '枯萎荷叶', category: 'nature' },
+  { src: '/photos/photo (22).jpg', alt: '水到渠成', category: 'nature' },
+  { src: '/photos/photo (23).jpg', alt: '植物微距', category: 'nature' },
+  { src: '/photos/photo (24).jpg', alt: '天为画布', category: 'nature' },
+  { src: '/photos/photo (25).jpg', alt: '这是花花', category: 'nature' },
+  { src: '/photos/photo (26).jpg', alt: '水中三鸭', category: 'animal' },
+  { src: '/photos/photo (27).jpg', alt: '一只黑鸭', category: 'animal' },
+  { src: '/photos/photo (28).jpg', alt: '水中两鸭', category: 'animal' },
+  { src: '/photos/photo (29).jpg', alt: '这是啥鸟', category: 'animal' },
+  { src: '/photos/photo (30).jpg', alt: '花花特写', category: 'nature' },
+  { src: '/photos/photo (31).jpg', alt: 'S型沙发', category: 'city' },
+  { src: '/photos/photo (32).jpg', alt: '修枝工人', category: 'portrait' },
+  { src: '/photos/photo (33).jpg', alt: '植物微距', category: 'nature' },
+  { src: '/photos/photo (34).jpg', alt: '植物微距', category: 'nature' },
+  { src: '/photos/photo (35).jpg', alt: '植物微距', category: 'nature' },
+  { src: '/photos/photo (36).jpg', alt: '散落银杏', category: 'nature' }
+]
 
 const filteredImages = computed(() => {
   return images.filter(img => {
     return selectedCategory.value === 'all' || img.category === selectedCategory.value
   })
 })
+
+const displayedImages = computed(() => {
+  return images.filter(img => {
+    return debouncedCategory.value === 'all' || img.category === debouncedCategory.value
+  })
+})
+
+let debounceTimer: number | null = null
+
+const debounceSelectCategory = (category: string) => {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
+  debounceTimer = window.setTimeout(() => {
+    debouncedCategory.value = category
+  }, 150)
+}
 
 const toggleSearch = () => {
   isSearchOpen.value = !isSearchOpen.value
@@ -128,6 +176,7 @@ const toggleSearch = () => {
 
 const selectCategory = (category: string) => {
   selectedCategory.value = category
+  debounceSelectCategory(category)
 }
 
 const handleGlassMenuOpen = () => {
@@ -138,10 +187,14 @@ const handleGlassMenuOpen = () => {
 
 onMounted(() => {
   document.addEventListener('glassmenuopen', handleGlassMenuOpen)
+  debouncedCategory.value = selectedCategory.value
 })
 
 onUnmounted(() => {
   document.removeEventListener('glassmenuopen', handleGlassMenuOpen)
+  if (debounceTimer) {
+    clearTimeout(debounceTimer)
+  }
 })
 
 const openLightbox = (index: number) => {
@@ -191,12 +244,15 @@ const nextImage = () => {
 }
 
 .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 1rem;
+}
+
+.gallery-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
 }
 
 .gallery-item {
@@ -228,6 +284,25 @@ const nextImage = () => {
 
 .gallery-item:hover .gallery-image {
   transform: scale(1.08);
+}
+
+.gallery-enter-active,
+.gallery-leave-active {
+  transition: all 0.35s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.gallery-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.gallery-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+}
+
+.gallery-move {
+  transition: transform 0.35s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .image-overlay {
