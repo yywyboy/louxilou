@@ -368,10 +368,10 @@ const nextImage = () => {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--search-bg, rgba(255, 255, 255, 0.85));
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--search-border, rgba(255, 255, 255, 0.5));
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 25px;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.08),
@@ -379,9 +379,7 @@ const nextImage = () => {
   transition: width 0.55s cubic-bezier(0.32, 0.72, 0, 1),
               transform 0.55s cubic-bezier(0.32, 0.72, 0, 1),
               opacity 0.55s cubic-bezier(0.32, 0.72, 0, 1),
-              box-shadow 0.55s cubic-bezier(0.32, 0.72, 0, 1),
-              background 0.3s ease,
-              border-color 0.3s ease;
+              box-shadow 0.55s cubic-bezier(0.32, 0.72, 0, 1);
   width: 56px;
   height: 56px;
   overflow: hidden;
@@ -654,5 +652,32 @@ const nextImage = () => {
   }
 }
 
+[data-theme="dark"] .search-box {
+  background: rgba(30, 30, 40, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .search-content {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .filter-tag {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: var(--text-secondary, #a0a0b0);
+}
+
+[data-theme="dark"] .filter-tag:hover {
+  border-color: #56b6ff;
+  color: #56b6ff;
+}
+
+[data-theme="dark"] .filter-tag.active {
+  background: #56b6ff;
+  border-color: #56b6ff;
+  color: #ffffff;
+}
 
 </style>
