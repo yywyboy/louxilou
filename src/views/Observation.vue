@@ -8,7 +8,7 @@
     <div class="gallery-grid">
       <TransitionGroup name="gallery" tag="div" class="gallery-list">
         <div
-          v-for="(image, index) in displayedImages"
+          v-for="image in displayedImages"
           :key="image.src"
           class="gallery-item"
           @click="openLightbox(filteredImages.indexOf(image))"
