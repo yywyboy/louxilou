@@ -27,12 +27,22 @@
       </div>
 
       <a :href="contactInfo.bilibili" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
-        <div class="icon-wrapper bilibili-icon">B</div>
+        <div class="icon-wrapper bilibili-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+            <rect x="3" y="3" width="18" height="18" rx="4" fill="#FB7299"/>
+            <text x="12" y="17" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">B</text>
+          </svg>
+        </div>
         <span class="icon-label">bilibili</span>
       </a>
 
       <a :href="contactInfo.acfun" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
-        <div class="icon-wrapper acfun-icon">A</div>
+        <div class="icon-wrapper acfun-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+            <rect x="3" y="3" width="18" height="18" rx="4" fill="#FF6B6B"/>
+            <text x="12" y="17" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">A</text>
+          </svg>
+        </div>
         <span class="icon-label">AcFun</span>
       </a>
 
@@ -46,7 +56,11 @@
       </a>
 
       <a :href="contactInfo.x" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
-        <div class="icon-wrapper x-icon">𝕏</div>
+        <div class="icon-wrapper x-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+          </svg>
+        </div>
         <span class="icon-label">X</span>
       </a>
 
@@ -198,37 +212,36 @@ const contactInfo = {
 }
 
 .icon-wrapper {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  color: #fff;
-  font-weight: bold;
+  background: var(--icon-bg, #f0f0f0);
 }
 
 .bilibili-icon {
-  background: linear-gradient(135deg, #fb7299 0%, #f5576c 100%);
-  font-size: 0.95rem;
+  background: linear-gradient(135deg, #FB7299 0%, #F5576C 100%);
 }
 
 .acfun-icon {
-  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-  font-size: 1.3rem;
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
 }
 
 .github-icon {
-  background: linear-gradient(135deg, #434343 0%, #000000 100%);
+  background: #171515;
+  color: #fff;
 }
 
 .x-icon {
-  background: linear-gradient(135deg, #000000 0%, #333333 100%);
+  background: #000000;
+  color: #fff;
 }
 
 .instagram-icon {
   background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #fff;
 }
 
 .icon-label {
