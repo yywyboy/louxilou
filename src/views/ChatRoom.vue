@@ -69,8 +69,17 @@
       <a :href="contactInfo.douyin" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
         <div class="icon-wrapper douyin-icon">
           <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
-            <circle cx="12" cy="12" r="10.5" fill="#000"/>
-            <path d="M9.5 8.5c1.5 0 2.5.5 3.5 1.5s1.5 2.5 1.5 4.5c0 2-0.5 3.5-1.5 4.5s-2.5 1.5-4.5 1.5v-2.5c1 0 1.5-0.5 2-1s0.5-2 0.5-4c0-2-0.5-3.5-1.5-4.5s-2.5-1.5-4-1.5v2.5c1.5 0 2.5 0.5 3.5 1.5s1.5 2.5 1.5 4.5c0 1.5-0.5 2.5-1.5 3.5s-2.5 1-4 1v2.5c2.5 0 4.5-0.5 6-1.5s2-2.5 2-4.5c0-2.5-0.5-4-2-5.5s-3.5-2-6-2z" fill="white"/>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="url(#douyinGradient)"/>
+            <path d="M9.5 15.5c-.83 0-1.5-.67-1.5-1.5V9c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v5c0 .83-.67 1.5-1.5 1.5z" fill="#fff"/>
+            <path d="M14.5 15.5c-.83 0-1.5-.67-1.5-1.5v-2c0-.83.67-1.5 1.5-1.5s1.5.67 1.5 1.5v2c0 .83-.67 1.5-1.5 1.5z" fill="#fff"/>
+            <circle cx="17" cy="7" r="1.5" fill="#fff"/>
+            <defs>
+              <linearGradient id="douyinGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#FE2C55"/>
+                <stop offset="50%" stop-color="#F58529"/>
+                <stop offset="100%" stop-color="#FF0050"/>
+              </linearGradient>
+            </defs>
           </svg>
         </div>
         <span class="icon-label">抖音</span>
@@ -305,7 +314,6 @@ const copyToClipboard = async (text: string, field: string) => {
 
 .douyin-icon {
   background: transparent;
-  padding: 2px;
 }
 
 .github-icon {
