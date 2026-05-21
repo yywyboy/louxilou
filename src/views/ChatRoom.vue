@@ -66,6 +66,16 @@
         <span class="icon-label">AcFun</span>
       </a>
 
+      <a :href="contactInfo.douyin" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper douyin-icon">
+          <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
+            <rect x="3" y="3" width="18" height="18" rx="4" fill="#FE2C55"/>
+            <text x="12" y="17" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">音</text>
+          </svg>
+        </div>
+        <span class="icon-label">抖音</span>
+      </a>
+
       <a :href="contactInfo.github" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
         <div class="icon-wrapper github-icon">
           <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
@@ -104,6 +114,7 @@ const contactInfo = {
   phone: '17766710131',
   bilibili: 'https://space.bilibili.com/603244446?spm_id_from=333.1007.0.0',
   acfun: 'https://www.acfun.cn/u/45238942',
+  douyin: 'https://www.douyin.com/user/MS4wLjABAAAABe8u8MGYZKd631TZB7hWZwnGH2ZR1A5DyD2oTcgnLe4?from_tab_name=main',
   github: 'https://github.com/yywyboy',
   x: 'https://x.com/louxilou_',
   instagram: 'https://www.instagram.com/louxilou_?igsh=dzFjb3Nsc2Zjc2Qx'
@@ -290,6 +301,10 @@ const copyToClipboard = async (text: string, field: string) => {
 
 .acfun-icon {
   background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+}
+
+.douyin-icon {
+  background: linear-gradient(135deg, #FE2C55 0%, #F58529 50%, #FF0050 100%);
 }
 
 .github-icon {
