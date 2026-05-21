@@ -69,8 +69,8 @@
       <a :href="contactInfo.douyin" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
         <div class="icon-wrapper douyin-icon">
           <svg viewBox="0 0 24 24" fill="none" width="24" height="24">
-            <rect x="3" y="3" width="18" height="18" rx="4" fill="#FE2C55"/>
-            <text x="12" y="17" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white" text-anchor="middle">音</text>
+            <circle cx="12" cy="12" r="10.5" fill="#000"/>
+            <path d="M9.5 8.5c1.5 0 2.5.5 3.5 1.5s1.5 2.5 1.5 4.5c0 2-0.5 3.5-1.5 4.5s-2.5 1.5-4.5 1.5v-2.5c1 0 1.5-0.5 2-1s0.5-2 0.5-4c0-2-0.5-3.5-1.5-4.5s-2.5-1.5-4-1.5v2.5c1.5 0 2.5 0.5 3.5 1.5s1.5 2.5 1.5 4.5c0 1.5-0.5 2.5-1.5 3.5s-2.5 1-4 1v2.5c2.5 0 4.5-0.5 6-1.5s2-2.5 2-4.5c0-2.5-0.5-4-2-5.5s-3.5-2-6-2z" fill="white"/>
           </svg>
         </div>
         <span class="icon-label">抖音</span>
@@ -304,7 +304,8 @@ const copyToClipboard = async (text: string, field: string) => {
 }
 
 .douyin-icon {
-  background: linear-gradient(135deg, #FE2C55 0%, #F58529 50%, #FF0050 100%);
+  background: transparent;
+  padding: 2px;
 }
 
 .github-icon {
