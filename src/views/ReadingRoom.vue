@@ -52,18 +52,18 @@ const announcements = [
 }
 
 h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-color, #333);
-  text-align: center;
-}
-
-p {
-  font-size: 1.1rem;
-  color: var(--text-secondary, #666);
-  text-align: center;
-  margin-bottom: 2rem;
-}
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--color-text, #333);
+    text-align: center;
+  }
+  
+  p {
+    font-size: 1.1rem;
+    color: var(--color-text-secondary, #666);
+    text-align: center;
+    margin-bottom: 2rem;
+  }
 
 .announcement-list {
   display: flex;
@@ -92,26 +92,26 @@ p {
 }
 
 .announcement-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--text-color, #1a1a1a);
-}
-
-.announcement-date {
-  font-size: 0.85rem;
-  color: var(--text-secondary, #666);
-  background: var(--bg-color, #f0f0f0);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-}
-
-.announcement-content {
-  font-size: 1rem;
-  color: var(--text-secondary, #666);
-  line-height: 1.6;
-  text-align: left;
-  margin-bottom: 0;
-}
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--color-text, #1a1a1a);
+  }
+  
+  .announcement-date {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary, #666);
+    background: var(--color-bg, #f0f0f0);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+  }
+  
+  .announcement-content {
+    font-size: 1rem;
+    color: var(--color-text-secondary, #666);
+    line-height: 1.6;
+    text-align: left;
+    margin-bottom: 0;
+  }
 
 [data-theme="dark"] .announcement-card {
   background: rgba(30, 30, 40, 0.85);
