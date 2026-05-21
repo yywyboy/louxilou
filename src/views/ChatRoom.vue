@@ -8,75 +8,49 @@
     <div class="contact-layout">
       <div class="contact-info-section">
         <h2>联系方式</h2>
+        <div class="contact-grid">
+          <a :href="'mailto:' + contactInfo.email" class="contact-card email-card">
+            <div class="contact-icon email-icon">📧</div>
+            <span class="contact-label">邮箱</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon email-icon">📧</div>
-          <div class="contact-details">
-            <h3>电子邮箱</h3>
-            <a :href="'mailto:' + contactInfo.email" class="contact-link">
-              {{ contactInfo.email }}
-            </a>
-          </div>
-        </div>
+          <a :href="'tel:' + contactInfo.phone" class="contact-card phone-card">
+            <div class="contact-icon phone-icon">📱</div>
+            <span class="contact-label">电话</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon phone-icon">📱</div>
-          <div class="contact-details">
-            <h3>电话号码</h3>
-            <a :href="'tel:' + contactInfo.phone" class="contact-link">
-              {{ contactInfo.phone }}
-            </a>
-          </div>
-        </div>
+          <a :href="contactInfo.bilibili" target="_blank" rel="noopener noreferrer" class="contact-card bilibili-card">
+            <div class="contact-icon bilibili-icon">�Bilibili</div>
+            <span class="contact-label">bilibili</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon bilibili-icon">📺</div>
-          <div class="contact-details">
-            <h3>B站</h3>
-            <a :href="contactInfo.bilibili" target="_blank" rel="noopener noreferrer" class="contact-link">
-              {{ contactInfo.bilibili }}
-            </a>
-          </div>
-        </div>
+          <a :href="contactInfo.acfun" target="_blank" rel="noopener noreferrer" class="contact-card acfun-card">
+            <div class="contact-icon acfun-icon">𝔸</div>
+            <span class="contact-label">AcFun</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon acfun-icon">🎮</div>
-          <div class="contact-details">
-            <h3>AcFun</h3>
-            <a :href="contactInfo.acfun" target="_blank" rel="noopener noreferrer" class="contact-link">
-              {{ contactInfo.acfun }}
-            </a>
-          </div>
-        </div>
+          <a :href="contactInfo.github" target="_blank" rel="noopener noreferrer" class="contact-card github-card">
+            <div class="contact-icon github-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+              </svg>
+            </div>
+            <span class="contact-label">GitHub</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon github-icon">💻</div>
-          <div class="contact-details">
-            <h3>GitHub</h3>
-            <a :href="contactInfo.github" target="_blank" rel="noopener noreferrer" class="contact-link">
-              {{ contactInfo.github }}
-            </a>
-          </div>
-        </div>
+          <a :href="contactInfo.x" target="_blank" rel="noopener noreferrer" class="contact-card x-card">
+            <div class="contact-icon x-icon">𝕏</div>
+            <span class="contact-label">X</span>
+          </a>
 
-        <div class="contact-item">
-          <div class="contact-icon x-icon">𝕏</div>
-          <div class="contact-details">
-            <h3>X</h3>
-            <a :href="contactInfo.x" target="_blank" rel="noopener noreferrer" class="contact-link">
-              {{ contactInfo.x }}
-            </a>
-          </div>
-        </div>
-
-        <div class="contact-item">
-          <div class="contact-icon instagram-icon">📸</div>
-          <div class="contact-details">
-            <h3>Instagram</h3>
-            <a :href="contactInfo.instagram" target="_blank" rel="noopener noreferrer" class="contact-link">
-              {{ contactInfo.instagram }}
-            </a>
-          </div>
+          <a :href="contactInfo.instagram" target="_blank" rel="noopener noreferrer" class="contact-card instagram-card">
+            <div class="contact-icon instagram-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </div>
+            <span class="contact-label">Instagram</span>
+          </a>
         </div>
       </div>
 
@@ -126,10 +100,13 @@ const sendMessage = () => {
     alert('请填写完整信息')
     return
   }
-  alert('留言已发送！感谢你的留言，我会尽快回复。')
-  message.name = ''
-  message.email = ''
-  message.content = ''
+  
+  const subject = encodeURIComponent(`来自 ${message.name} 的留言`)
+  const body = encodeURIComponent(
+    `姓名：${message.name}\n邮箱：${message.email}\n\n留言内容：\n${message.content}`
+  )
+  
+  window.location.href = `mailto:${contactInfo.email}?subject=${subject}&body=${body}`
 }
 </script>
 
@@ -184,16 +161,29 @@ const sendMessage = () => {
   border-bottom: 2px solid rgba(102, 126, 234, 0.2);
 }
 
-.contact-item {
-  display: flex;
-  align-items: center;
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
   gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.contact-item:last-child {
-  border-bottom: none;
+.contact-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--card-bg, #ffffff);
+  border-radius: 16px;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.contact-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .contact-icon {
@@ -203,8 +193,9 @@ const sendMessage = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  flex-shrink: 0;
+  font-size: 1.2rem;
+  color: #fff;
+  font-weight: bold;
 }
 
 .email-icon {
@@ -217,10 +208,12 @@ const sendMessage = () => {
 
 .bilibili-icon {
   background: linear-gradient(135deg, #fb7299 0%, #f5576c 100%);
+  font-size: 0.9rem;
 }
 
 .acfun-icon {
   background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+  font-size: 1.4rem;
 }
 
 .github-icon {
@@ -235,24 +228,10 @@ const sendMessage = () => {
   background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
 }
 
-.contact-details h3 {
-  font-size: 0.85rem;
+.contact-label {
+  font-size: 0.75rem;
   color: var(--text-secondary, #666666);
-  margin-bottom: 0.25rem;
   font-weight: 500;
-}
-
-.contact-link {
-  font-size: 0.95rem;
-  color: var(--text-color, #1a1a1a);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.3s ease;
-  word-break: break-all;
-}
-
-.contact-link:hover {
-  color: #667eea;
 }
 
 .message-section {
@@ -328,8 +307,8 @@ const sendMessage = () => {
   background: rgba(30, 30, 40, 0.8);
 }
 
-[data-theme="dark"] .contact-item {
-  border-bottom-color: rgba(255, 255, 255, 0.05);
+[data-theme="dark"] .contact-card {
+  background: rgba(40, 40, 50, 0.8);
 }
 
 [data-theme="dark"] .form-group input,
@@ -337,12 +316,8 @@ const sendMessage = () => {
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-[data-theme="dark"] .contact-link {
-  color: var(--text-color, #f0f0f5);
-}
-
-[data-theme="dark"] .contact-link:hover {
-  color: #7c8cff;
+[data-theme="dark"] .contact-label {
+  color: var(--text-secondary, #a0a0b0);
 }
 
 @media (max-width: 900px) {
@@ -369,6 +344,10 @@ const sendMessage = () => {
   .contact-info-section,
   .message-section {
     padding: 1.5rem;
+  }
+
+  .contact-grid {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 </style>
