@@ -26,11 +26,11 @@
 h1 {
   font-size: 2.5rem;
   margin-bottom: 1rem;
-  color: var(--text-color, #333);
+  color: var(--color-text, #333);
 }
 
 p {
   font-size: 1.2rem;
-  color: var(--text-secondary, #666);
+  color: var(--color-text-secondary, #666);
 }
 </style>

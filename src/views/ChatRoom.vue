@@ -152,12 +152,12 @@ const copyToClipboard = async (text: string, field: string) => {
 .page-header h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--color-text, #1a1a1a);
 }
 
 .page-header p {
   font-size: 1.1rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
 }
 
 .contact-grid {
@@ -225,13 +225,13 @@ const copyToClipboard = async (text: string, field: string) => {
 
 .contact-label {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
   font-weight: 500;
 }
 
 .contact-value {
   font-size: 1.05rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--color-text, #1a1a1a);
   font-weight: 600;
   word-break: break-all;
 }
@@ -240,7 +240,7 @@ const copyToClipboard = async (text: string, field: string) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
   transition: color 0.3s ease, transform 0.3s ease;
   padding: 0.5rem;
 }
@@ -258,7 +258,7 @@ const copyToClipboard = async (text: string, field: string) => {
 }
 
 [data-theme="dark"] .copy-hint {
-  color: var(--text-secondary, #a0a0b0);
+  color: var(--color-text-secondary, #a0a0b0);
 }
 
 [data-theme="dark"] .contact-item:hover .copy-hint {
@@ -324,7 +324,7 @@ const copyToClipboard = async (text: string, field: string) => {
 
 .icon-label {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
   font-weight: 500;
 }
 
@@ -334,11 +334,11 @@ const copyToClipboard = async (text: string, field: string) => {
 }
 
 [data-theme="dark"] .contact-value {
-  color: var(--text-color, #f0f0f5);
+  color: var(--color-text, #f0f0f5);
 }
 
 [data-theme="dark"] .icon-label {
-  color: var(--text-secondary, #a0a0b0);
+  color: var(--color-text-secondary, #a0a0b0);
 }
 
 @media (max-width: 768px) {

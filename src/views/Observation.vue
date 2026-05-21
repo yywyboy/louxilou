@@ -33,7 +33,7 @@
       </TransitionGroup>
     </div>
     
-    <div class="search-container">
+    <div class="search-container" :class="{ 'transition-hide': isTransitioning }">
       <div class="search-box" :class="{ expanded: isSearchOpen }">
         <div class="search-content" v-if="isSearchOpen">
           <div class="category-filters">
@@ -90,6 +90,7 @@ const currentIndex = ref(0)
 const isSearchOpen = ref(false)
 const selectedCategory = ref('all')
 const debouncedCategory = ref('all')
+const isTransitioning = ref(false)
 
 const categories = [
   { label: '全部', value: 'all' },
@@ -185,13 +186,25 @@ const handleGlassMenuOpen = () => {
   }
 }
 
+const handlePageLeave = () => {
+  isTransitioning.value = true
+}
+
+const handlePageEnter = () => {
+  isTransitioning.value = false
+}
+
 onMounted(() => {
   document.addEventListener('glassmenuopen', handleGlassMenuOpen)
+  document.addEventListener('pageleave', handlePageLeave)
+  document.addEventListener('pageenter', handlePageEnter)
   debouncedCategory.value = selectedCategory.value
 })
 
 onUnmounted(() => {
   document.removeEventListener('glassmenuopen', handleGlassMenuOpen)
+  document.removeEventListener('pageleave', handlePageLeave)
+  document.removeEventListener('pageenter', handlePageEnter)
   if (debounceTimer) {
     clearTimeout(debounceTimer)
   }
@@ -234,13 +247,13 @@ const nextImage = () => {
 .page-header h1 {
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--color-text, #1a1a1a);
   font-weight: 700;
 }
 
 .page-header p {
   font-size: 1.1rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
 }
 
 .gallery-grid {
@@ -345,14 +358,14 @@ const nextImage = () => {
 
 .image-title {
   font-size: 0.95rem;
-  color: var(--text-color, #1a1a1a);
+  color: var(--color-text, #1a1a1a);
   font-weight: 500;
   display: block;
 }
 
 .image-category {
   font-size: 0.75rem;
-  color: var(--text-secondary, #999999);
+  color: var(--color-text-secondary, #999999);
   margin-top: 0.25rem;
   display: block;
 }
@@ -416,7 +429,7 @@ const nextImage = () => {
 
 .filter-label {
   font-size: 0.8rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
   margin-bottom: 8px;
   display: block;
 }
@@ -432,7 +445,7 @@ const nextImage = () => {
   border: 1px solid #e0e0e0;
   border-radius: 20px;
   font-size: 0.8rem;
-  color: var(--text-secondary, #666666);
+  color: var(--color-text-secondary, #666666);
   background: transparent;
   cursor: pointer;
   transition: all 0.3s;
@@ -456,7 +469,7 @@ const nextImage = () => {
 
 .results-count {
   font-size: 0.75rem;
-  color: var(--text-secondary, #999999);
+  color: var(--color-text-secondary, #999999);
 }
 
 .search-trigger {
@@ -666,7 +679,7 @@ const nextImage = () => {
 
 [data-theme="dark"] .filter-tag {
   border-color: rgba(255, 255, 255, 0.2);
-  color: var(--text-secondary, #a0a0b0);
+  color: var(--color-text-secondary, #a0a0b0);
 }
 
 [data-theme="dark"] .filter-tag:hover {
