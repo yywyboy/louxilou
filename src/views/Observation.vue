@@ -14,14 +14,11 @@
       >
         <div class="image-wrapper">
           <img 
-            :data-src="image.src" 
+            :src="image.src" 
             :alt="image.alt" 
-            class="gallery-image lazy-image"
-            @load="onImageLoad"
+            class="gallery-image"
+            loading="lazy"
           />
-          <div class="image-placeholder">
-            <span class="placeholder-icon">🖼️</span>
-          </div>
           <div class="image-overlay">
             <span class="overlay-icon">👁️</span>
             <span class="overlay-text">查看大图</span>
@@ -90,7 +87,6 @@ const lightboxOpen = ref(false)
 const currentIndex = ref(0)
 const isSearchOpen = ref(false)
 const selectedCategory = ref('all')
-let observer: IntersectionObserver | null = null
 
 const categories = [
   { label: '全部', value: 'all' },
@@ -130,56 +126,6 @@ const toggleSearch = () => {
   }
 }
 
-const onImageLoad = (e: Event) => {
-  const img = e.target as HTMLImageElement
-  img.classList.add('loaded')
-}
-
-const initLazyLoad = () => {
-  if ('IntersectionObserver' in window) {
-    observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const img = entry.target as HTMLImageElement
-            const src = img.getAttribute('data-src')
-            if (src) {
-              img.src = src
-              img.removeAttribute('data-src')
-              observer?.unobserve(img)
-            }
-          }
-        })
-      },
-      {
-        rootMargin: '100px',
-        threshold: 0.1
-      }
-    )
-
-    setTimeout(() => {
-      document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
-        observer?.observe(img)
-      })
-    }, 100)
-  } else {
-    document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
-      const src = (img as HTMLImageElement).getAttribute('data-src')
-      if (src) {
-        (img as HTMLImageElement).src = src
-      }
-    })
-  }
-}
-
-const updateLazyLoad = () => {
-  if (observer) {
-    document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
-      observer?.observe(img)
-    })
-  }
-}
-
 const selectCategory = (category: string) => {
   selectedCategory.value = category
 }
@@ -192,15 +138,10 @@ const handleGlassMenuOpen = () => {
 
 onMounted(() => {
   document.addEventListener('glassmenuopen', handleGlassMenuOpen)
-  initLazyLoad()
 })
 
 onUnmounted(() => {
   document.removeEventListener('glassmenuopen', handleGlassMenuOpen)
-  if (observer) {
-    observer.disconnect()
-    observer = null
-  }
 })
 
 const openLightbox = (index: number) => {
@@ -283,33 +224,10 @@ const nextImage = () => {
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  opacity: 0;
-}
-
-.gallery-image.loaded {
-  opacity: 1;
 }
 
 .gallery-item:hover .gallery-image {
   transform: scale(1.08);
-}
-
-.image-placeholder {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--placeholder-bg, #f0f0f0);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.3s ease;
-}
-
-.placeholder-icon {
-  font-size: 2rem;
-  opacity: 0.5;
 }
 
 .image-overlay {
