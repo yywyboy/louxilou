@@ -6,23 +6,43 @@
     </div>
 
     <div class="contact-grid">
-      <div class="contact-item email-item">
+      <div 
+        class="contact-item email-item" 
+        @click="copyToClipboard(contactInfo.email, 'email')"
+      >
         <div class="contact-icon email-icon">📧</div>
         <div class="contact-info">
           <span class="contact-label">电子邮箱</span>
-          <a :href="'mailto:' + contactInfo.email" class="contact-value">
-            {{ contactInfo.email }}
-          </a>
+          <span class="contact-value">{{ contactInfo.email }}</span>
+        </div>
+        <div class="copy-hint">
+          <svg v-if="copiedField !== 'email'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
         </div>
       </div>
 
-      <div class="contact-item phone-item">
+      <div 
+        class="contact-item phone-item" 
+        @click="copyToClipboard(contactInfo.phone, 'phone')"
+      >
         <div class="contact-icon phone-icon">📱</div>
         <div class="contact-info">
           <span class="contact-label">电话号码</span>
-          <a :href="'tel:' + contactInfo.phone" class="contact-value">
-            {{ contactInfo.phone }}
-          </a>
+          <span class="contact-value">{{ contactInfo.phone }}</span>
+        </div>
+        <div class="copy-hint">
+          <svg v-if="copiedField !== 'phone'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
         </div>
       </div>
 
@@ -77,6 +97,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 const contactInfo = {
   email: '17766710131@163.com',
   phone: '17766710131',
@@ -85,6 +107,21 @@ const contactInfo = {
   github: 'https://github.com/yywyboy',
   x: 'https://x.com/louxilou_',
   instagram: 'https://www.instagram.com/louxilou_?igsh=dzFjb3Nsc2Zjc2Qx'
+}
+
+const copiedField = ref<string | null>(null)
+
+const copyToClipboard = async (text: string, field: string) => {
+  try {
+    await navigator.clipboard.writeText(text)
+    copiedField.value = field
+    
+    setTimeout(() => {
+      copiedField.value = null
+    }, 2000)
+  } catch (err) {
+    console.error('复制失败:', err)
+  }
 }
 </script>
 
@@ -132,6 +169,8 @@ const contactInfo = {
   border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  position: relative;
 }
 
 .contact-item:hover {
@@ -169,6 +208,7 @@ const contactInfo = {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  flex: 1;
   min-width: 0;
 }
 
@@ -181,14 +221,37 @@ const contactInfo = {
 .contact-value {
   font-size: 1.05rem;
   color: var(--text-color, #1a1a1a);
-  text-decoration: none;
   font-weight: 600;
-  transition: color 0.3s ease;
   word-break: break-all;
 }
 
-.contact-value:hover {
+.copy-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary, #666666);
+  transition: color 0.3s ease, transform 0.3s ease;
+  padding: 0.5rem;
+}
+
+.contact-item:hover .copy-hint {
   color: #667eea;
+}
+
+.copy-hint svg {
+  transition: transform 0.3s ease;
+}
+
+.contact-item:hover .copy-hint svg {
+  transform: scale(1.1);
+}
+
+[data-theme="dark"] .copy-hint {
+  color: var(--text-secondary, #a0a0b0);
+}
+
+[data-theme="dark"] .contact-item:hover .copy-hint {
+  color: #7c8cff;
 }
 
 .contact-icon-item {
@@ -257,10 +320,6 @@ const contactInfo = {
 
 [data-theme="dark"] .contact-value {
   color: var(--text-color, #f0f0f5);
-}
-
-[data-theme="dark"] .contact-value:hover {
-  color: #7c8cff;
 }
 
 [data-theme="dark"] .icon-label {
