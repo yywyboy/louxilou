@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const isMenuOpen = ref(false)
 const isDarkMode = ref(false)
@@ -7,6 +7,9 @@ const containerRef = ref<HTMLElement>()
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
+  if (isMenuOpen.value) {
+    document.dispatchEvent(new Event('glassmenuopen'))
+  }
 }
 
 const toggleDarkMode = () => {
@@ -17,6 +20,12 @@ const toggleDarkMode = () => {
 
 const closeMenu = () => {
   isMenuOpen.value = false
+}
+
+const handleSearchOpen = () => {
+  if (isMenuOpen.value) {
+    closeMenu()
+  }
 }
 
 const menuItems = [
@@ -39,9 +48,15 @@ const handleClickOutside = (e: MouseEvent) => {
   }
 }
 
-if (typeof document !== 'undefined') {
+onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-}
+  document.addEventListener('searchopen', handleSearchOpen)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+  document.removeEventListener('searchopen', handleSearchOpen)
+})
 </script>
 
 <template>

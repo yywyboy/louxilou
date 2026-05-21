@@ -8,12 +8,20 @@
     <div class="gallery-grid">
       <div
         v-for="(image, index) in filteredImages"
-        :key="index"
+        :key="image.src"
         class="gallery-item"
         @click="openLightbox(index)"
       >
         <div class="image-wrapper">
-          <img :src="image.src" :alt="image.alt" class="gallery-image" />
+          <img 
+            :data-src="image.src" 
+            :alt="image.alt" 
+            class="gallery-image lazy-image"
+            @load="onImageLoad"
+          />
+          <div class="image-placeholder">
+            <span class="placeholder-icon">🖼️</span>
+          </div>
           <div class="image-overlay">
             <span class="overlay-icon">👁️</span>
             <span class="overlay-text">查看大图</span>
@@ -76,12 +84,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 
 const lightboxOpen = ref(false)
 const currentIndex = ref(0)
 const isSearchOpen = ref(false)
 const selectedCategory = ref('all')
+let observer: IntersectionObserver | null = null
 
 const categories = [
   { label: '全部', value: 'all' },
@@ -116,11 +125,83 @@ const filteredImages = computed(() => {
 
 const toggleSearch = () => {
   isSearchOpen.value = !isSearchOpen.value
+  if (isSearchOpen.value) {
+    document.dispatchEvent(new Event('searchopen'))
+  }
+}
+
+const onImageLoad = (e: Event) => {
+  const img = e.target as HTMLImageElement
+  img.classList.add('loaded')
+}
+
+const initLazyLoad = () => {
+  if ('IntersectionObserver' in window) {
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const img = entry.target as HTMLImageElement
+            const src = img.getAttribute('data-src')
+            if (src) {
+              img.src = src
+              img.removeAttribute('data-src')
+              observer?.unobserve(img)
+            }
+          }
+        })
+      },
+      {
+        rootMargin: '100px',
+        threshold: 0.1
+      }
+    )
+
+    setTimeout(() => {
+      document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
+        observer?.observe(img)
+      })
+    }, 100)
+  } else {
+    document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
+      const src = (img as HTMLImageElement).getAttribute('data-src')
+      if (src) {
+        (img as HTMLImageElement).src = src
+      }
+    })
+  }
+}
+
+const updateLazyLoad = () => {
+  if (observer) {
+    document.querySelectorAll('.lazy-image[data-src]').forEach((img) => {
+      observer?.observe(img)
+    })
+  }
 }
 
 const selectCategory = (category: string) => {
   selectedCategory.value = category
 }
+
+const handleGlassMenuOpen = () => {
+  if (isSearchOpen.value) {
+    isSearchOpen.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('glassmenuopen', handleGlassMenuOpen)
+  initLazyLoad()
+})
+
+onUnmounted(() => {
+  document.removeEventListener('glassmenuopen', handleGlassMenuOpen)
+  if (observer) {
+    observer.disconnect()
+    observer = null
+  }
+})
 
 const openLightbox = (index: number) => {
   currentIndex.value = index
@@ -179,7 +260,10 @@ const nextImage = () => {
 
 .gallery-item {
   cursor: pointer;
-  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: transform 0.2s ease-out;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .gallery-item:hover {
@@ -199,10 +283,33 @@ const nextImage = () => {
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  opacity: 0;
+}
+
+.gallery-image.loaded {
+  opacity: 1;
 }
 
 .gallery-item:hover .gallery-image {
   transform: scale(1.08);
+}
+
+.image-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--placeholder-bg, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease;
+}
+
+.placeholder-icon {
+  font-size: 2rem;
+  opacity: 0.5;
 }
 
 .image-overlay {
@@ -514,12 +621,12 @@ const nextImage = () => {
   }
   
   .search-container {
-    right: 100px;
-    bottom: 16px;
+    right: 16px;
+    bottom: 80px;
   }
   
   .search-box.expanded {
-    width: calc(100vw - 140px);
+    width: calc(100vw - 64px);
     max-width: 280px;
   }
   
