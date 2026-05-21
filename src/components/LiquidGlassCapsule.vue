@@ -33,7 +33,7 @@ const menuItems = [
   { path: '/library', name: '藏书阁', icon: 'library' },
   { path: '/observation', name: '观景台', icon: 'view' },
   { path: '/reading-room', name: '阅读区', icon: 'reading' },
-  { path: '/chat-room', name: '聊天室', icon: 'chat' }
+  { path: '/chat-room', name: '联系我', icon: 'chat' }
 ]
 
 const bottomItems = [
