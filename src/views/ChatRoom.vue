@@ -26,32 +26,37 @@
         </div>
       </div>
 
-      <a :href="contactInfo.bilibili" target="_blank" rel="noopener noreferrer" class="contact-icon-btn bilibili-btn">
-        <div class="contact-icon bilibili-icon">B</div>
+      <a :href="contactInfo.bilibili" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper bilibili-icon">B</div>
+        <span class="icon-label">bilibili</span>
       </a>
 
-      <a :href="contactInfo.acfun" target="_blank" rel="noopener noreferrer" class="contact-icon-btn acfun-btn">
-        <div class="contact-icon acfun-icon">A</div>
+      <a :href="contactInfo.acfun" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper acfun-icon">A</div>
+        <span class="icon-label">AcFun</span>
       </a>
 
-      <a :href="contactInfo.github" target="_blank" rel="noopener noreferrer" class="contact-icon-btn github-btn">
-        <div class="contact-icon github-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <a :href="contactInfo.github" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper github-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
             <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
           </svg>
         </div>
+        <span class="icon-label">GitHub</span>
       </a>
 
-      <a :href="contactInfo.x" target="_blank" rel="noopener noreferrer" class="contact-icon-btn x-btn">
-        <div class="contact-icon x-icon">𝕏</div>
+      <a :href="contactInfo.x" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper x-icon">𝕏</div>
+        <span class="icon-label">X</span>
       </a>
 
-      <a :href="contactInfo.instagram" target="_blank" rel="noopener noreferrer" class="contact-icon-btn instagram-btn">
-        <div class="contact-icon instagram-icon">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+      <a :href="contactInfo.instagram" target="_blank" rel="noopener noreferrer" class="contact-icon-item">
+        <div class="icon-wrapper instagram-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
             <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
           </svg>
         </div>
+        <span class="icon-label">Instagram</span>
       </a>
     </div>
   </div>
@@ -94,11 +99,11 @@ const contactInfo = {
 }
 
 .contact-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1.5rem;
-  max-width: 600px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 1.25rem;
+  max-width: 900px;
   margin: 0 auto;
   padding: 0 1rem;
 }
@@ -106,8 +111,7 @@ const contactInfo = {
 .contact-item {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  width: 100%;
+  gap: 1rem;
   padding: 1.25rem 1.5rem;
   background: var(--card-bg, #ffffff);
   backdrop-filter: blur(10px);
@@ -121,14 +125,19 @@ const contactInfo = {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
+.email-item,
+.phone-item {
+  grid-column: 1 / -1;
+}
+
 .contact-icon {
-  width: 50px;
-  height: 50px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #fff;
   font-weight: bold;
   flex-shrink: 0;
@@ -140,28 +149,6 @@ const contactInfo = {
 
 .phone-icon {
   background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.bilibili-icon {
-  background: linear-gradient(135deg, #fb7299 0%, #f5576c 100%);
-  font-size: 1rem;
-}
-
-.acfun-icon {
-  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
-  font-size: 1.4rem;
-}
-
-.github-icon {
-  background: linear-gradient(135deg, #434343 0%, #000000 100%);
-}
-
-.x-icon {
-  background: linear-gradient(135deg, #000000 0%, #333333 100%);
-}
-
-.instagram-icon {
-  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
 }
 
 .contact-info {
@@ -178,7 +165,7 @@ const contactInfo = {
 }
 
 .contact-value {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   color: var(--text-color, #1a1a1a);
   text-decoration: none;
   font-weight: 600;
@@ -190,31 +177,68 @@ const contactInfo = {
   color: #667eea;
 }
 
-.contact-icon-btn {
-  width: 56px;
-  height: 56px;
+.contact-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1rem;
+  background: var(--card-bg, #ffffff);
+  backdrop-filter: blur(10px);
   border-radius: 16px;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.contact-icon-item:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.icon-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  text-decoration: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  font-size: 1.1rem;
+  color: #fff;
+  font-weight: bold;
 }
 
-.contact-icon-btn .contact-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  box-shadow: none;
+.bilibili-icon {
+  background: linear-gradient(135deg, #fb7299 0%, #f5576c 100%);
+  font-size: 0.95rem;
 }
 
-.contact-icon-btn:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+.acfun-icon {
+  background: linear-gradient(135deg, #ff6b6b 0%, #feca57 100%);
+  font-size: 1.3rem;
 }
 
-[data-theme="dark"] .contact-item {
+.github-icon {
+  background: linear-gradient(135deg, #434343 0%, #000000 100%);
+}
+
+.x-icon {
+  background: linear-gradient(135deg, #000000 0%, #333333 100%);
+}
+
+.instagram-icon {
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+}
+
+.icon-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary, #666666);
+  font-weight: 500;
+}
+
+[data-theme="dark"] .contact-item,
+[data-theme="dark"] .contact-icon-item {
   background: rgba(30, 30, 40, 0.85);
 }
 
@@ -226,8 +250,19 @@ const contactInfo = {
   color: #7c8cff;
 }
 
-[data-theme="dark"] .contact-icon-btn {
-  background: rgba(30, 30, 40, 0.85);
+[data-theme="dark"] .icon-label {
+  color: var(--text-secondary, #a0a0b0);
+}
+
+@media (max-width: 768px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .email-item,
+  .phone-item {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (max-width: 480px) {
@@ -244,12 +279,30 @@ const contactInfo = {
     font-size: 2rem;
   }
 
+  .contact-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .email-item,
+  .phone-item {
+    grid-column: 1;
+  }
+
   .contact-item {
     padding: 1rem 1.25rem;
   }
 
-  .contact-value {
-    font-size: 1rem;
+  .contact-icon-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 1rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .icon-wrapper {
+    width: 44px;
+    height: 44px;
   }
 }
 </style>
