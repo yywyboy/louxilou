@@ -2,44 +2,34 @@
   <Transition name="loader" mode="out-in">
     <div v-if="isLoading" class="loader-overlay" :class="{ dark: isDark }">
       <div class="loader-content">
-        <div class="loader-visual">
-          <div class="loader-ring ring-outer">
-            <div class="ring-track"></div>
-            <div class="ring-progress"></div>
-          </div>
-          <div class="loader-ring ring-middle">
-            <div class="ring-track"></div>
-            <div class="ring-progress"></div>
-          </div>
-          <div class="loader-ring ring-inner">
-            <div class="ring-track"></div>
-            <div class="ring-progress"></div>
-          </div>
-          <div class="loader-center">
-            <div class="center-dot"></div>
-          </div>
+        <div class="floating-text">
+          <span 
+            v-for="(letter, index) in letters" 
+            :key="index" 
+            class="letter"
+            :style="{ 
+              animationDelay: `${index * 0.15}s`,
+              '--letter-index': index
+            }"
+          >
+            {{ letter }}
+          </span>
         </div>
         
-        <div class="loader-text-container">
-          <div class="loader-title">
-            <span 
-              v-for="(char, index) in titleChars" 
-              :key="index" 
-              class="title-char"
-              :style="{ animationDelay: `${index * 0.1}s` }"
-            >
-              {{ char }}
-            </span>
-          </div>
-          <div class="loader-subtitle">
-            <span class="subtitle-text">正在加载...</span>
-          </div>
+        <div class="subtitle">
+          <span class="subtitle-text">loading...</span>
         </div>
         
-        <div class="loader-progress">
-          <div class="progress-bar">
-            <div class="progress-fill"></div>
-          </div>
+        <div class="floating-particles">
+          <div 
+            v-for="i in 8" 
+            :key="i" 
+            class="particle"
+            :style="{ 
+              animationDelay: `${i * 0.3}s`,
+              '--particle-index': i
+            }"
+          ></div>
         </div>
       </div>
     </div>
@@ -51,7 +41,7 @@ import { ref, watch, onMounted } from 'vue'
 
 const isLoading = ref(false)
 const isDark = ref(false)
-const titleChars = '楼西楼'.split('')
+const letters = 'louxilou'.split('')
 
 const checkTheme = () => {
   isDark.value = document.documentElement.getAttribute('data-theme') === 'dark'
@@ -76,7 +66,7 @@ defineExpose({
   hide: () => {
     setTimeout(() => {
       isLoading.value = false
-    }, 400)
+    }, 500)
   }
 })
 </script>
@@ -88,7 +78,7 @@ defineExpose({
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
@@ -105,17 +95,21 @@ defineExpose({
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 30% 20%, rgba(100, 150, 255, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(150, 100, 255, 0.1) 0%, transparent 50%);
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(240, 147, 251, 0.05) 0%, transparent 60%);
 }
 
 .loader-overlay.dark {
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
 }
 
 .loader-overlay.dark::before {
-  background: radial-gradient(circle at 30% 20%, rgba(100, 150, 255, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 70% 80%, rgba(150, 100, 255, 0.15) 0%, transparent 50%);
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(129, 140, 248, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(192, 132, 252, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(244, 114, 182, 0.08) 0%, transparent 60%);
 }
 
 .loader-content {
@@ -124,162 +118,70 @@ defineExpose({
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 32px;
+  gap: 40px;
   padding: 40px;
 }
 
-.loader-visual {
-  position: relative;
-  width: 120px;
-  height: 120px;
+.floating-text {
   display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.loader-ring {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.ring-outer {
-  width: 120px;
-  height: 120px;
-}
-
-.ring-middle {
-  width: 90px;
-  height: 90px;
-}
-
-.ring-inner {
-  width: 60px;
-  height: 60px;
-}
-
-.ring-track {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.loader-overlay:not(.dark) .ring-track {
-  border: 2px solid rgba(100, 120, 140, 0.15);
-}
-
-.loader-overlay.dark .ring-track {
-  border: 2px solid rgba(255, 255, 255, 0.1);
-}
-
-.ring-progress {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, transparent, currentColor);
-  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff calc(100% - 2px));
-  animation: spin 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.loader-overlay:not(.dark) .ring-outer .ring-progress {
-  color: #667eea;
-  opacity: 0.9;
-}
-
-.loader-overlay:not(.dark) .ring-middle .ring-progress {
-  color: #764ba2;
-  opacity: 0.7;
-  animation-direction: reverse;
-  animation-duration: 2.5s;
-}
-
-.loader-overlay:not(.dark) .ring-inner .ring-progress {
-  color: #f093fb;
-  opacity: 0.8;
-  animation-duration: 1.8s;
-}
-
-.loader-overlay.dark .ring-outer .ring-progress {
-  color: #818cf8;
-  opacity: 0.9;
-}
-
-.loader-overlay.dark .ring-middle .ring-progress {
-  color: #c084fc;
-  opacity: 0.7;
-  animation-direction: reverse;
-  animation-duration: 2.5s;
-}
-
-.loader-overlay.dark .ring-inner .ring-progress {
-  color: #f472b6;
-  opacity: 0.8;
-  animation-duration: 1.8s;
-}
-
-.loader-center {
-  width: 16px;
-  height: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.center-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.loader-overlay:not(.dark) .center-dot {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.loader-overlay.dark .center-dot {
-  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
-}
-
-.loader-text-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-
-.loader-title {
-  font-size: 28px;
+  gap: 8px;
+  font-size: 48px;
   font-weight: 700;
-  letter-spacing: 8px;
-  display: flex;
-  gap: 4px;
+  letter-spacing: 4px;
+  position: relative;
 }
 
-.loader-overlay:not(.dark) .loader-title {
+.loader-overlay:not(.dark) .letter {
   color: #2d3748;
 }
 
-.loader-overlay.dark .loader-title {
+.loader-overlay.dark .letter {
   color: #e2e8f0;
 }
 
-.title-char {
+.letter {
+  display: inline-block;
   opacity: 0;
-  transform: translateY(10px);
-  animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  animation: floatBlur 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-.loader-subtitle {
-  font-size: 14px;
-  opacity: 0;
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+@keyframes floatBlur {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(20px) scale(0.8);
+  }
+  15% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(-10px) scale(1.1);
+  }
+  55% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0) scale(1);
+  }
+  75% {
+    opacity: 0.5;
+    filter: blur(4px);
+    transform: translateY(10px) scale(0.95);
+  }
+  100% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translateY(20px) scale(0.8);
+  }
+}
+
+.subtitle {
+  font-size: 16px;
+  opacity: 0.6;
+  animation: fadeInOut 2s ease-in-out infinite;
 }
 
 .loader-overlay:not(.dark) .subtitle-text {
@@ -290,91 +192,83 @@ defineExpose({
   color: #94a3b8;
 }
 
-.loader-progress {
-  width: 180px;
-  opacity: 0;
-  animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) 0.8s forwards;
-}
-
-.progress-bar {
-  height: 3px;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.loader-overlay:not(.dark) .progress-bar {
-  background: rgba(100, 120, 140, 0.15);
-}
-
-.loader-overlay.dark .progress-bar {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 2px;
-  animation: progress 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-.loader-overlay:not(.dark) .progress-fill {
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-}
-
-.loader-overlay.dark .progress-fill {
-  background: linear-gradient(90deg, #818cf8 0%, #c084fc 100%);
-}
-
-@keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse {
+@keyframes fadeInOut {
   0%, 100% {
-    transform: scale(1);
-    opacity: 1;
+    opacity: 0.4;
+    letter-spacing: 2px;
   }
   50% {
-    transform: scale(1.3);
-    opacity: 0.7;
+    opacity: 0.8;
+    letter-spacing: 6px;
   }
 }
 
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.floating-particles {
+  position: absolute;
+  width: 300px;
+  height: 100px;
+  pointer-events: none;
 }
 
-@keyframes fadeIn {
-  to {
-    opacity: 1;
-  }
+.particle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
-@keyframes progress {
+.loader-overlay:not(.dark) .particle {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.loader-overlay.dark .particle {
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+}
+
+.particle:nth-child(1) { left: 10%; top: 30%; }
+.particle:nth-child(2) { left: 25%; top: 70%; }
+.particle:nth-child(3) { left: 40%; top: 20%; }
+.particle:nth-child(4) { left: 55%; top: 80%; }
+.particle:nth-child(5) { left: 70%; top: 40%; }
+.particle:nth-child(6) { left: 85%; top: 60%; }
+.particle:nth-child(7) { left: 30%; top: 50%; }
+.particle:nth-child(8) { left: 75%; top: 25%; }
+
+@keyframes particleFloat {
   0% {
-    width: 0%;
+    opacity: 0;
+    transform: translateY(0) scale(0);
   }
-  50% {
-    width: 70%;
+  20% {
+    opacity: 0.8;
+    transform: translateY(-20px) scale(1);
+  }
+  40% {
+    opacity: 0.6;
+    transform: translateY(-40px) scale(0.8);
+  }
+  60% {
+    opacity: 0.4;
+    transform: translateY(-20px) scale(0.6);
+  }
+  80% {
+    opacity: 0.2;
+    transform: translateY(0) scale(0.4);
   }
   100% {
-    width: 100%;
+    opacity: 0;
+    transform: translateY(20px) scale(0);
   }
 }
 
 .loader-enter-active {
-  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loader-leave-active {
-  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .loader-enter-from,
@@ -383,15 +277,18 @@ defineExpose({
 }
 
 .loader-enter-from .loader-content {
-  transform: scale(0.95) translateY(20px);
+  transform: translateY(30px);
+  filter: blur(10px);
 }
 
 .loader-leave-to .loader-content {
-  transform: scale(0.95) translateY(-20px);
+  transform: translateY(-30px);
+  filter: blur(10px);
 }
 
 .loader-enter-active .loader-content,
 .loader-leave-active .loader-content {
-  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+              filter 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
