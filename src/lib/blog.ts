@@ -203,7 +203,8 @@ export function subscribeToComments(
   callback: (comment: Comment) => void
 ): () => void {
   if (!supabase) return () => {}
-  const channel = supabase
+  const client = supabase
+  const channel = client
     .channel(`comments:${postId}`)
     .on(
       'postgres_changes',
@@ -220,6 +221,6 @@ export function subscribeToComments(
     .subscribe()
 
   return () => {
-    supabase.removeChannel(channel)
+    client.removeChannel(channel)
   }
 }
