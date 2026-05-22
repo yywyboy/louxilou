@@ -118,42 +118,6 @@ watch(() => route.params, () => {
   loadChapter()
 }, { deep: true })
 
-const detectEncoding = (buffer: Uint8Array): string => {
-  const bom = buffer.slice(0, 4)
-  
-  if (bom[0] === 0xFF && bom[1] === 0xFE) return 'UTF-16LE'
-  if (bom[0] === 0xFE && bom[1] === 0xFF) return 'UTF-16BE'
-  if (bom[0] === 0xEF && bom[1] === 0xBB && bom[2] === 0xBF) return 'UTF-8'
-  
-  let hasHighByte = false
-  let gbkPattern = 0
-  let utf8Pattern = 0
-  
-  for (let i = 0; i < Math.min(buffer.length, 1000); i++) {
-    const byte = buffer[i]
-    if (byte > 127) {
-      hasHighByte = true
-      if (byte >= 0x81 && byte <= 0xFE) {
-        const nextByte = buffer[i + 1]
-        if (nextByte && ((nextByte >= 0x40 && nextByte <= 0x7E) || (nextByte >= 0x80 && nextByte <= 0xFE))) {
-          gbkPattern++
-        }
-      }
-    }
-    if (byte >= 0xC2 && byte <= 0xF4) {
-      utf8Pattern++
-    }
-  }
-  
-  if (!hasHighByte) return 'UTF-8'
-  
-  if (gbkPattern > utf8Pattern * 2) {
-    return 'GBK'
-  }
-  
-  return 'UTF-8'
-}
-
 const decodeText = (buffer: Uint8Array): string => {
   const encodings = ['UTF-8', 'GBK', 'GB18030', 'GB2312', 'Shift_JIS', 'Big5']
   
