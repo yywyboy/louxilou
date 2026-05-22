@@ -32,6 +32,7 @@ const menuItems = [
   { path: '/', name: '待客厅', icon: 'lounge' },
   { path: '/library', name: '藏书阁', icon: 'library' },
   { path: '/observation', name: '观景台', icon: 'view' },
+  { path: '/blog', name: '博客', icon: 'blog' },
   { path: '/reading-room', name: '公告栏', icon: 'reading' },
   { path: '/chat-room', name: '联系我', icon: 'chat' }
 ]
@@ -90,6 +91,12 @@ onUnmounted(() => {
                 <svg viewBox="0 0 24 24" v-else-if="item.icon === 'view'">
                   <path d="M1 12s4-8 11-8 11 8-11 8-4 8-11 8-11-8-11-8z"/>
                   <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <svg viewBox="0 0 24 24" v-else-if="item.icon === 'blog'">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
+                  <path d="M7 7h10v2H7z"/>
+                  <path d="M7 11h10v2H7z"/>
+                  <path d="M7 15h7v2H7z"/>
                 </svg>
                 <svg viewBox="0 0 24 24" v-else-if="item.icon === 'reading'">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>

@@ -5,6 +5,8 @@ import Library from '../views/Library.vue'
 import BookDetail from '../views/BookDetail.vue'
 import BookReader from '../views/BookReader.vue'
 import Observation from '../views/Observation.vue'
+import Blog from '../views/Blog.vue'
+import PostDetail from '../views/PostDetail.vue'
 import ReadingRoom from '../views/ReadingRoom.vue'
 import ChatRoom from '../views/ChatRoom.vue'
 import Profile from '../views/Profile.vue'
@@ -46,6 +48,16 @@ const routes = [
     path: '/observation',
     name: 'Observation',
     component: Observation
+  },
+  {
+    path: '/blog',
+    name: 'Blog',
+    component: Blog
+  },
+  {
+    path: '/blog/:id',
+    name: 'PostDetail',
+    component: PostDetail
   },
   {
     path: '/reading-room',
