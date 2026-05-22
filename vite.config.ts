@@ -8,5 +8,14 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src')
     }
+  },
+  root: __dirname,
+  build: {
+    outDir: 'dist'
+  },
+  server: {
+    fs: {
+      allow: [__dirname, resolve(__dirname, 'public')]
+    }
   }
 })
