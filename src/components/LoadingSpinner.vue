@@ -16,10 +16,6 @@
           </span>
         </div>
         
-        <div class="subtitle">
-          <span class="subtitle-text">loading...</span>
-        </div>
-        
         <div class="floating-particles">
           <div 
             v-for="i in 8" 
@@ -204,32 +200,6 @@ defineExpose({
     opacity: 0;
     filter: blur(8px);
     transform: translateY(20px) scale(0.8);
-  }
-}
-
-.subtitle {
-  font-size: 16px;
-  opacity: 0.6;
-  animation: fadeInOut 2s ease-in-out infinite;
-  will-change: opacity;
-}
-
-.loader-overlay:not(.dark) .subtitle-text {
-  color: #718096;
-}
-
-.loader-overlay.dark .subtitle-text {
-  color: #94a3b8;
-}
-
-@keyframes fadeInOut {
-  0%, 100% {
-    opacity: 0.4;
-    letter-spacing: 2px;
-  }
-  50% {
-    opacity: 0.8;
-    letter-spacing: 6px;
   }
 }
 
