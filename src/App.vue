@@ -6,6 +6,7 @@ import LoadingSpinner from './components/LoadingSpinner.vue'
 
 const loadingRef = ref()
 const isTransitioning = ref(false)
+const isPageLoading = ref(false)
 
 onMounted(() => {
   if (loadingRef.value) {
@@ -15,10 +16,20 @@ onMounted(() => {
 
 const handleBeforeLeave = () => {
   isTransitioning.value = true
+  isPageLoading.value = true
+  if (loadingRef.value) {
+    loadingRef.value.show()
+  }
   document.dispatchEvent(new Event('pageleave'))
 }
 
 const handleAfterEnter = () => {
+  setTimeout(() => {
+    isPageLoading.value = false
+    if (loadingRef.value) {
+      loadingRef.value.hide()
+    }
+  }, 300)
   isTransitioning.value = false
   document.dispatchEvent(new Event('pageenter'))
 }
