@@ -18,26 +18,64 @@
 </template>
 
 <script setup lang="ts">
-const announcements = [
-  {
-    id: 1,
-    title: '网站正式上线',
-    date: '2026-05-17',
-    content: '欢迎来到楼西楼！这是我的个人主页，包含了我的作品集、联系方式等信息。'
-  },
-  {
-    id: 2,
-    title: '新增图片检索功能',
-    date: '2026-05-18',
-    content: '观景台页面新增了图片类型检索功能，可以快速筛选不同类型的图片。'
-  },
-  {
-    id: 3,
-    title: '联系方式更新',
-    date: '2026-05-21',
-    content: '联系页面新增了抖音账号，欢迎关注！点击邮箱和电话卡片可以直接复制。'
+import { ref, onMounted } from 'vue'
+
+interface Announcement {
+  id: string
+  title: string
+  date: string
+  content: string
+}
+
+const announcements = ref<Announcement[]>([])
+
+const parseMarkdown = (content: string) => {
+  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
+  const match = content.match(frontmatterRegex)
+  
+  if (!match) {
+    return { title: '未命名', date: '未知', body: content }
   }
-]
+  
+  const frontmatter = match[1]
+  const body = match[2]
+  
+  const titleMatch = frontmatter.match(/title:\s*(.+)/)
+  const dateMatch = frontmatter.match(/date:\s*(\d{4}-\d{2}-\d{2})/)
+  
+  return {
+    title: titleMatch ? titleMatch[1].trim() : '未命名',
+    date: dateMatch ? dateMatch[1].trim() : '未知',
+    body: body.trim()
+  }
+}
+
+const loadAnnouncements = async () => {
+  const articleFiles = import.meta.glob('../articles/*.md')
+  
+  const announcementList: Announcement[] = []
+  
+  for (const [path, resolver] of Object.entries(articleFiles)) {
+    const module = await resolver()
+    const content = (module as { default: string }).default
+    const parsed = parseMarkdown(content)
+    const id = path.split('/').pop()?.replace('.md', '') || ''
+    
+    announcementList.push({
+      id,
+      title: parsed.title,
+      date: parsed.date,
+      content: parsed.body
+    })
+  }
+  
+  announcementList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  announcements.value = announcementList
+}
+
+onMounted(() => {
+  loadAnnouncements()
+})
 </script>
 
 <style scoped>
