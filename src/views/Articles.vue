@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 
 interface Article {
   id: string
@@ -8,60 +8,19 @@ interface Article {
   date: string
 }
 
-const articles = ref<Article[]>([])
-
-const parseMarkdown = (content: string) => {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
-  const match = content.match(frontmatterRegex)
-  
-  if (!match) {
-    return { title: '未命名', date: '未知', body: content }
+const articles = ref<Article[]>([
+  {
+    id: '1',
+    title: '欢迎来到楼西楼louxilou！',
+    date: '2026-05-10',
+    content: '这是我的个人网站，这里可以看小说和图片，要联系我也可以！'
   }
-  
-  const frontmatter = match[1]
-  const body = match[2]
-  
-  const titleMatch = frontmatter.match(/title:\s*(.+)/)
-  const dateMatch = frontmatter.match(/date:\s*(\d{4}-\d{2}-\d{2})/)
-  
-  return {
-    title: titleMatch ? titleMatch[1].trim() : '未命名',
-    date: dateMatch ? dateMatch[1].trim() : '未知',
-    body: body.trim()
-  }
-}
-
-const loadArticles = async () => {
-  const articleFiles = import.meta.glob('../articles/*.md')
-  
-  const articleList: Article[] = []
-  
-  for (const [path, resolver] of Object.entries(articleFiles)) {
-    const module = await resolver()
-    const content = (module as { default: string }).default
-    const parsed = parseMarkdown(content)
-    const id = path.split('/').pop()?.replace('.md', '') || ''
-    
-    articleList.push({
-      id,
-      title: parsed.title,
-      content: parsed.body,
-      date: parsed.date
-    })
-  }
-  
-  articleList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-  articles.value = articleList
-}
+])
 
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr)
   return date.toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })
 }
-
-onMounted(() => {
-  loadArticles()
-})
 </script>
 
 <template>
@@ -88,19 +47,15 @@ onMounted(() => {
     
     <div class="upload-guide">
       <h3>如何发布文章</h3>
-      <ol>
-        <li>在 <code>src/articles/</code> 文件夹中创建新文件</li>
-        <li>文件名格式：<code>YYYY-MM-DD-标题.md</code></li>
-        <li>文件内容格式：
-          <pre><code>---
-title: 文章标题
-date: 2024-01-01
----
-
-文章内容...</code></pre>
-        </li>
-        <li>保存后刷新页面即可显示</li>
-      </ol>
+      <p>文章直接在代码中定义，编辑 <code>src/views/Articles.vue</code> 文件：</p>
+      <pre><code>const articles = ref([
+  {
+    id: '1',
+    title: '文章标题',
+    date: '2024-01-01',
+    content: '文章内容...'
+  }
+])</code></pre>
     </div>
   </div>
 </template>
@@ -180,19 +135,9 @@ date: 2024-01-01
   font-weight: 600;
 }
 
-.upload-guide ol {
-  margin: 0;
-  padding-left: 20px;
+.upload-guide p {
+  margin: 8px 0;
   color: #4b5563;
-}
-
-.upload-guide li {
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-.upload-guide li:last-child {
-  margin-bottom: 0;
 }
 
 .upload-guide code {
@@ -245,7 +190,7 @@ date: 2024-01-01
     color: #cbd5e1;
   }
   
-  .upload-guide li {
+  .upload-guide p {
     color: #cbd5e1;
   }
   
