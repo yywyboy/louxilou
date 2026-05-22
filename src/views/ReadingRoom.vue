@@ -5,36 +5,73 @@
       <p>这里是发布重要通知和公告的地方</p>
       
       <div class="announcement-list">
-        <div v-for="announcement in announcements" :key="announcement.id" class="announcement-card">
+        <div 
+          v-for="announcement in sortedAnnouncements" 
+          :key="announcement.id" 
+          class="announcement-card"
+          :class="{ pinned: announcement.pinned, expanded: expandedId === announcement.id }"
+          @click="toggleExpand(announcement.id)"
+        >
           <div class="announcement-header">
-            <span class="announcement-title">{{ announcement.title }}</span>
-            <span class="announcement-date">{{ announcement.date }}</span>
+            <div class="title-wrapper">
+              <span v-if="announcement.pinned" class="pin-badge">📌</span>
+              <span class="announcement-title">{{ announcement.title }}</span>
+            </div>
+            <div class="header-right">
+              <span class="announcement-date">{{ announcement.date }}</span>
+              <span class="expand-icon">{{ expandedId === announcement.id ? '▲' : '▼' }}</span>
+            </div>
           </div>
-          <p class="announcement-content">{{ announcement.content }}</p>
+          <Transition name="expand">
+            <div v-if="expandedId === announcement.id" class="announcement-content-wrapper">
+              <p class="announcement-content">{{ announcement.content }}</p>
+            </div>
+          </Transition>
         </div>
+      </div>
+      
+      <div class="upload-guide">
+        <h3>📝 如何发布文章</h3>
+        <ol>
+          <li>在 <code>src/articles/</code> 文件夹中创建 <code>.md</code> 文件</li>
+          <li>文件名格式：<code>YYYY-MM-DD-标题.md</code></li>
+          <li>文件内容格式：
+            <pre><code>---
+title: 文章标题
+date: 2024-02-14
+pinned: true
+---
+
+文章内容...</code></pre>
+          </li>
+          <li>添加 <code>pinned: true</code> 可置顶文章</li>
+          <li>保存后刷新页面即可显示</li>
+        </ol>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 
 interface Announcement {
   id: string
   title: string
   date: string
   content: string
+  pinned: boolean
 }
 
 const announcements = ref<Announcement[]>([])
+const expandedId = ref<string | null>(null)
 
 const parseMarkdown = (content: string) => {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
   const match = content.match(frontmatterRegex)
   
   if (!match) {
-    return { title: '未命名', date: '未知', body: content }
+    return { title: '未命名', date: '未知', pinned: false, body: content }
   }
   
   const frontmatter = match[1]
@@ -42,10 +79,12 @@ const parseMarkdown = (content: string) => {
   
   const titleMatch = frontmatter.match(/title:\s*(.+)/)
   const dateMatch = frontmatter.match(/date:\s*(\d{4}-\d{2}-\d{2})/)
+  const pinnedMatch = frontmatter.match(/pinned:\s*(true|false)/i)
   
   return {
     title: titleMatch ? titleMatch[1].trim() : '未命名',
     date: dateMatch ? dateMatch[1].trim() : '未知',
+    pinned: pinnedMatch ? pinnedMatch[1].toLowerCase() === 'true' : false,
     body: body.trim()
   }
 }
@@ -65,12 +104,24 @@ const loadAnnouncements = async () => {
       id,
       title: parsed.title,
       date: parsed.date,
-      content: parsed.body
+      content: parsed.body,
+      pinned: parsed.pinned
     })
   }
   
-  announcementList.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
   announcements.value = announcementList
+}
+
+const sortedAnnouncements = computed(() => {
+  return [...announcements.value].sort((a, b) => {
+    if (a.pinned && !b.pinned) return -1
+    if (!a.pinned && b.pinned) return 1
+    return new Date(b.date).getTime() - new Date(a.date).getTime()
+  })
+})
+
+const toggleExpand = (id: string) => {
+  expandedId.value = expandedId.value === id ? null : id
 }
 
 onMounted(() => {
@@ -90,23 +141,24 @@ onMounted(() => {
 }
 
 h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
-    color: var(--color-text, #333);
-    text-align: center;
-  }
-  
-  p {
-    font-size: 1.1rem;
-    color: var(--color-text-secondary, #666);
-    text-align: center;
-    margin-bottom: 2rem;
-  }
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--color-text, #333);
+  text-align: center;
+}
+
+p {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary, #666);
+  text-align: center;
+  margin-bottom: 2rem;
+}
 
 .announcement-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-bottom: 2rem;
 }
 
 .announcement-card {
@@ -115,6 +167,8 @@ h1 {
   padding: 1.5rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+  border-left: 4px solid transparent;
 }
 
 .announcement-card:hover {
@@ -122,41 +176,149 @@ h1 {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
+.announcement-card.pinned {
+  border-left-color: #667eea;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+}
+
 .announcement-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.75rem;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pin-badge {
+  font-size: 1rem;
 }
 
 .announcement-title {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: var(--color-text, #1a1a1a);
-  }
-  
-  .announcement-date {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary, #666);
-    background: var(--color-bg, #f0f0f0);
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-  }
-  
-  .announcement-content {
-    font-size: 1rem;
-    color: var(--color-text-secondary, #666);
-    line-height: 1.6;
-    text-align: left;
-    margin-bottom: 0;
-  }
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--color-text, #1a1a1a);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.announcement-date {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary, #666);
+  background: var(--color-bg, #f0f0f0);
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.expand-icon {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary, #666);
+  transition: transform 0.3s ease;
+}
+
+.announcement-card.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.announcement-content-wrapper {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+}
+
+.announcement-content {
+  font-size: 1rem;
+  color: var(--color-text-secondary, #666);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.expand-enter-active,
+.expand-leave-active {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.expand-enter-from,
+.expand-leave-to {
+  opacity: 0;
+  max-height: 0;
+}
+
+.expand-enter-to,
+.expand-leave-from {
+  opacity: 1;
+  max-height: 200px;
+}
+
+.upload-guide {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  padding: 20px;
+  border-radius: 12px;
+}
+
+.upload-guide h3 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+}
+
+.upload-guide ol {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.upload-guide li {
+  margin-bottom: 8px;
+}
+
+.upload-guide code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.upload-guide pre {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 6px 0 0 0;
+  font-size: 0.8rem;
+}
 
 [data-theme="dark"] .announcement-card {
   background: rgba(30, 30, 40, 0.85);
 }
 
+[data-theme="dark"] .announcement-card.pinned {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.1) 0%, transparent 100%);
+}
+
 [data-theme="dark"] .announcement-date {
   background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .announcement-content-wrapper {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .upload-guide {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15) 0%, rgba(192, 132, 252, 0.15) 100%);
+}
+
+[data-theme="dark"] .upload-guide code,
+[data-theme="dark"] .upload-guide pre {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 @media (max-width: 768px) {
@@ -176,6 +338,11 @@ h1 {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: space-between;
   }
 }
 </style>
