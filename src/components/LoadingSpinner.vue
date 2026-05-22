@@ -42,6 +42,11 @@ import { ref, watch, onMounted } from 'vue'
 const isLoading = ref(false)
 const isDark = ref(false)
 const letters = 'louxilou'.split('')
+const ANIMATION_CYCLE = 3000 // 动画周期3秒
+const MIN_DISPLAY_TIME = ANIMATION_CYCLE + 500 // 最小显示时间，确保完成一次完整动画
+
+let hideTimeout: ReturnType<typeof setTimeout> | null = null
+let showTime = 0
 
 const checkTheme = () => {
   isDark.value = document.documentElement.getAttribute('data-theme') === 'dark'
@@ -61,12 +66,32 @@ watch(isLoading, (newVal) => {
 defineExpose({
   show: () => {
     checkTheme()
+    showTime = Date.now()
     isLoading.value = true
+    if (hideTimeout) {
+      clearTimeout(hideTimeout)
+      hideTimeout = null
+    }
   },
   hide: () => {
-    setTimeout(() => {
+    const elapsed = Date.now() - showTime
+    const remaining = Math.max(0, MIN_DISPLAY_TIME - elapsed)
+    
+    if (hideTimeout) {
+      clearTimeout(hideTimeout)
+    }
+    
+    hideTimeout = setTimeout(() => {
       isLoading.value = false
-    }, 500)
+      hideTimeout = null
+    }, remaining)
+  },
+  forceHide: () => {
+    if (hideTimeout) {
+      clearTimeout(hideTimeout)
+      hideTimeout = null
+    }
+    isLoading.value = false
   }
 })
 </script>
@@ -79,13 +104,12 @@ defineExpose({
   width: 100%;
   height: 100%;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
   overflow: hidden;
+  will-change: opacity;
 }
 
 .loader-overlay::before {
@@ -99,6 +123,7 @@ defineExpose({
     radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.08) 0%, transparent 40%),
     radial-gradient(circle at 50% 50%, rgba(240, 147, 251, 0.05) 0%, transparent 60%);
+  pointer-events: none;
 }
 
 .loader-overlay.dark {
@@ -120,6 +145,7 @@ defineExpose({
   align-items: center;
   gap: 40px;
   padding: 40px;
+  will-change: transform, filter;
 }
 
 .floating-text {
@@ -143,6 +169,9 @@ defineExpose({
   display: inline-block;
   opacity: 0;
   animation: floatBlur 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: opacity, transform, filter;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
 
 @keyframes floatBlur {
@@ -182,6 +211,7 @@ defineExpose({
   font-size: 16px;
   opacity: 0.6;
   animation: fadeInOut 2s ease-in-out infinite;
+  will-change: opacity;
 }
 
 .loader-overlay:not(.dark) .subtitle-text {
@@ -217,6 +247,8 @@ defineExpose({
   border-radius: 50%;
   opacity: 0;
   animation: particleFloat 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: opacity, transform;
+  backface-visibility: hidden;
 }
 
 .loader-overlay:not(.dark) .particle {

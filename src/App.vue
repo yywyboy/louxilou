@@ -24,14 +24,12 @@ const handleBeforeLeave = () => {
 }
 
 const handleAfterEnter = () => {
-  setTimeout(() => {
-    isPageLoading.value = false
-    if (loadingRef.value) {
-      loadingRef.value.hide()
-    }
-  }, 300)
   isTransitioning.value = false
   document.dispatchEvent(new Event('pageenter'))
+  
+  if (loadingRef.value) {
+    loadingRef.value.hide()
+  }
 }
 </script>
 
