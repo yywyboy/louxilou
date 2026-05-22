@@ -6,7 +6,13 @@ import { readFileSync } from 'fs'
 const markdownPlugin = () => {
   return {
     name: 'markdown-plugin',
-    transform(code, id) {
+    resolveId(id) {
+      if (id.endsWith('.md')) {
+        return id
+      }
+      return null
+    },
+    async load(id) {
       if (id.endsWith('.md')) {
         const content = readFileSync(id, 'utf-8')
         return `export default ${JSON.stringify(content)}`
@@ -17,7 +23,7 @@ const markdownPlugin = () => {
 }
 
 export default defineConfig({
-  plugins: [vue(), markdownPlugin()],
+  plugins: [markdownPlugin(), vue()],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
