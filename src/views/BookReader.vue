@@ -92,7 +92,7 @@ import { getBookById, type BookChapter } from '../data/books'
 const router = useRouter()
 const route = useRoute()
 
-const book = ref<ReturnType<typeof getBookById>>(null)
+const book = ref<ReturnType<typeof getBookById> | null>(null)
 const bookChapters = ref<BookChapter[]>([])
 const currentChapterIndex = ref(0)
 const content = ref('')
