@@ -25,7 +25,6 @@ export const books: Book[] = [
     author: '米泽穗信',
     cover: '/books/images/xiaoshimin/IMG_0106.JPG',
     description: '高中生小鸠常悟朗与小佐内由纪既不算是情侣，也不是相互依赖的关系。他们本着互利互惠、各取所需的原则结盟，朝着平凡小市民的目标努力。然而，二人身边却接二连三出现一个又一个谜团。虽然小鸠不想让自己像名侦探那样被瞩目，可一遇到谜题就忍不住想立刻解开，那他到底能不能成为名副其实的小市民呢？',
-    txtZipUrl: '/books/xiaoshimin/txt/小市民系列TXT.zip',
     chapters: [
       {
         id: 'spring',
@@ -77,7 +76,6 @@ export const books: Book[] = [
     author: '白石定规',
     cover: '/books/images/mobitchi/temp.GIF',
     description: '某个地方有一位魔女，她的名字叫伊蕾娜。她是一位旅行者，以见证世界的美丽为己任，驾驶着扫帚在天空中自由飞翔。她走过了各种各样的国家，遇到了形形色色的人们，经历了各种各样的故事。这是关于一位魔女在旅途中所见所闻的故事。',
-    txtZipUrl: '/books/mobitchi/txt/魔女之旅全部TXT.zip',
     chapters: [
       {
         id: 'vol1',
@@ -129,7 +127,6 @@ export const books: Book[] = [
     author: '米泽穗信',
     cover: '/books/images/kotenbu/temp 8.GIF',
     description: '神山高中古典部的成员折木奉太郎，是一个崇尚节能主义的高中生。他因为姐姐的命令而加入了濒临废部的古典部，遇到了好奇心旺盛的少女千反田爱瑠。从此，他的平淡生活被打破，开始了一段段充满谜题的校园生活。',
-    txtZipUrl: '/books/kotenbu/txt/古典部系列全部TXT.zip',
     chapters: [
       {
         id: 'hyouka',
