@@ -12,8 +12,22 @@ const articles = ref<Article[]>([
   {
     id: '1',
     title: '欢迎来到楼西楼louxilou！',
-    date: '2026-05-10',
-    content: '这是我的个人网站，这里可以看小说和图片，要联系我也可以！'
+    date: '2026-05-22',
+    content: `这是我的个人网站，以下是各个功能区的介绍：
+
+📚 藏书阁
+收藏各种珍贵书籍，支持在线阅读和TXT下载。阅读器支持多种文本编码（UTF-8、GBK、GB18030、GB2312、Shift_JIS、Big5），自动检测最佳编码解决乱码问题。点击书籍可直接进入阅读，页面切换流畅无需等待加载动画。
+
+🏠 观景台
+展示个人照片画廊，可以欣赏风景和日常照片。
+
+📋 公告栏
+网站更新日志和功能介绍，所有网站动态都会在这里公布。
+
+📞 联系我
+可以通过这里与我取得联系，有什么问题或建议都可以留言。
+
+希望你能在这里找到喜欢的内容！`
   }
 ])
 
@@ -26,36 +40,23 @@ const formatDate = (dateStr: string) => {
 <template>
   <div class="articles-container">
     <h1 class="section-title">公告栏</h1>
-    
+
     <div class="articles-list">
       <div v-if="articles.length === 0" class="empty-state">
         <p>暂无文章</p>
       </div>
-      
-      <div 
-        v-for="article in articles" 
-        :key="article.id" 
+
+      <div
+        v-for="article in articles"
+        :key="article.id"
         class="article-card"
       >
         <h2 class="article-title">{{ article.title }}</h2>
         <p class="article-date">{{ formatDate(article.date) }}</p>
         <div class="article-content">
-          <p>{{ article.content }}</p>
+          <p v-for="(line, idx) in article.content.split('\n')" :key="idx">{{ line }}</p>
         </div>
       </div>
-    </div>
-    
-    <div class="upload-guide">
-      <h3>如何发布文章</h3>
-      <p>文章直接在代码中定义，编辑 <code>src/views/Articles.vue</code> 文件：</p>
-      <pre><code>const articles = ref([
-  {
-    id: '1',
-    title: '文章标题',
-    date: '2024-01-01',
-    content: '文章内容...'
-  }
-])</code></pre>
     </div>
   </div>
 </template>
@@ -120,86 +121,34 @@ const formatDate = (dateStr: string) => {
 }
 
 .article-content p {
-  margin: 0;
+  margin: 0 0 12px 0;
 }
 
-.upload-guide {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  padding: 24px;
-  border-radius: 16px;
-}
-
-.upload-guide h3 {
-  margin: 0 0 16px 0;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.upload-guide p {
-  margin: 8px 0;
-  color: #4b5563;
-}
-
-.upload-guide code {
-  background: rgba(0, 0, 0, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.upload-guide pre {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 12px;
-  border-radius: 8px;
-  overflow-x: auto;
-  margin: 8px 0 0 0;
-}
-
-.upload-guide pre code {
-  background: none;
-  padding: 0;
-  font-size: 13px;
-  line-height: 1.5;
+.article-content p:last-child {
+  margin-bottom: 0;
 }
 
 @media (prefers-color-scheme: dark) {
   .article-card {
     background: #1e293b;
   }
-  
+
   .section-title,
   .article-title {
     color: #e2e8f0;
   }
-  
+
   .article-content {
     color: #cbd5e1;
   }
-  
+
   .article-date {
     color: #64748b;
   }
-  
+
   .empty-state {
     background: rgba(129, 140, 248, 0.1);
     color: #94a3b8;
-  }
-  
-  .upload-guide {
-    background: linear-gradient(135deg, rgba(129, 140, 248, 0.15) 0%, rgba(192, 132, 252, 0.15) 100%);
-    color: #cbd5e1;
-  }
-  
-  .upload-guide p {
-    color: #cbd5e1;
-  }
-  
-  .upload-guide code {
-    background: rgba(255, 255, 255, 0.1);
-  }
-  
-  .upload-guide pre {
-    background: rgba(255, 255, 255, 0.05);
   }
 }
 </style>

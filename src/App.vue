@@ -10,7 +10,7 @@ const isTransitioning = ref(false)
 
 onMounted(() => {
   if (loadingRef.value) {
-    loadingRef.value.hide()
+    loadingRef.value.forceHide()
   }
 })
 
@@ -31,7 +31,7 @@ const handleAfterEnter = () => {
   document.dispatchEvent(new Event('pageenter'))
 
   if (loadingRef.value) {
-    loadingRef.value.hide()
+    loadingRef.value.forceHide()
   }
 }
 </script>
