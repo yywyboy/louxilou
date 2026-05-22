@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 
 const isMenuOpen = ref(false)
-const isDarkMode = ref(false)
 const containerRef = ref<HTMLElement>()
 
 const toggleMenu = () => {
@@ -10,12 +9,6 @@ const toggleMenu = () => {
   if (isMenuOpen.value) {
     document.dispatchEvent(new Event('glassmenuopen'))
   }
-}
-
-const toggleDarkMode = () => {
-  isDarkMode.value = !isDarkMode.value
-  document.documentElement.setAttribute('data-theme', isDarkMode.value ? 'dark' : 'light')
-  document.dispatchEvent(new Event('themechange'))
 }
 
 const closeMenu = () => {
@@ -29,17 +22,8 @@ const handleSearchOpen = () => {
 }
 
 const menuItems = [
-  { path: '/', name: '待客厅', icon: 'lounge' },
-  { path: '/library', name: '藏书阁', icon: 'library' },
-  { path: '/observation', name: '观景台', icon: 'view' },
-  { path: '/blog', name: '博客', icon: 'blog' },
-  { path: '/reading-room', name: '公告栏', icon: 'reading' },
-  { path: '/chat-room', name: '联系我', icon: 'chat' }
-]
-
-const bottomItems = [
-  { path: '/profile', name: '个人', icon: 'user' },
-  { path: '/settings', name: '设置', icon: 'settings' }
+  { path: '/', name: '主页', icon: 'home' },
+  { path: '/library', name: '藏书阁', icon: 'library' }
 ]
 
 const handleClickOutside = (e: MouseEvent) => {
@@ -80,30 +64,13 @@ onUnmounted(() => {
                 class="nav-item"
                 @click="closeMenu"
               >
-                <svg viewBox="0 0 24 24" v-if="item.icon === 'lounge'">
+                <svg viewBox="0 0 24 24" v-if="item.icon === 'home'">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
                   <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
                 <svg viewBox="0 0 24 24" v-else-if="item.icon === 'library'">
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                </svg>
-                <svg viewBox="0 0 24 24" v-else-if="item.icon === 'view'">
-                  <path d="M1 12s4-8 11-8 11 8-11 8-4 8-11 8-11-8-11-8z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg viewBox="0 0 24 24" v-else-if="item.icon === 'blog'">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2z"/>
-                  <path d="M7 7h10v2H7z"/>
-                  <path d="M7 11h10v2H7z"/>
-                  <path d="M7 15h7v2H7z"/>
-                </svg>
-                <svg viewBox="0 0 24 24" v-else-if="item.icon === 'reading'">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                  <polyline points="14 2 14 8 20 8"/>
-                </svg>
-                <svg viewBox="0 0 24 24" v-else-if="item.icon === 'chat'">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
                 </svg>
                 <span>{{ item.name }}</span>
               </RouterLink>
@@ -113,28 +80,6 @@ onUnmounted(() => {
       </div>
 
       <div class="glass-controls">
-        <Transition name="fade">
-          <div v-if="isMenuOpen" class="bottom-nav">
-            <RouterLink
-              v-for="item in bottomItems"
-              :key="item.path"
-              :to="item.path"
-              class="bottom-nav-item"
-              @click="closeMenu"
-            >
-              <svg viewBox="0 0 24 24" v-if="item.icon === 'user'">
-                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-              <svg viewBox="0 0 24 24" v-else-if="item.icon === 'settings'">
-                <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
-              </svg>
-              <span>{{ item.name }}</span>
-            </RouterLink>
-          </div>
-        </Transition>
-        
-        <div class="divider" v-if="isMenuOpen"></div>
-        
         <div class="right-controls">
           <div class="menu-trigger" :class="{ active: isMenuOpen }" @click.stop="toggleMenu">
             <div class="menu-icon">
@@ -142,10 +87,6 @@ onUnmounted(() => {
               <span class="menu-bar"></span>
               <span class="menu-bar"></span>
             </div>
-          </div>
-          <div class="avatar-trigger" @click.stop="toggleDarkMode">
-            <img src="/p.png" alt="Avatar" class="avatar-image" />
-            <span class="mode-icon">{{ isDarkMode ? '☀️' : '🌙' }}</span>
           </div>
         </div>
       </div>
@@ -176,7 +117,7 @@ onUnmounted(() => {
               opacity 0.55s cubic-bezier(0.32, 0.72, 0, 1),
               box-shadow 0.55s cubic-bezier(0.32, 0.72, 0, 1);
   overflow: hidden;
-  width: 100px;
+  width: 60px;
   height: auto;
   margin-left: auto;
 }
@@ -222,7 +163,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
+  padding: 10px;
   transition: all 0.55s cubic-bezier(0.32, 0.72, 0, 1);
   justify-content: flex-end;
   width: 100%;
@@ -231,77 +172,7 @@ onUnmounted(() => {
 
 .glass-container.expanded .glass-controls {
   padding: 12px 16px;
-  justify-content: space-between;
   transition: all 0.65s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-.bottom-nav {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  opacity: 0;
-  transform: scale(0.8) translateX(-10px);
-  transition: opacity 0.4s cubic-bezier(0.55, 0, 1, 0.45),
-              transform 0.4s cubic-bezier(0.55, 0, 1, 0.45);
-}
-
-.glass-container.expanded .bottom-nav {
-  opacity: 1;
-  transform: scale(1) translateX(0);
-  transition: opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-              transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-  transition-delay: 0.15s;
-}
-
-.bottom-nav-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--secondary-color, #666666);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  min-width: 50px;
-}
-
-.bottom-nav-item:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--primary-color, #1a1a1a);
-}
-
-.bottom-nav-item svg {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  stroke-width: 2;
-  fill: none;
-  flex-shrink: 0;
-}
-
-.divider {
-  width: 1px;
-  height: 32px;
-  background: var(--border-color, #e0e0e0);
-  margin: 0 12px;
-  opacity: 0;
-  transform: scaleY(0);
-  transition: opacity 0.35s cubic-bezier(0.55, 0, 1, 0.45),
-              transform 0.35s cubic-bezier(0.55, 0, 1, 0.45);
-}
-
-.glass-container.expanded .divider {
-  opacity: 1;
-  transform: scaleY(1);
-  transition: opacity 0.45s cubic-bezier(0.23, 1, 0.32, 1),
-              transform 0.45s cubic-bezier(0.23, 1, 0.32, 1);
-  transition-delay: 0.2s;
 }
 
 .right-controls {
@@ -352,83 +223,6 @@ onUnmounted(() => {
 
 .menu-trigger.active .menu-bar:nth-child(3) {
   transform: rotate(-45deg) translateY(-3px);
-}
-
-.avatar-trigger {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  position: relative;
-  overflow: hidden;
-}
-
-.avatar-trigger::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: conic-gradient(
-    from 0deg,
-    #ff6b6b, #feca57, #48dbfb, #ff9ff3,
-    #54a0ff, #5f27cd, #ff6b6b
-  );
-  animation: rotate 3s linear infinite;
-}
-
-.avatar-trigger::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  right: 3px;
-  bottom: 3px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.avatar-image {
-  position: relative;
-  z-index: 2;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.avatar-trigger .mode-icon {
-  position: absolute;
-  z-index: 3;
-  font-size: 10px;
-  color: var(--primary-color, #1a1a1a);
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  bottom: 2px;
-  right: 2px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  padding: 2px;
-}
-
-.avatar-trigger:hover {
-  transform: scale(1.15);
-  box-shadow: 0 8px 30px rgba(255, 107, 107, 0.4);
-}
-
-@keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .menu-inner {
@@ -512,50 +306,6 @@ onUnmounted(() => {
   transform: translateY(15px);
 }
 
-/* Dark mode styles */
-:global([data-theme="dark"]) .glass-container {
-  background: rgba(20, 20, 20, 0.85);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-:global([data-theme="dark"]) .menu-bar {
-  background: #ffffff;
-}
-
-:global([data-theme="dark"]) .avatar-trigger::after {
-  background: #0a0a0a;
-}
-
-:global([data-theme="dark"]) .mode-icon {
-  color: #ffffff;
-}
-
-:global([data-theme="dark"]) .menu-card-header {
-  color: #a0a0a0;
-}
-
-:global([data-theme="dark"]) .menu-section {
-  border-color: #333333;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-:global([data-theme="dark"]) .nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
-:global([data-theme="dark"]) .divider {
-  background: #333333;
-}
-
-:global([data-theme="dark"]) .bottom-nav-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-}
-
 @media (max-width: 768px) {
   .glass-menu {
     right: 16px;
@@ -563,21 +313,7 @@ onUnmounted(() => {
   }
 
   .glass-controls {
-    padding: 10px 10px 10px 16px;
-  }
-
-  .avatar-trigger {
-    width: 36px;
-    height: 36px;
-  }
-
-  .bottom-nav-item {
-    padding: 6px 10px;
-    font-size: 13px;
-  }
-
-  .divider {
-    margin: 0 8px;
+    padding: 10px;
   }
 }
 </style>
