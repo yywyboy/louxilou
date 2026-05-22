@@ -269,7 +269,7 @@ function setupCommentSubscription() {
 }
 
 function goBack() {
-  router.push('/blog')
+  router.push('/')
 }
 
 onMounted(() => {
