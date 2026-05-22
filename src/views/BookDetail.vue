@@ -19,18 +19,6 @@
       </div>
     </div>
 
-    <div v-if="book.txtZipUrl || book.epubZipUrl" class="download-section">
-      <h3>📦 全集下载</h3>
-      <div class="download-buttons">
-        <a v-if="book.txtZipUrl" :href="book.txtZipUrl" download class="btn btn-primary">
-          📄 下载 TXT 全集
-        </a>
-        <a v-if="book.epubZipUrl" :href="book.epubZipUrl" download class="btn btn-secondary">
-          📖 下载 EPUB 全集
-        </a>
-      </div>
-    </div>
-
     <div class="chapters-section">
       <h3>📑 章节列表</h3>
       <div class="chapters-grid">
@@ -52,9 +40,6 @@
               <a :href="chapter.txtUrl" download class="action-btn download-btn">
                 📥 下载 TXT
               </a>
-              <a :href="chapter.epubUrl" download class="action-btn epub-btn">
-                📱 下载 EPUB
-              </a>
             </div>
           </div>
         </div>
@@ -62,9 +47,10 @@
     </div>
   </div>
 
-  <div v-else class="loading-state">
-    <div class="loading-icon">🔍</div>
-    <p>书籍信息加载中...</p>
+  <div v-else class="error-state">
+    <div class="error-icon">📚</div>
+    <p>书籍不存在</p>
+    <button class="back-btn" @click="goBack">返回藏书阁</button>
   </div>
 </template>
 
@@ -192,58 +178,6 @@ const readChapter = (chapter: BookChapter) => {
   border-radius: 8px;
 }
 
-.download-section {
-  background: var(--card-bg, #fff);
-  padding: 1.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  margin-bottom: 2rem;
-}
-
-.download-section h3 {
-  font-size: 1.25rem;
-  margin: 0 0 1rem 0;
-  color: var(--color-text, #1a1a1a);
-}
-
-.download-buttons {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  font-weight: 500;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  transition: all 0.3s ease;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.btn-secondary {
-  background: var(--color-bg, #f3f4f6);
-  color: var(--color-text, #333);
-  border: 1px solid var(--color-border, #e5e7eb);
-}
-
-.btn-secondary:hover {
-  background: var(--color-border, #e5e7eb);
-}
-
 .chapters-section {
   background: var(--card-bg, #fff);
   padding: 1.5rem 2rem;
@@ -358,35 +292,36 @@ const readChapter = (chapter: BookChapter) => {
   background: rgba(59, 130, 246, 0.2);
 }
 
-.epub-btn {
-  background: rgba(168, 85, 247, 0.1);
-  color: #a855f7;
-}
-
-.epub-btn:hover {
-  background: rgba(168, 85, 247, 0.2);
-}
-
-.loading-state {
+.error-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  gap: 1rem;
 }
 
-.loading-icon {
+.error-icon {
   font-size: 4rem;
-  animation: pulse 1.5s infinite;
 }
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+.back-btn {
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 [data-theme="dark"] .book-header,
-[data-theme="dark"] .download-section,
 [data-theme="dark"] .chapters-section {
   background: rgba(30, 30, 40, 0.85);
 }

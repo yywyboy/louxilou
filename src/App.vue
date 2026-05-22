@@ -3,10 +3,10 @@ import { RouterView } from 'vue-router'
 import { ref, onMounted } from 'vue'
 import LiquidGlassCapsule from './components/LiquidGlassCapsule.vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
+import { skipNextTransition } from './router'
 
 const loadingRef = ref()
 const isTransitioning = ref(false)
-const isPageLoading = ref(false)
 
 onMounted(() => {
   if (loadingRef.value) {
@@ -15,8 +15,11 @@ onMounted(() => {
 })
 
 const handleBeforeLeave = () => {
+  if (skipNextTransition) {
+    return
+  }
+
   isTransitioning.value = true
-  isPageLoading.value = true
   if (loadingRef.value) {
     loadingRef.value.show()
   }
@@ -26,7 +29,7 @@ const handleBeforeLeave = () => {
 const handleAfterEnter = () => {
   isTransitioning.value = false
   document.dispatchEvent(new Event('pageenter'))
-  
+
   if (loadingRef.value) {
     loadingRef.value.hide()
   }
@@ -37,7 +40,7 @@ const handleAfterEnter = () => {
   <div class="app-container">
     <LoadingSpinner ref="loadingRef" />
     <RouterView v-slot="{ Component, route }">
-      <Transition 
+      <Transition
         name="page"
         @before-leave="handleBeforeLeave"
         @after-enter="handleAfterEnter"

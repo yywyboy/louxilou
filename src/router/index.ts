@@ -10,6 +10,12 @@ import ChatRoom from '../views/ChatRoom.vue'
 import Profile from '../views/Profile.vue'
 import Settings from '../views/Settings.vue'
 
+export const isLibraryTransition = (from: string, to: string): boolean => {
+  const isFromLibrary = from === '/library' || from.startsWith('/library/')
+  const isToLibrary = to === '/library' || to.startsWith('/library/')
+  return isFromLibrary && isToLibrary
+}
+
 const routes = [
   {
     path: '/',
@@ -68,6 +74,16 @@ const router = createRouter({
   routes,
   scrollBehavior() {
     return { top: 0 }
+  }
+})
+
+export let skipNextTransition = false
+
+router.beforeEach((to, from) => {
+  if (isLibraryTransition(from.path, to.path)) {
+    skipNextTransition = true
+  } else {
+    skipNextTransition = false
   }
 })
 

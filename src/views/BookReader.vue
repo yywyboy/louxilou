@@ -16,18 +16,14 @@
         <button class="control-btn" @click="toggleFontSize(1)">
           A+
         </button>
-        <button class="control-btn" @click="toggleTheme">
-          🌙
-        </button>
+        <div class="quick-nav" @click.stop="toggleQuickNav">
+          <span class="nav-icon">☰</span>
+        </div>
       </div>
     </div>
 
-    <div class="reader-content" :style="{ fontSize: fontSize + 'px' }">
-      <div v-if="loading" class="loading-content">
-        <div class="loading-spinner"></div>
-        <p>正在加载内容...</p>
-      </div>
-      <div v-else-if="error" class="error-content">
+    <div class="reader-content" :style="{ fontSize: fontSize + 'px' }" @click="closeQuickNav">
+      <div v-if="error" class="error-content">
         <div class="error-icon">❌</div>
         <p>{{ error }}</p>
       </div>
@@ -58,10 +54,6 @@
           下一章 →
         </button>
       </div>
-    </div>
-
-    <div class="quick-nav" @click="toggleQuickNav" ref="quickNav">
-      <span class="nav-icon">☰</span>
     </div>
 
     <div v-if="showQuickNav" class="quick-nav-panel">
@@ -96,7 +88,6 @@ const book = ref<ReturnType<typeof getBookById> | null>(null)
 const bookChapters = ref<BookChapter[]>([])
 const currentChapterIndex = ref(0)
 const content = ref('')
-const loading = ref(true)
 const error = ref('')
 const fontSize = ref(16)
 const showQuickNav = ref(false)
@@ -112,6 +103,7 @@ const chapterTitle = computed(() => {
 const totalChapters = computed(() => bookChapters.value.length)
 
 const paragraphs = computed(() => {
+  if (!content.value) return []
   return content.value
     .split(/[\n\r]+/)
     .filter(p => p.trim())
@@ -126,9 +118,71 @@ watch(() => route.params, () => {
   loadChapter()
 }, { deep: true })
 
+const detectEncoding = (buffer: Uint8Array): string => {
+  const bom = buffer.slice(0, 4)
+  
+  if (bom[0] === 0xFF && bom[1] === 0xFE) return 'UTF-16LE'
+  if (bom[0] === 0xFE && bom[1] === 0xFF) return 'UTF-16BE'
+  if (bom[0] === 0xEF && bom[1] === 0xBB && bom[2] === 0xBF) return 'UTF-8'
+  
+  let hasHighByte = false
+  let gbkPattern = 0
+  let utf8Pattern = 0
+  
+  for (let i = 0; i < Math.min(buffer.length, 1000); i++) {
+    const byte = buffer[i]
+    if (byte > 127) {
+      hasHighByte = true
+      if (byte >= 0x81 && byte <= 0xFE) {
+        const nextByte = buffer[i + 1]
+        if (nextByte && ((nextByte >= 0x40 && nextByte <= 0x7E) || (nextByte >= 0x80 && nextByte <= 0xFE))) {
+          gbkPattern++
+        }
+      }
+    }
+    if (byte >= 0xC2 && byte <= 0xF4) {
+      utf8Pattern++
+    }
+  }
+  
+  if (!hasHighByte) return 'UTF-8'
+  
+  if (gbkPattern > utf8Pattern * 2) {
+    return 'GBK'
+  }
+  
+  return 'UTF-8'
+}
+
+const decodeText = (buffer: Uint8Array): string => {
+  const encodings = ['UTF-8', 'GBK', 'GB18030', 'GB2312', 'Shift_JIS', 'Big5']
+  
+  for (const encoding of encodings) {
+    try {
+      const decoder = new TextDecoder(encoding)
+      const text = decoder.decode(buffer)
+      if (!containsGarbledChars(text)) {
+        return text
+      }
+    } catch (e) {
+      continue
+    }
+  }
+  
+  return new TextDecoder('UTF-8', { fatal: false }).decode(buffer)
+}
+
+const containsGarbledChars = (text: string): boolean => {
+  const garbledPattern = /[\uFFFD\uFFFE\uFFFF]/g
+  const garbledCount = (text.match(garbledPattern) || []).length
+  const garbledRatio = garbledCount / text.length
+  
+  return garbledRatio > 0.05 || garbledCount > 3
+}
+
 const loadChapter = async () => {
-  loading.value = true
   error.value = ''
+  content.value = ''
   
   const bookId = route.params.bookId as string
   const chapterId = route.params.chapterId as string
@@ -137,7 +191,6 @@ const loadChapter = async () => {
   
   if (!book.value) {
     error.value = '书籍不存在'
-    loading.value = false
     return
   }
   
@@ -155,13 +208,19 @@ const loadChapter = async () => {
     if (!response.ok) {
       throw new Error('加载失败')
     }
-    content.value = await response.text()
+    
+    const arrayBuffer = await response.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
+    content.value = decodeText(uint8Array)
+    
+    if (containsGarbledChars(content.value)) {
+      console.warn('检测到可能的乱码，尝试其他编码')
+    }
+    
   } catch (err) {
     error.value = '无法加载章节内容'
     console.error(err)
   }
-  
-  loading.value = false
 }
 
 const goBack = () => {
@@ -173,10 +232,8 @@ const toggleFontSize = (delta: number) => {
   fontSize.value = Math.max(12, Math.min(24, fontSize.value + delta))
 }
 
-const toggleTheme = () => {
-  const currentTheme = document.documentElement.getAttribute('data-theme')
-  const newTheme = currentTheme === 'dark' ? 'light' : 'dark'
-  document.documentElement.setAttribute('data-theme', newTheme)
+const closeQuickNav = () => {
+  showQuickNav.value = false
 }
 
 const prevChapter = () => {
@@ -225,8 +282,10 @@ const toggleQuickNav = () => {
   padding: 1rem 1.5rem;
   background: var(--card-bg, #fff);
   border-bottom: 1px solid var(--color-border, #e5e7eb);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
@@ -272,6 +331,7 @@ const toggleQuickNav = () => {
 .reader-controls {
   display: flex;
   gap: 0.5rem;
+  align-items: center;
 }
 
 .control-btn {
@@ -294,36 +354,44 @@ const toggleQuickNav = () => {
   background: var(--color-border, #e5e7eb);
 }
 
+.quick-nav {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+  transition: all 0.2s ease;
+}
+
+.quick-nav:hover {
+  transform: scale(1.05);
+}
+
+.nav-icon {
+  font-size: 1rem;
+  color: white;
+}
+
 .reader-content {
   flex: 1;
   padding: 2rem;
+  padding-top: calc(2rem + 70px);
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
 }
 
-.loading-content,
 .error-content {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 300px;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--color-border, #e5e7eb);
-  border-top-color: #667eea;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
 }
 
 .error-icon {
@@ -364,36 +432,10 @@ const toggleQuickNav = () => {
   padding: 0.5rem 1.25rem;
 }
 
-.quick-nav {
-  position: fixed;
-  right: 1rem;
-  bottom: 100px;
-  width: 50px;
-  height: 50px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-  transition: all 0.3s ease;
-  z-index: 50;
-}
-
-.quick-nav:hover {
-  transform: scale(1.1);
-}
-
-.nav-icon {
-  font-size: 1.5rem;
-  color: white;
-}
-
 .quick-nav-panel {
   position: fixed;
   right: 1rem;
-  bottom: 100px;
+  top: 80px;
   width: 280px;
   background: var(--card-bg, #fff);
   border-radius: 16px;
@@ -462,28 +504,6 @@ const toggleQuickNav = () => {
   background: rgba(102, 126, 234, 0.1);
   color: #667eea;
   font-weight: 500;
-}
-
-[data-theme="dark"] .reader-container {
-  background: #0f0f14;
-}
-
-[data-theme="dark"] .reader-header,
-[data-theme="dark"] .reader-footer,
-[data-theme="dark"] .quick-nav-panel {
-  background: rgba(30, 30, 40, 0.95);
-}
-
-[data-theme="dark"] .control-btn {
-  background: rgba(50, 50, 60, 0.8);
-}
-
-[data-theme="dark"] .chapter-item:hover {
-  background: rgba(50, 50, 60, 0.8);
-}
-
-[data-theme="dark"] .chapter-item.active {
-  background: rgba(102, 126, 234, 0.2);
 }
 
 @media (max-width: 768px) {
