@@ -32,28 +32,24 @@
       
       <div class="upload-guide">
         <h3>📝 如何发布文章</h3>
-        <ol>
-          <li>在 <code>src/articles/</code> 文件夹中创建 <code>.md</code> 文件</li>
-          <li>文件名格式：<code>YYYY-MM-DD-标题.md</code></li>
-          <li>文件内容格式：
-            <pre><code>---
-title: 文章标题
-date: 2024-02-14
-pinned: true
----
-
-文章内容...</code></pre>
-          </li>
-          <li>添加 <code>pinned: true</code> 可置顶文章</li>
-          <li>保存后刷新页面即可显示</li>
-        </ol>
+        <p>文章直接在 <code>src/views/ReadingRoom.vue</code> 文件的 announcements 数组中添加。</p>
+        <pre><code>const announcements = [
+  {
+    id: '1',
+    title: '文章标题',
+    date: '2024-02-14',
+    content: '文章内容...',
+    pinned: false
+  }
+]</code></pre>
+        <p><strong>置顶文章</strong>：设置 <code>pinned: true</code></p>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 
 interface Announcement {
   id: string
@@ -63,54 +59,17 @@ interface Announcement {
   pinned: boolean
 }
 
-const announcements = ref<Announcement[]>([])
+const announcements = ref<Announcement[]>([
+  {
+    id: '1',
+    title: '欢迎来到楼西楼louxilou！',
+    date: '2026-05-10',
+    content: '这是我的个人网站，这里可以看小说和图片，要联系我也可以！',
+    pinned: true
+  }
+])
+
 const expandedId = ref<string | null>(null)
-
-const parseMarkdown = (content: string) => {
-  const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
-  const match = content.match(frontmatterRegex)
-  
-  if (!match) {
-    return { title: '未命名', date: '未知', pinned: false, body: content }
-  }
-  
-  const frontmatter = match[1]
-  const body = match[2]
-  
-  const titleMatch = frontmatter.match(/title:\s*(.+)/)
-  const dateMatch = frontmatter.match(/date:\s*(\d{4}-\d{2}-\d{2})/)
-  const pinnedMatch = frontmatter.match(/pinned:\s*(true|false)/i)
-  
-  return {
-    title: titleMatch ? titleMatch[1].trim() : '未命名',
-    date: dateMatch ? dateMatch[1].trim() : '未知',
-    pinned: pinnedMatch ? pinnedMatch[1].toLowerCase() === 'true' : false,
-    body: body.trim()
-  }
-}
-
-const loadAnnouncements = async () => {
-  const articleFiles = import.meta.glob('../articles/*.md')
-  
-  const announcementList: Announcement[] = []
-  
-  for (const [path, resolver] of Object.entries(articleFiles)) {
-    const module = await resolver()
-    const content = (module as { default: string }).default
-    const parsed = parseMarkdown(content)
-    const id = path.split('/').pop()?.replace('.md', '') || ''
-    
-    announcementList.push({
-      id,
-      title: parsed.title,
-      date: parsed.date,
-      content: parsed.body,
-      pinned: parsed.pinned
-    })
-  }
-  
-  announcements.value = announcementList
-}
 
 const sortedAnnouncements = computed(() => {
   return [...announcements.value].sort((a, b) => {
@@ -123,10 +82,6 @@ const sortedAnnouncements = computed(() => {
 const toggleExpand = (id: string) => {
   expandedId.value = expandedId.value === id ? null : id
 }
-
-onMounted(() => {
-  loadAnnouncements()
-})
 </script>
 
 <style scoped>
@@ -269,15 +224,10 @@ p {
   font-size: 1rem;
 }
 
-.upload-guide ol {
-  margin: 0;
-  padding-left: 20px;
+.upload-guide p {
+  margin: 8px 0;
   font-size: 0.9rem;
-  line-height: 1.6;
-}
-
-.upload-guide li {
-  margin-bottom: 8px;
+  text-align: left;
 }
 
 .upload-guide code {
