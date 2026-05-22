@@ -9,6 +9,7 @@ export interface GetPostsOptions {
 }
 
 export async function getPosts(options?: GetPostsOptions): Promise<Post[]> {
+  if (!supabase) return []
   let query = supabase
     .from('posts')
     .select('*')
@@ -33,6 +34,7 @@ export async function getPosts(options?: GetPostsOptions): Promise<Post[]> {
 }
 
 export async function getPost(id: string): Promise<Post | null> {
+  if (!supabase) return null
   const { data, error } = await supabase
     .from('posts')
     .select('*')
@@ -50,6 +52,7 @@ export async function getPost(id: string): Promise<Post | null> {
 }
 
 export async function searchPosts(keyword: string, category?: string): Promise<Post[]> {
+  if (!supabase) return []
   let query = supabase
     .from('posts')
     .select('*')
@@ -71,6 +74,7 @@ export async function searchPosts(keyword: string, category?: string): Promise<P
 }
 
 export async function getComments(postId: string): Promise<Comment[]> {
+  if (!supabase) return []
   const { data, error } = await supabase
     .from('comments')
     .select('*')
@@ -91,6 +95,7 @@ export async function addComment(
   content: string,
   userAvatar?: string
 ): Promise<Comment | null> {
+  if (!supabase) return null
   const { data, error } = await supabase
     .from('comments')
     .insert({
@@ -111,6 +116,7 @@ export async function addComment(
 }
 
 export async function toggleLike(postId: string, userId: string): Promise<boolean> {
+  if (!supabase) return false
   const { data: existing } = await supabase
     .from('likes')
     .select('id')
@@ -144,6 +150,7 @@ export async function toggleLike(postId: string, userId: string): Promise<boolea
 }
 
 export async function hasUserLiked(postId: string, userId: string): Promise<boolean> {
+  if (!supabase) return false
   const { data } = await supabase
     .from('likes')
     .select('id')
@@ -155,6 +162,7 @@ export async function hasUserLiked(postId: string, userId: string): Promise<bool
 }
 
 export async function getLikeCount(postId: string): Promise<number> {
+  if (!supabase) return 0
   const { count, error } = await supabase
     .from('likes')
     .select('id', { count: 'exact' })
@@ -169,6 +177,7 @@ export async function getLikeCount(postId: string): Promise<number> {
 }
 
 async function incrementViewCount(postId: string): Promise<void> {
+  if (!supabase) return
   const { error } = await supabase.rpc('increment_view_count', { post_id: postId })
   if (error) {
     console.error('Error incrementing view count:', error)
@@ -193,6 +202,7 @@ export function subscribeToComments(
   postId: string,
   callback: (comment: Comment) => void
 ): () => void {
+  if (!supabase) return () => {}
   const channel = supabase
     .channel(`comments:${postId}`)
     .on(
