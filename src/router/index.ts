@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from '../views/Home.vue'
 import LivingRoom from '../views/LivingRoom.vue'
 import Library from '../views/Library.vue'
+import BookDetail from '../views/BookDetail.vue'
+import BookReader from '../views/BookReader.vue'
 import Observation from '../views/Observation.vue'
 import ReadingRoom from '../views/ReadingRoom.vue'
 import ChatRoom from '../views/ChatRoom.vue'
@@ -23,6 +25,16 @@ const routes = [
     path: '/library',
     name: 'Library',
     component: Library
+  },
+  {
+    path: '/library/:id',
+    name: 'BookDetail',
+    component: BookDetail
+  },
+  {
+    path: '/library/:bookId/read/:chapterId',
+    name: 'BookReader',
+    component: BookReader
   },
   {
     path: '/observation',
