@@ -32,10 +32,10 @@
         </div>
       </div>
       
-      <div v-if="announcements.length === 0" class="upload-guide">
+      <div v-if="articles.length === 0" class="upload-guide">
         <h3>📝 如何发布文章</h3>
-        <p>文章直接在 <code>src/views/ReadingRoom.vue</code> 文件的 announcements 数组中添加。</p>
-        <pre><code>const announcements = [
+        <p>文章直接在 <code>src/data/articles.ts</code> 文件中添加。</p>
+        <pre><code>const articles = [
   {
     id: '1',
     title: '文章标题',
@@ -52,43 +52,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-
-interface Announcement {
-  id: string
-  title: string
-  date: string
-  content: string
-  pinned: boolean
-}
-
-const announcements = ref<Announcement[]>([
-  {
-    id: '1',
-    title: '欢迎来到楼西楼louxilou！',
-    date: '2026-05-10',
-    content: '这是我的个人网站，这里可以看小说和图片，要联系我也可以！',
-    pinned: true
-  },
-  {
-    id: '2',
-    title: '新增图片检索功能',
-    date: '2026-05-18',
-    content: '观景台页面新增了图片类型检索功能，可以快速筛选不同类型的图片。',
-    pinned: false
-  },
-  {
-    id: '3',
-    title: '联系方式更新',
-    date: '2026-05-21',
-    content: '联系页面新增了抖音账号，欢迎关注！点击邮箱和电话卡片可以直接复制。',
-    pinned: false
-  }
-])
+import { articles } from '../data/articles'
 
 const expandedId = ref<string | null>(null)
 
 const sortedAnnouncements = computed(() => {
-  return [...announcements.value].sort((a, b) => {
+  return [...articles].sort((a, b) => {
     if (a.pinned && !b.pinned) return -1
     if (!a.pinned && b.pinned) return 1
     return new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -103,285 +72,214 @@ const toggleExpand = (id: string) => {
 <style scoped>
 .page-container {
   min-height: 100vh;
-  padding: 2rem;
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .page-content {
   max-width: 800px;
   margin: 0 auto;
+  padding: 40px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--color-text, #333);
-  text-align: center;
+  font-size: 32px;
+  margin: 0 0 8px 0;
 }
 
-p {
-  font-size: 1.1rem;
-  color: var(--color-text-secondary, #666);
-  text-align: center;
-  margin-bottom: 2rem;
+.page-content > p {
+  color: #666;
+  margin: 0 0 30px 0;
 }
 
 .announcement-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
-  margin-bottom: 2rem;
+  gap: 15px;
 }
 
 .announcement-card {
-  background: var(--card-bg, #ffffff);
+  background: #f8f9fa;
   border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-  cursor: pointer;
-  border-left: 4px solid transparent;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .announcement-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-}
-
-.announcement-card.expanded {
-  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
-  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .announcement-card.pinned {
-  border-left-color: #667eea;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, transparent 100%);
+  border-left: 4px solid #667eea;
 }
 
 .announcement-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 20px;
 }
 
 .title-wrapper {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
 .pin-badge {
-  font-size: 1rem;
-  animation: bounce 1s ease-in-out infinite;
-}
-
-@keyframes bounce {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+  font-size: 16px;
 }
 
 .announcement-title {
-  font-size: 1.2rem;
+  font-size: 18px;
   font-weight: 600;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
 }
 
 .header-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 15px;
 }
 
 .announcement-date {
-  font-size: 0.85rem;
-  color: var(--color-text-secondary, #666);
-  background: var(--color-bg, #f0f0f0);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  transition: all 0.3s ease;
+  font-size: 14px;
+  color: #999;
 }
 
 .expand-icon-wrapper {
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--color-bg, #f0f0f0);
-  transition: all 0.3s ease;
-}
-
-.announcement-card:hover .expand-icon-wrapper,
-.announcement-card.expanded .expand-icon-wrapper {
-  background: #667eea;
 }
 
 .expand-icon {
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid var(--color-text-secondary, #666);
-  border-bottom: 2px solid var(--color-text-secondary, #666);
-  transform: rotate(45deg);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.announcement-card:hover .expand-icon,
-.announcement-card.expanded .expand-icon {
-  border-color: #fff;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid #999;
+  transition: transform 0.3s ease;
 }
 
 .announcement-card.expanded .expand-icon {
-  transform: rotate(-135deg) translateY(2px);
+  transform: rotate(180deg);
 }
 
 .announcement-content-container {
   overflow: hidden;
   max-height: 0;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-  opacity: 0;
+  transition: max-height 0.3s ease;
 }
 
 .announcement-content-container.expanded {
-  max-height: 300px;
-  opacity: 1;
+  max-height: 500px;
 }
 
 .announcement-content-wrapper {
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--color-border, #e5e7eb);
-  animation: contentFadeIn 0.4s ease forwards;
-}
-
-@keyframes contentFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  padding: 0 20px 20px;
 }
 
 .announcement-content {
-  font-size: 1rem;
-  color: var(--color-text-secondary, #666);
-  line-height: 1.7;
   margin: 0;
-  animation: textReveal 0.5s ease forwards;
-}
-
-@keyframes textReveal {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  color: #555;
+  line-height: 1.8;
+  white-space: pre-wrap;
 }
 
 .upload-guide {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  margin-top: 30px;
   padding: 20px;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
   border-radius: 12px;
-  animation: slideIn 0.5s ease forwards;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .upload-guide h3 {
-  margin: 0 0 12px 0;
-  font-size: 1rem;
+  margin: 0 0 10px 0;
 }
 
 .upload-guide p {
-  margin: 8px 0;
-  font-size: 0.9rem;
-  text-align: left;
+  margin: 5px 0;
+  color: #666;
 }
 
 .upload-guide code {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.05);
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 14px;
 }
 
 .upload-guide pre {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 10px;
-  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.08);
+  padding: 15px;
+  border-radius: 8px;
   overflow-x: auto;
-  margin: 6px 0 0 0;
-  font-size: 0.8rem;
+  margin: 10px 0;
 }
 
-[data-theme="dark"] .announcement-card {
-  background: rgba(30, 30, 40, 0.85);
+.upload-guide pre code {
+  background: none;
+  padding: 0;
 }
 
-[data-theme="dark"] .announcement-card.pinned {
-  background: linear-gradient(135deg, rgba(129, 140, 248, 0.1) 0%, transparent 100%);
-}
-
-[data-theme="dark"] .announcement-date {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .expand-icon-wrapper {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .announcement-content-wrapper {
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .upload-guide {
-  background: linear-gradient(135deg, rgba(129, 140, 248, 0.15) 0%, rgba(192, 132, 252, 0.15) 100%);
-}
-
-[data-theme="dark"] .upload-guide code,
-[data-theme="dark"] .upload-guide pre {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-@media (max-width: 768px) {
+@media (prefers-color-scheme: dark) {
   .page-container {
-    padding: 1rem;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  }
+  
+  .page-content {
+    background: #1e293b;
   }
   
   h1 {
-    font-size: 2rem;
+    color: #e2e8f0;
+  }
+  
+  .page-content > p {
+    color: #94a3b8;
   }
   
   .announcement-card {
-    padding: 1.25rem;
+    background: #334155;
   }
   
-  .announcement-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .announcement-title {
+    color: #e2e8f0;
   }
   
-  .header-right {
-    width: 100%;
-    justify-content: space-between;
+  .announcement-date {
+    color: #64748b;
+  }
+  
+  .expand-icon {
+    border-top-color: #64748b;
+  }
+  
+  .announcement-content {
+    color: #cbd5e1;
+  }
+  
+  .upload-guide {
+    background: rgba(129, 140, 248, 0.15);
+  }
+  
+  .upload-guide p {
+    color: #cbd5e1;
+  }
+  
+  .upload-guide code {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  .upload-guide pre {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 </style>
