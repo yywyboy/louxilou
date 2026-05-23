@@ -1,187 +1,93 @@
-export interface BookChapter {
-  id: string
-  title: string
-  status: string
-  cover: string
-  txtUrl: string
-  epubUrl?: string
-}
-
 export interface Book {
   id: string
   title: string
   author: string
   cover: string
   description: string
-  chapters: BookChapter[]
-  txtZipUrl?: string
-  epubZipUrl?: string
+  chapters: Chapter[]
+}
+
+export interface Chapter {
+  id: string
+  title: string
+  content: string
 }
 
 export const books: Book[] = [
   {
-    id: 'shiaimin',
-    title: '小市民系列',
+    id: 'kotenbu',
+    title: '古典部系列',
     author: '米泽穗信',
-    cover: '/books/images/xiaoshimin/IMG_0106.JPG',
-    description: '高中生小鸠常悟朗与小佐内由纪既不算是情侣，也不是相互依赖的关系。他们本着互利互惠、各取所需的原则结盟，朝着平凡小市民的目标努力。然而，二人身边却接二连三出现一个又一个谜团。虽然小鸠不想让自己像名侦探那样被瞩目，可一遇到谜题就忍不住想立刻解开，那他到底能不能成为名副其实的小市民呢？',
+    cover: '/books/images/kotenbu/temp.GIF',
+    description: '以神山高中古典部为舞台的青春推理小说系列',
     chapters: [
-      {
-        id: 'spring',
-        title: '春季限定草莓挞事件',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp.gif',
-        txtUrl: '/books/xiaoshimin/txt/春季限定草莓塔事件.txt'
-      },
-      {
-        id: 'summer',
-        title: '夏季限定热带水果芭菲事件',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp(5).gif',
-        txtUrl: '/books/xiaoshimin/txt/夏季限定热带水果百汇事件.txt'
-      },
-      {
-        id: 'autumn-1',
-        title: '秋季限定栗金饨事件（上）',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp(4).gif',
-        txtUrl: '/books/xiaoshimin/txt/秋季限定栗金饨事件(上).txt'
-      },
-      {
-        id: 'autumn-2',
-        title: '秋季限定栗金饨事件（下）',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp(3).gif',
-        txtUrl: '/books/xiaoshimin/txt/秋季限定栗金饨事件(下).txt'
-      },
-      {
-        id: 'paris',
-        title: '巴黎马卡龙之谜',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp(2).gif',
-        txtUrl: '/books/xiaoshimin/txt/巴黎马卡龙之谜.txt'
-      },
-      {
-        id: 'winter',
-        title: '冬季限定法式巧克力事件',
-        status: '已完结',
-        cover: '/books/images/xiaoshimin/temp(1).gif',
-        txtUrl: '/books/xiaoshimin/txt/冬季限定法式巧克力事件.txt'
-      }
+      { id: '1', title: '冰菓', content: '古典部系列第一卷' },
+      { id: '2', title: '愚者的片尾', content: '古典部系列第二卷' },
+      { id: '3', title: '库特利亚芙卡的顺序', content: '古典部系列第三卷' },
+      { id: '4', title: '绕远路的雏人偶', content: '古典部系列第四卷' },
+      { id: '5', title: '两人距离的概算', content: '古典部系列第五卷' },
+      { id: '6', title: '迟来的翅膀', content: '古典部系列第六卷' }
     ]
   },
   {
     id: 'mobitchi',
     title: '魔女之旅',
     author: '白石定规',
-    cover: '/books/images/mobitchi/temp.GIF',
-    description: '某个地方有一位魔女，她的名字叫伊蕾娜。她是一位旅行者，以见证世界的美丽为己任，驾驶着扫帚在天空中自由飞翔。她走过了各种各样的国家，遇到了形形色色的人们，经历了各种各样的故事。这是关于一位魔女在旅途中所见所闻的故事。',
+    cover: '/books/images/mobitchi/1.GIF',
+    description: '讲述魔女伊蕾娜周游各国的故事',
     chapters: [
-      {
-        id: 'vol1',
-        title: '魔女之旅 第1卷',
-        status: '已完结',
-        cover: '/books/images/mobitchi/1.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅 1.txt'
-      },
-      {
-        id: 'vol2',
-        title: '魔女之旅 第2卷',
-        status: '已完结',
-        cover: '/books/images/mobitchi/2.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅 2.txt'
-      },
-      {
-        id: 'vol3',
-        title: '魔女之旅 第3卷',
-        status: '已完结',
-        cover: '/books/images/mobitchi/3.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅 3.txt'
-      },
-      {
-        id: 'vol4',
-        title: '魔女之旅 第4卷',
-        status: '已完结',
-        cover: '/books/images/mobitchi/4.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅 4.txt'
-      },
-      {
-        id: 'vol5',
-        title: '魔女之旅 第5卷',
-        status: '已完结',
-        cover: '/books/images/mobitchi/5.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅 5.txt'
-      },
-      {
-        id: 'side',
-        title: '魔女之旅番外',
-        status: '已完结',
-        cover: '/books/images/mobitchi/temp 2.GIF',
-        txtUrl: '/books/mobitchi/txt/魔女之旅番外.txt'
-      }
+      { id: '1', title: '第1卷', content: '魔女之旅第一卷' },
+      { id: '2', title: '第2卷', content: '魔女之旅第二卷' },
+      { id: '3', title: '第3卷', content: '魔女之旅第三卷' },
+      { id: '4', title: '第4卷', content: '魔女之旅第四卷' },
+      { id: '5', title: '第5卷', content: '魔女之旅第五卷' },
+      { id: '6', title: '第6卷', content: '魔女之旅第六卷' },
+      { id: '7', title: '第7卷', content: '魔女之旅第七卷' },
+      { id: '8', title: '第8卷', content: '魔女之旅第八卷' },
+      { id: '9', title: '第9卷', content: '魔女之旅第九卷' },
+      { id: '10', title: '第10卷', content: '魔女之旅第十卷' },
+      { id: '11', title: '第11卷', content: '魔女之旅第十一卷' },
+      { id: '12', title: '第12卷', content: '魔女之旅第十二卷' },
+      { id: '13', title: '第13卷', content: '魔女之旅第十三卷' },
+      { id: '14', title: '第14卷', content: '魔女之旅第十四卷' },
+      { id: '15', title: '第15卷', content: '魔女之旅第十五卷' },
+      { id: '16', title: '第16卷', content: '魔女之旅第十六卷' },
+      { id: '17', title: '第17卷', content: '魔女之旅第十七卷' },
+      { id: '18', title: '第18卷', content: '魔女之旅第十八卷' },
+      { id: '19', title: '第19卷', content: '魔女之旅第十九卷' },
+      { id: '20', title: '第20卷', content: '魔女之旅第二十卷' },
+      { id: '21', title: '第21卷', content: '魔女之旅第二十一卷' },
+      { id: '22', title: '第22卷', content: '魔女之旅第二十二卷' },
+      { id: '23', title: '第23卷', content: '魔女之旅第二十三卷' },
+      { id: '24', title: '第24卷', content: '魔女之旅第二十四卷' },
+      { id: '学院', title: '魔女之旅学院', content: '魔女之旅学院篇' },
+      { id: '学院物语', title: '魔女之旅学院物语', content: '魔女之旅学院物语' },
+      { id: '番外', title: '番外', content: '魔女之旅番外' },
+      { id: '短篇', title: '短篇', content: '魔女之旅短篇' },
+      { id: '短篇集', title: '短篇集', content: '魔女之旅短篇集' }
     ]
   },
   {
-    id: 'kotenbu',
-    title: '古典部系列',
+    id: 'xiaoshimin',
+    title: '小市民系列',
     author: '米泽穗信',
-    cover: '/books/images/kotenbu/temp 8.GIF',
-    description: '神山高中古典部的成员折木奉太郎，是一个崇尚节能主义的高中生。他因为姐姐的命令而加入了濒临废部的古典部，遇到了好奇心旺盛的少女千反田爱瑠。从此，他的平淡生活被打破，开始了一段段充满谜题的校园生活。',
+    cover: '/books/images/xiaoshimin/IMG_0106.JPG',
+    description: '以小市民为主题的推理小说系列',
     chapters: [
-      {
-        id: 'hyouka',
-        title: '冰菓',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列1.txt'
-      },
-      {
-        id: 'futaribun',
-        title: '愚者的片尾',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp 2.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列2.txt'
-      },
-      {
-        id: 'kaku',
-        title: '库特利亚芙卡的排序',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp 3.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列3.txt'
-      },
-      {
-        id: 'yume',
-        title: '绕远路的雏人偶',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp 4.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列4.txt'
-      },
-      {
-        id: 'matsu',
-        title: '两人距离的概算',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp 5.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列5.txt'
-      },
-      {
-        id: 'tsubasa',
-        title: '迟来的翅膀',
-        status: '已完结',
-        cover: '/books/images/kotenbu/temp 6.GIF',
-        txtUrl: '/books/kotenbu/txt/古典部系列6.txt'
-      }
+      { id: '1', title: '春季限定草莓塔事件', content: '小市民系列第一卷' },
+      { id: '2', title: '夏季限定热带水果百汇事件', content: '小市民系列第二卷' },
+      { id: '3', title: '秋季限定栗金饨事件(上)', content: '小市民系列第三卷上' },
+      { id: '4', title: '秋季限定栗金饨事件(下)', content: '小市民系列第三卷下' },
+      { id: '5', title: '冬季限定法式巧克力事件', content: '小市民系列第四卷' },
+      { id: '6', title: '巴黎马卡龙之谜', content: '小市民系列第五卷' }
     ]
   }
 ]
 
-export const getBookById = (id: string): Book | undefined => {
+export function getBookById(id: string): Book | undefined {
   return books.find(book => book.id === id)
 }
 
-export const searchBooks = (keyword: string): Book[] => {
-  const lowerKeyword = keyword.toLowerCase()
-  return books.filter(book => 
-    book.title.toLowerCase().includes(lowerKeyword) ||
-    book.author.toLowerCase().includes(lowerKeyword)
-  )
+export function getBooksByAuthor(author: string): Book[] {
+  return books.filter(book => book.author.includes(author))
 }
