@@ -217,6 +217,11 @@ async function loadPost() {
     post.value = await getPost(id)
     if (post.value) {
       document.title = `${post.value.title} - 楼西楼博客`
+      // 动态更新 meta description
+      const metaDesc = document.querySelector('meta[name="description"]')
+      if (metaDesc && post.value.summary) {
+        metaDesc.setAttribute('content', post.value.summary)
+      }
       await loadComments()
       await loadLikeStatus()
       setupCommentSubscription()
