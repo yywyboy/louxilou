@@ -65,15 +65,15 @@ onMounted(() => {
       </div>
 
       <div class="sidebar-section music-section">
-        <h3 class="sidebar-title">🎵 音乐</h3>
-        <iframe
-          frameborder="no"
-          border="0"
-          marginwidth="0"
-          marginheight="0"
+        <h3 class="sidebar-title">音乐</h3>
+        <iframe 
+          frameborder="no" 
+          border="0" 
+          marginwidth="0" 
+          marginheight="0" 
           width="100%"
-          height="86"
-          src="//music.163.com/outchain/player?type=3&id=17982886763&auto=0&height=66"
+          height="450" 
+          src="//music.163.com/outchain/player?type=0&id=17982886763&auto=0&height=430"
           class="music-player"
         ></iframe>
       </div>
@@ -104,7 +104,7 @@ onMounted(() => {
             class="quick-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
-            <span class="link-text">📧 邮件联系</span>
+            <span class="link-text">邮件联系</span>
           </a>
         </div>
       </div>
@@ -118,7 +118,6 @@ onMounted(() => {
             class="friend-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
-            <span class="link-icon">🏠</span>
             <span class="link-text">楼西楼</span>
           </a>
         </div>
@@ -223,14 +222,17 @@ onMounted(() => {
 }
 
 .music-section {
-  padding: 1rem 1.5rem;
+  padding: 1.5rem;
 }
 
 .music-player {
   border: none;
-  width: 100%;
-  height: 86px;
+  width: calc(100% + 3rem);
+  height: 450px;
   display: block;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  margin-bottom: -1.5rem;
 }
 
 .quick-links {

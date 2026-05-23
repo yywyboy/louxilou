@@ -89,7 +89,7 @@ const bookChapters = ref<BookChapter[]>([])
 const currentChapterIndex = ref(0)
 const content = ref('')
 const error = ref('')
-const fontSize = ref(16)
+const fontSize = ref(18)
 const showQuickNav = ref(false)
 
 const bookTitle = computed(() => book.value?.title || '')
@@ -353,6 +353,8 @@ const toggleQuickNav = () => {
   margin: 0 auto;
   width: 100%;
   box-sizing: border-box;
+  font-size: 18px;
+  line-height: 2;
 }
 
 .error-content {
@@ -371,7 +373,6 @@ const toggleQuickNav = () => {
 .content-text {
   line-height: 2;
   color: #333;
-  font-size: 1.1rem;
 }
 
 .text-paragraph {
@@ -498,11 +499,6 @@ const toggleQuickNav = () => {
     padding: 1rem;
     padding-top: calc(1rem + 48px);
     padding-bottom: 70px;
-  }
-
-  .content-text {
-    font-size: 1rem;
-    line-height: 1.8;
   }
 
   .reader-footer {
