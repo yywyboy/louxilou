@@ -121,7 +121,7 @@ l:\
 | `summary` | 摘要 | 否 |
 | `content` | 内容（Markdown） | 是 |
 | `cover` | 封面图 URL | 否 |
-| `tags` | 标签数组，如 `{"技术","Vue"}` | 否 |
+| `tags` | 标签数组，如 `["技术","Vue"]` | 否 |
 | `category` | 分类：`tech`/`life`/`reading`/`thoughts` | 否 |
 
 5. 点击 **Save**
