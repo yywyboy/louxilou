@@ -1,67 +1,8 @@
-interface SupabaseClient {
-  from: (table: string) => any
-  auth: any
-}
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
-const createMockClient = (): SupabaseClient => ({
-  from: () => ({
-    select: () => ({
-      eq: () => ({
-        single: () => Promise.resolve({ data: null, error: null }),
-        limit: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-          then: (cb: any) => Promise.resolve({ data: null, error: null }).then(cb)
-        }),
-        then: (cb: any) => Promise.resolve({ data: null, error: null }).then(cb)
-      }),
-      or: () => ({
-        eq: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-          then: (cb: any) => Promise.resolve({ data: null, error: null }).then(cb)
-        }),
-        order: () => ({
-          then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-        }),
-        limit: () => ({
-          then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-        }),
-        then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-      }),
-      order: () => ({
-        limit: () => ({
-          then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-        }),
-        eq: () => ({
-          single: () => Promise.resolve({ data: null, error: null }),
-          then: (cb: any) => Promise.resolve({ data: null, error: null }).then(cb)
-        }),
-        then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-      }),
-      limit: () => ({
-        then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-      }),
-      then: (cb: any) => Promise.resolve({ data: [], error: null }).then(cb)
-    }),
-    insert: () => ({
-      select: () => ({
-        single: () => Promise.resolve({ data: null, error: null })
-      }),
-      then: (cb: any) => Promise.resolve({ data: null, error: null }).then(cb)
-    })
-  }),
-  auth: {
-    signInWithOtp: () => Promise.resolve({ data: null, error: null }),
-    signOut: () => Promise.resolve({ error: null })
-  },
-  channel: () => ({
-    on: () => ({
-      subscribe: () => ({})
-    }),
-    removeChannel: () => ({})
-  }),
-  removeChannel: () => ({})
-})
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-const supabase: SupabaseClient = createMockClient()
-
-export { supabase }
+export const supabase: SupabaseClient | null = supabaseUrl && supabaseAnonKey
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
