@@ -8,6 +8,8 @@ const photos = Array.from({ length: 36 }, (_, i) => ({
 }))
 
 const selectedPhoto = ref<typeof photos[0] | null>(null)
+const loadedPhotos = ref(new Set<number>())
+const errorPhotos = ref(new Set<number>())
 
 function openPhoto(photo: typeof photos[0]) {
   selectedPhoto.value = photo
@@ -15,6 +17,23 @@ function openPhoto(photo: typeof photos[0]) {
 
 function closePhoto() {
   selectedPhoto.value = null
+}
+
+function onImageLoad(photoId: number) {
+  loadedPhotos.value.add(photoId)
+}
+
+function onImageError(photoId: number) {
+  errorPhotos.value.add(photoId)
+  loadedPhotos.value.add(photoId)
+}
+
+function isLoaded(photoId: number) {
+  return loadedPhotos.value.has(photoId)
+}
+
+function isError(photoId: number) {
+  return errorPhotos.value.has(photoId)
 }
 
 const columns = computed(() => {
@@ -36,7 +55,20 @@ const columns = computed(() => {
           class="photo-card"
           @click="openPhoto(photo)"
         >
-          <img :src="photo.src" :alt="photo.alt" loading="lazy" />
+          <div v-if="!isLoaded(photo.id)" class="photo-placeholder">
+            <span class="loading-icon">📷</span>
+          </div>
+          <img 
+            v-show="isLoaded(photo.id) && !isError(photo.id)"
+            :src="photo.src" 
+            :alt="photo.alt" 
+            loading="lazy"
+            @load="onImageLoad(photo.id)"
+            @error="onImageError(photo.id)"
+          />
+          <div v-if="isError(photo.id)" class="photo-error">
+            <span>加载失败</span>
+          </div>
         </div>
       </div>
     </div>
@@ -79,10 +111,40 @@ const columns = computed(() => {
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
+  min-height: 200px;
+  background: #f3f4f6;
 }
 
 .photo-card:hover {
   border-color: #9F353A;
+}
+
+.photo-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  background: #e5e7eb;
+}
+
+.loading-icon {
+  font-size: 2rem;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.photo-error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  background: #fef2f2;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .photo-card img {

@@ -63,6 +63,20 @@ onMounted(() => {
         <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
         <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
       </div>
+
+      <div class="sidebar-section music-section">
+        <h3 class="sidebar-title">🎵 音乐</h3>
+        <iframe
+          frameborder="no"
+          border="0"
+          marginwidth="0"
+          marginheight="0"
+          width="100%"
+          height="86"
+          src="//music.163.com/outchain/player?type=3&id=17982886763&auto=0&height=66"
+          class="music-player"
+        ></iframe>
+      </div>
     </aside>
 
     <aside class="right-sidebar">
@@ -84,6 +98,28 @@ onMounted(() => {
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">Bilibili</span>
+          </a>
+          <a
+            href="mailto:17766710131@163.com"
+            class="quick-link btn-ripple"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+          >
+            <span class="link-text">📧 邮件联系</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">友情链接</h3>
+        <div class="friend-links">
+          <a
+            href="https://louxilou.com.cn"
+            target="_blank"
+            class="friend-link btn-ripple"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+          >
+            <span class="link-icon">🏠</span>
+            <span class="link-text">楼西楼</span>
           </a>
         </div>
       </div>
@@ -170,6 +206,7 @@ onMounted(() => {
   border-radius: 0;
   padding: 1.5rem;
   border: 3px solid #000;
+  margin-bottom: 1.5rem;
 }
 
 .sidebar-title {
@@ -183,6 +220,17 @@ onMounted(() => {
   color: #666;
   line-height: 1.6;
   margin: 0;
+}
+
+.music-section {
+  padding: 1rem 1.5rem;
+}
+
+.music-player {
+  border: none;
+  width: 100%;
+  height: 86px;
+  display: block;
 }
 
 .quick-links {
@@ -216,6 +264,43 @@ onMounted(() => {
 }
 
 .quick-link:first-child {
+  border-top: 3px solid #000;
+}
+
+.friend-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.friend-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+  border-radius: 0;
+  border: 3px solid #000;
+  border-top: none;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.9rem;
+  overflow: hidden;
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.friend-link .link-icon,
+.friend-link .link-text {
+  position: relative;
+  z-index: 2;
+}
+
+.friend-link:hover {
+  color: white;
+}
+
+.friend-link:first-child {
   border-top: 3px solid #000;
 }
 
