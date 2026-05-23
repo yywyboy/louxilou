@@ -224,3 +224,105 @@ export function subscribeToComments(
     client.removeChannel(channel)
   }
 }
+
+export interface Announcement {
+  id: string
+  content: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export async function getActiveAnnouncement(): Promise<Announcement | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .eq('is_active', true)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (error) {
+    console.error('Error fetching announcement:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function getAllAnnouncements(): Promise<Announcement[]> {
+  if (!supabase) return []
+  const { data, error } = await supabase
+    .from('announcements')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching announcements:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function createAnnouncement(content: string): Promise<Announcement | null> {
+  if (!supabase) return null
+  const { data, error } = await supabase
+    .from('announcements')
+    .insert({ content, is_active: true })
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating announcement:', error)
+    return null
+  }
+
+  return data
+}
+
+export async function updateAnnouncement(id: string, content: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from('announcements')
+    .update({ content, updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error updating announcement:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function deleteAnnouncement(id: string): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from('announcements')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting announcement:', error)
+    return false
+  }
+
+  return true
+}
+
+export async function toggleAnnouncementActive(id: string, isActive: boolean): Promise<boolean> {
+  if (!supabase) return false
+  const { error } = await supabase
+    .from('announcements')
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error toggling announcement:', error)
+    return false
+  }
+
+  return true
+}

@@ -236,18 +236,18 @@ const toggleQuickNav = () => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg, #fafafa);
+  background: #BDC0BA;
 }
 
 .reader-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 1.5rem;
-  background: var(--card-bg, #fff);
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  padding: 0.75rem 1.5rem;
+  background: #fff;
+  border-bottom: 3px solid #000;
   position: fixed;
-  top: 0;
+  top: 60px;
   left: 0;
   right: 0;
   z-index: 100;
@@ -258,17 +258,17 @@ const toggleQuickNav = () => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  background: none;
-  border: none;
+  background: #fff;
+  border: 3px solid #000;
   cursor: pointer;
-  color: var(--color-text, #333);
+  color: #333;
   font-size: 0.95rem;
-  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .nav-btn:hover:not(:disabled) {
-  background: var(--color-bg, #f3f4f6);
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .nav-btn:disabled {
@@ -278,18 +278,23 @@ const toggleQuickNav = () => {
 
 .header-title {
   text-align: center;
+  flex: 1;
+  padding: 0 1rem;
 }
 
 .header-title h2 {
   font-size: 1rem;
   margin: 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-title p {
   font-size: 0.8rem;
   margin: 0;
-  color: var(--color-text-secondary, #666);
+  color: #666;
 }
 
 .reader-controls {
@@ -304,35 +309,34 @@ const toggleQuickNav = () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg, #f3f4f6);
-  border: none;
-  border-radius: 8px;
+  background: #fff;
+  border: 3px solid #000;
   cursor: pointer;
   font-size: 0.9rem;
   font-weight: 600;
-  color: var(--color-text, #333);
+  color: #333;
   transition: all 0.2s ease;
 }
 
 .control-btn:hover {
-  background: var(--color-border, #e5e7eb);
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .quick-nav {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px;
+  background: #9F353A;
+  border: 3px solid #000;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
   transition: all 0.2s ease;
 }
 
 .quick-nav:hover {
-  transform: scale(1.05);
+  background: #7a2a2e;
 }
 
 .nav-icon {
@@ -343,7 +347,8 @@ const toggleQuickNav = () => {
 .reader-content {
   flex: 1;
   padding: 2rem;
-  padding-top: calc(2rem + 70px);
+  padding-top: calc(2rem + 56px);
+  padding-bottom: 80px;
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
@@ -365,7 +370,8 @@ const toggleQuickNav = () => {
 
 .content-text {
   line-height: 2;
-  color: var(--color-text, #333);
+  color: #333;
+  font-size: 1.1rem;
 }
 
 .text-paragraph {
@@ -378,13 +384,18 @@ const toggleQuickNav = () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 1.5rem;
-  background: var(--card-bg, #fff);
-  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: #fff;
+  border-top: 3px solid #000;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
 }
 
 .progress-info {
   font-size: 0.875rem;
-  color: var(--color-text-secondary, #666);
+  color: #666;
 }
 
 .nav-buttons {
@@ -399,11 +410,10 @@ const toggleQuickNav = () => {
 .quick-nav-panel {
   position: fixed;
   right: 1rem;
-  top: 80px;
+  top: 126px;
   width: 280px;
-  background: var(--card-bg, #fff);
-  border-radius: 16px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  background: #fff;
+  border: 3px solid #000;
   overflow: hidden;
   z-index: 60;
 }
@@ -413,28 +423,28 @@ const toggleQuickNav = () => {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  border-bottom: 3px solid #000;
 }
 
 .panel-header h3 {
   margin: 0;
   font-size: 1rem;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
 }
 
 .close-btn {
   background: none;
-  border: none;
+  border: 2px solid #000;
   cursor: pointer;
-  color: var(--color-text-secondary, #666);
+  color: #333;
   font-size: 1rem;
-  padding: 0.25rem;
-  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
   transition: all 0.2s ease;
 }
 
 .close-btn:hover {
-  background: var(--color-bg, #f3f4f6);
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .chapter-list {
@@ -449,10 +459,10 @@ const toggleQuickNav = () => {
   text-align: left;
   background: none;
   border: none;
+  border-bottom: 1px solid #000;
   cursor: pointer;
   font-size: 0.9rem;
-  color: var(--color-text, #333);
-  border-bottom: 1px solid var(--color-border, #e5e7eb);
+  color: #333;
   transition: all 0.2s ease;
 }
 
@@ -461,34 +471,57 @@ const toggleQuickNav = () => {
 }
 
 .chapter-item:hover {
-  background: var(--color-bg, #f3f4f6);
+  background: #f3f4f6;
 }
 
 .chapter-item.active {
-  background: rgba(102, 126, 234, 0.1);
-  color: #667eea;
+  background: #9F353A;
+  color: #fff;
   font-weight: 500;
 }
 
 @media (max-width: 768px) {
-  .reader-content {
-    padding: 1rem;
+  .reader-header {
+    padding: 0.5rem 1rem;
+    top: 50px;
   }
-  
+
   .header-title h2 {
-    font-size: 0.875rem;
+    font-size: 0.85rem;
   }
-  
-  .nav-btn span:last-child {
+
+  .header-title p {
     display: none;
   }
-  
+
+  .reader-content {
+    padding: 1rem;
+    padding-top: calc(1rem + 48px);
+    padding-bottom: 70px;
+  }
+
+  .content-text {
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .reader-footer {
+    padding: 0.75rem 1rem;
+  }
+
+  .footer-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
   .quick-nav-panel {
-    width: calc(100vw - 2rem);
-    right: 1rem;
-    bottom: auto;
-    top: 60px;
-    max-height: 70vh;
+    right: 0.5rem;
+    top: 108px;
+    width: 240px;
+  }
+
+  .chapter-list {
+    max-height: 300px;
   }
 }
 </style>

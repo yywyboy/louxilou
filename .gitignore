@@ -35,3 +35,7 @@ test.txt
 
 # Duplicate project
 vue-framework/
+
+# Temp directories
+temp_install2/
+temp_npm_cache/

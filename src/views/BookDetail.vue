@@ -94,20 +94,19 @@ const readChapter = (chapter: BookChapter) => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.25rem;
-  background: var(--card-bg, #fff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 3px solid #000;
   cursor: pointer;
   transition: all 0.3s ease;
   margin-bottom: 2rem;
-  color: var(--color-text, #333);
+  color: #333;
   width: fit-content;
 }
 
 .back-button:hover {
-  background: var(--color-bg, #f3f4f6);
-  transform: translateX(-4px);
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .back-icon {
@@ -118,18 +117,16 @@ const readChapter = (chapter: BookChapter) => {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 2rem;
-  background: var(--card-bg, #fff);
+  background: #fff;
   padding: 2rem;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 3px solid #000;
   margin-bottom: 2rem;
 }
 
 .cover-section {
   position: relative;
-  border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border: 3px solid #000;
 }
 
 .main-cover {
@@ -146,23 +143,22 @@ const readChapter = (chapter: BookChapter) => {
 .info-section h1 {
   font-size: 2rem;
   margin: 0 0 0.5rem 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
 }
 
 .info-section h2 {
   font-size: 1.25rem;
   font-weight: 500;
   margin: 0 0 1.5rem 0;
-  color: var(--color-text-secondary, #666);
+  color: #666;
 }
 
 .description {
   flex: 1;
   font-size: 1rem;
   line-height: 1.8;
-  color: var(--color-text, #333);
+  color: #333;
   margin: 0 0 1.5rem 0;
-  text-align: justify;
 }
 
 .stats {
@@ -172,23 +168,21 @@ const readChapter = (chapter: BookChapter) => {
 
 .stat-item {
   font-size: 0.95rem;
-  color: var(--color-text-secondary, #666);
+  color: #666;
   padding: 0.5rem 1rem;
-  background: var(--color-bg, #f3f4f6);
-  border-radius: 8px;
+  border: 3px solid #000;
 }
 
 .chapters-section {
-  background: var(--card-bg, #fff);
+  background: #fff;
   padding: 1.5rem 2rem;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  border: 3px solid #000;
 }
 
 .chapters-section h3 {
   font-size: 1.25rem;
   margin: 0 0 1.5rem 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
 }
 
 .chapters-grid {
@@ -201,21 +195,20 @@ const readChapter = (chapter: BookChapter) => {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background: var(--color-bg, #f9fafb);
-  border-radius: 12px;
+  background: #f9fafb;
+  border: 3px solid #000;
   transition: all 0.3s ease;
 }
 
 .chapter-card:hover {
-  background: var(--color-border, #e5e7eb);
-  transform: translateX(4px);
+  border-color: #9F353A;
 }
 
 .chapter-cover {
   width: 60px;
   height: 80px;
   object-fit: cover;
-  border-radius: 8px;
+  border: 2px solid #000;
   flex-shrink: 0;
 }
 
@@ -230,7 +223,7 @@ const readChapter = (chapter: BookChapter) => {
   font-size: 0.95rem;
   font-weight: 600;
   margin: 0 0 0.25rem 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -239,18 +232,16 @@ const readChapter = (chapter: BookChapter) => {
 .chapter-status {
   font-size: 0.75rem;
   padding: 0.2rem 0.5rem;
-  border-radius: 4px;
   margin-bottom: 0.75rem;
   width: fit-content;
+  font-weight: 500;
 }
 
 .status-completed {
-  background: rgba(34, 197, 94, 0.1);
   color: #22c55e;
 }
 
 .status-ongoing {
-  background: rgba(251, 191, 36, 0.1);
   color: #f59e0b;
 }
 
@@ -262,10 +253,9 @@ const readChapter = (chapter: BookChapter) => {
 
 .action-btn {
   padding: 0.4rem 0.8rem;
-  border-radius: 6px;
   font-size: 0.75rem;
   font-weight: 500;
-  border: none;
+  border: 2px solid #000;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
@@ -275,21 +265,22 @@ const readChapter = (chapter: BookChapter) => {
 }
 
 .read-btn {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #9F353A;
   color: white;
 }
 
 .read-btn:hover {
-  transform: scale(1.02);
+  background: #7a2a2e;
 }
 
 .download-btn {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
+  background: #fff;
+  color: #333;
 }
 
 .download-btn:hover {
-  background: rgba(59, 130, 246, 0.2);
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .error-state {
@@ -307,60 +298,41 @@ const readChapter = (chapter: BookChapter) => {
 
 .back-btn {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #9F353A;
   color: white;
-  border: none;
-  border-radius: 10px;
+  border: 3px solid #000;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
 }
 
 .back-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-[data-theme="dark"] .book-header,
-[data-theme="dark"] .chapters-section {
-  background: rgba(30, 30, 40, 0.85);
-}
-
-[data-theme="dark"] .chapter-card {
-  background: rgba(40, 40, 50, 0.8);
-}
-
-[data-theme="dark"] .chapter-card:hover {
-  background: rgba(50, 50, 60, 0.8);
-}
-
-[data-theme="dark"] .stat-item {
-  background: rgba(40, 40, 50, 0.8);
+  background: #7a2a2e;
 }
 
 @media (max-width: 768px) {
   .book-detail-container {
     padding: 1rem;
   }
-  
+
   .book-header {
     grid-template-columns: 1fr;
     text-align: center;
   }
-  
+
   .cover-section {
     max-width: 200px;
     margin: 0 auto;
   }
-  
+
   .info-section h1 {
     font-size: 1.5rem;
   }
-  
+
   .stats {
     justify-content: center;
   }
-  
+
   .chapters-grid {
     grid-template-columns: 1fr;
   }

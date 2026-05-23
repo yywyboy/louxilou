@@ -301,8 +301,8 @@ onUnmounted(() => {
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(102, 126, 234, 0.2);
-  border-top-color: #667eea;
+  border: 3px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #9F353A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   margin: 0 auto 1rem;
@@ -327,11 +327,9 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.5rem 1rem;
-  border: 1px solid rgba(102, 126, 234, 0.3);
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  color: var(--color-text-secondary, #666);
-  border-radius: 8px;
+  border: 3px solid #000;
+  background: #fff;
+  color: #333;
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s ease;
@@ -339,15 +337,13 @@ onUnmounted(() => {
 }
 
 .back-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: #9F353A;
+  color: #9F353A;
 }
 
 .post-article {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 20px;
+  background: #fff;
+  border: 3px solid #000;
   padding: 2rem;
 }
 
@@ -365,10 +361,9 @@ onUnmounted(() => {
 .post-category {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: #fff;
+  background: #9F353A;
   padding: 0.25rem 0.75rem;
-  border-radius: 6px;
 }
 
 .post-date,
@@ -393,16 +388,15 @@ onUnmounted(() => {
 
 .tag {
   font-size: 0.85rem;
-  color: var(--color-text-secondary, #666);
-  background: rgba(102, 126, 234, 0.08);
+  color: #666;
+  border: 2px solid #000;
   padding: 0.2rem 0.6rem;
-  border-radius: 4px;
 }
 
 .post-cover {
   margin-bottom: 2rem;
-  border-radius: 12px;
   overflow: hidden;
+  border: 3px solid #000;
 }
 
 .post-cover img {
@@ -454,10 +448,10 @@ onUnmounted(() => {
 
 .post-content :deep(.code-block) {
   background: #1e1e1e;
-  border-radius: 8px;
   padding: 1rem;
   overflow-x: auto;
   margin: 1rem 0;
+  border: 3px solid #000;
 }
 
 .post-content :deep(.code-block code) {
@@ -489,7 +483,7 @@ onUnmounted(() => {
 }
 
 .post-content :deep(a) {
-  color: #667eea;
+  color: #9F353A;
   text-decoration: none;
 }
 
@@ -498,11 +492,11 @@ onUnmounted(() => {
 }
 
 .post-content :deep(blockquote) {
-  border-left: 4px solid #667eea;
+  border-left: 4px solid #9F353A;
   margin: 1rem 0;
   padding: 0.5rem 1rem;
-  background: rgba(102, 126, 234, 0.05);
-  color: var(--color-text-secondary, #666);
+  background: rgba(159, 53, 58, 0.05);
+  color: #666;
 }
 
 .post-content :deep(ul),
@@ -519,29 +513,28 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   padding: 1.5rem 0;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 3px solid #000;
+  border-bottom: 3px solid #000;
   margin-bottom: 2rem;
 }
 
 .like-btn {
-  border: none;
-  background: rgba(255, 255, 255, 0.8);
+  border: 3px solid #000;
+  background: #fff;
   padding: 0.6rem 1.5rem;
-  border-radius: 25px;
   cursor: pointer;
   font-size: 1rem;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .like-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  border-color: #9F353A;
 }
 
 .like-btn.liked {
-  background: rgba(255, 100, 100, 0.1);
+  background: #9F353A;
+  color: #fff;
+  border-color: #9F353A;
 }
 
 .comments-section {
@@ -551,7 +544,7 @@ onUnmounted(() => {
 .comments-title {
   font-size: 1.3rem;
   margin: 0 0 1.5rem 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
 }
 
 .comment-form {
@@ -561,9 +554,8 @@ onUnmounted(() => {
 .comment-name-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
+  border: 3px solid #000;
+  background: #fff;
   font-size: 0.95rem;
   margin-bottom: 0.75rem;
   outline: none;
@@ -571,15 +563,14 @@ onUnmounted(() => {
 }
 
 .comment-name-input:focus {
-  border-color: #667eea;
+  border-color: #9F353A;
 }
 
 .comment-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
+  border: 3px solid #000;
+  background: #fff;
   font-size: 0.95rem;
   resize: vertical;
   outline: none;
@@ -588,24 +579,22 @@ onUnmounted(() => {
 }
 
 .comment-textarea:focus {
-  border-color: #667eea;
+  border-color: #9F353A;
 }
 
 .submit-comment-btn {
   margin-top: 0.75rem;
   padding: 0.6rem 1.5rem;
-  border: none;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: 3px solid #000;
+  background: #9F353A;
   color: white;
-  border-radius: 10px;
   cursor: pointer;
   font-size: 0.95rem;
   transition: all 0.3s ease;
 }
 
 .submit-comment-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  background: #7a2a2e;
 }
 
 .comments-list {
@@ -618,21 +607,21 @@ onUnmounted(() => {
   display: flex;
   gap: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 12px;
+  background: #f9fafb;
+  border: 3px solid #000;
 }
 
 .comment-avatar {
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: #9F353A;
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   flex-shrink: 0;
+  border: 2px solid #000;
 }
 
 .comment-body {
@@ -648,28 +637,28 @@ onUnmounted(() => {
 
 .comment-author {
   font-weight: 600;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
   font-size: 0.95rem;
 }
 
 .comment-date {
   font-size: 0.8rem;
-  color: var(--color-text-secondary, #999);
+  color: #999;
 }
 
 .comment-content {
   margin: 0;
   font-size: 0.95rem;
-  color: var(--color-text, #333);
+  color: #333;
   line-height: 1.5;
 }
 
 .no-comments {
   text-align: center;
   padding: 2rem;
-  color: var(--color-text-secondary, #999);
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 12px;
+  color: #999;
+  border: 3px solid #000;
+  background: #f9fafb;
 }
 
 @media (max-width: 640px) {

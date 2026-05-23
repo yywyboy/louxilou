@@ -15,7 +15,8 @@ export default defineConfig({
   },
   server: {
     fs: {
-      allow: [__dirname, resolve(__dirname, 'public')]
+      allow: [__dirname, resolve(__dirname, 'public')],
+      deny: ['$RECYCLE.BIN', 'System Volume Information', 'node-v24.15.0-win-x64']
     }
   }
 })

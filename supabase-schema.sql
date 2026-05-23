@@ -59,6 +59,21 @@ CREATE INDEX IF NOT EXISTS idx_likes_post_id ON likes(post_id);
 CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
 
 -- =====================================================
+-- Announcements Table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS announcements (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  content TEXT NOT NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Index for fetching active announcements
+CREATE INDEX IF NOT EXISTS idx_announcements_active ON announcements(is_active);
+CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements(created_at DESC);
+
+-- =====================================================
 -- Row Level Security (RLS)
 -- =====================================================
 
@@ -66,31 +81,32 @@ CREATE INDEX IF NOT EXISTS idx_likes_user_id ON likes(user_id);
 ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 
 -- Posts: Everyone can read, only authenticated users can insert/update/delete
 CREATE POLICY "Posts are publicly readable" ON posts
   FOR SELECT USING (true);
 
-CREATE POLICY "Anyone can insert posts" ON posts
-  FOR INSERT WITH CHECK (true);
+CREATE POLICY "Authenticated users can insert posts" ON posts
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "Anyone can update posts" ON posts
-  FOR UPDATE USING (true);
+CREATE POLICY "Authenticated users can update posts" ON posts
+  FOR UPDATE USING (auth.role() = 'authenticated');
 
-CREATE POLICY "Anyone can delete posts" ON posts
-  FOR DELETE USING (true);
+CREATE POLICY "Authenticated users can delete posts" ON posts
+  FOR DELETE USING (auth.role() = 'authenticated');
 
--- Comments: Everyone can read, anyone can insert
+-- Comments: Everyone can read, anyone can insert, only authenticated can delete
 CREATE POLICY "Comments are publicly readable" ON comments
   FOR SELECT USING (true);
 
 CREATE POLICY "Anyone can insert comments" ON comments
   FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Anyone can delete own comments" ON comments
-  FOR DELETE USING (true);
+CREATE POLICY "Authenticated users can delete comments" ON comments
+  FOR DELETE USING (auth.role() = 'authenticated');
 
--- Likes: Everyone can read, anyone can toggle
+-- Likes: Everyone can read, anyone can toggle (needed for like/unlike)
 CREATE POLICY "Likes are publicly readable" ON likes
   FOR SELECT USING (true);
 
@@ -99,6 +115,19 @@ CREATE POLICY "Anyone can insert likes" ON likes
 
 CREATE POLICY "Anyone can delete likes" ON likes
   FOR DELETE USING (true);
+
+-- Announcements: Everyone can read, only authenticated can manage
+CREATE POLICY "Announcements are publicly readable" ON announcements
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can insert announcements" ON announcements
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can update announcements" ON announcements
+  FOR UPDATE USING (auth.role() = 'authenticated');
+
+CREATE POLICY "Authenticated users can delete announcements" ON announcements
+  FOR DELETE USING (auth.role() = 'authenticated');
 
 -- =====================================================
 -- Realtime

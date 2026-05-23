@@ -4,6 +4,7 @@ import Library from '../views/Library.vue'
 import BookDetail from '../views/BookDetail.vue'
 import BookReader from '../views/BookReader.vue'
 import PostDetail from '../views/PostDetail.vue'
+import Gallery from '../views/Gallery.vue'
 
 export const isLibraryTransition = (from: string, to: string): boolean => {
   const isFromLibrary = from === '/library' || from.startsWith('/library/')
@@ -36,6 +37,11 @@ const routes = [
     path: '/blog/:id',
     name: 'PostDetail',
     component: PostDetail
+  },
+  {
+    path: '/gallery',
+    name: 'Gallery',
+    component: Gallery
   }
 ]
 

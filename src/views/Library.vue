@@ -1,25 +1,19 @@
 <template>
   <div class="library-container">
-    <div class="library-header">
-      <h1>📚 藏书阁</h1>
-      <p>这里收藏着各种珍贵的书籍和文献，等待您来探索</p>
-      
-      <div class="search-box">
-        <div class="search-icon">🔍</div>
-        <input 
-          v-model="searchKeyword" 
-          type="text" 
-          placeholder="搜索书籍或作者..."
-          class="search-input"
-        />
-        <button v-if="searchKeyword" class="clear-btn" @click="searchKeyword = ''">✕</button>
-      </div>
+    <div class="search-box">
+      <input
+        v-model="searchKeyword"
+        type="text"
+        placeholder="搜索书籍或作者..."
+        class="search-input"
+      />
+      <button v-if="searchKeyword" class="clear-btn" @click="searchKeyword = ''">✕</button>
     </div>
 
     <div class="book-grid">
-      <div 
-        v-for="book in filteredBooks" 
-        :key="book.id" 
+      <div
+        v-for="book in filteredBooks"
+        :key="book.id"
         class="book-card"
         @click="navigateToBook(book.id)"
       >
@@ -38,7 +32,6 @@
     </div>
 
     <div v-if="filteredBooks.length === 0" class="empty-state">
-      <div class="empty-icon">📖</div>
       <p>没有找到匹配的书籍</p>
     </div>
   </div>
@@ -55,7 +48,7 @@ const searchKeyword = ref('')
 const filteredBooks = computed(() => {
   if (!searchKeyword.value) return books
   const keyword = searchKeyword.value.toLowerCase()
-  return books.filter(book => 
+  return books.filter(book =>
     book.title.toLowerCase().includes(keyword) ||
     book.author.toLowerCase().includes(keyword)
   )
@@ -74,56 +67,25 @@ const navigateToBook = (bookId: string) => {
   margin: 0 auto;
 }
 
-.library-header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.library-header h1 {
-  font-size: 2.5rem;
-  margin-bottom: 0.5rem;
-  color: var(--color-text, #333);
-}
-
-.library-header p {
-  font-size: 1.1rem;
-  color: var(--color-text-secondary, #666);
-  margin-bottom: 2rem;
-}
-
 .search-box {
   position: relative;
-  max-width: 400px;
-  margin: 0 auto;
-}
-
-.search-icon {
-  position: absolute;
-  left: 1rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 1rem;
+  margin-bottom: 2rem;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  border: 2px solid var(--color-border, #e5e7eb);
-  border-radius: 12px;
+  padding: 0.875rem 2.5rem 0.875rem 1rem;
+  border: 3px solid #000;
+  border-radius: 0;
   font-size: 1rem;
-  background: var(--card-bg, #fff);
-  color: var(--color-text, #333);
-  transition: all 0.3s ease;
+  background: #fff;
+  color: #333;
+  transition: border-color 0.3s ease;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.search-input::placeholder {
-  color: var(--color-text-secondary, #9ca3af);
+  border-color: #9F353A;
 }
 
 .clear-btn {
@@ -133,17 +95,14 @@ const navigateToBook = (bookId: string) => {
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--color-text-secondary, #9ca3af);
+  color: #999;
   cursor: pointer;
-  font-size: 0.875rem;
+  font-size: 1rem;
   padding: 0.25rem;
-  border-radius: 50%;
-  transition: all 0.2s ease;
 }
 
 .clear-btn:hover {
-  background: var(--color-bg, #f3f4f6);
-  color: var(--color-text, #333);
+  color: #333;
 }
 
 .book-grid {
@@ -153,18 +112,15 @@ const navigateToBook = (bookId: string) => {
 }
 
 .book-card {
-  background: var(--card-bg, #ffffff);
-  border-radius: 16px;
+  background: #fff;
+  border: 3px solid #000;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid var(--color-border, #e5e7eb);
+  transition: all 0.3s ease;
 }
 
 .book-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+  border-color: #9F353A;
 }
 
 .book-cover-wrapper {
@@ -187,7 +143,7 @@ const navigateToBook = (bookId: string) => {
 .book-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(159, 53, 58, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -204,19 +160,23 @@ const navigateToBook = (bookId: string) => {
   font-size: 1rem;
   font-weight: 500;
   padding: 0.5rem 1rem;
-  background: rgba(102, 126, 234, 0.9);
-  border-radius: 8px;
+  border: 2px solid #fff;
 }
 
 .book-info {
   padding: 1rem;
+  border-top: 3px solid #000;
+}
+
+.book-card:hover .book-info {
+  border-top-color: #9F353A;
 }
 
 .book-title {
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0 0 0.5rem 0;
-  color: var(--color-text, #1a1a1a);
+  color: #333;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -224,56 +184,37 @@ const navigateToBook = (bookId: string) => {
 
 .book-author {
   font-size: 0.9rem;
-  color: var(--color-text-secondary, #666);
+  color: #666;
   margin: 0 0 0.25rem 0;
 }
 
 .book-chapters {
   font-size: 0.8rem;
-  color: #667eea;
+  color: #9F353A;
   margin: 0;
+  font-weight: 500;
 }
 
 .empty-state {
   text-align: center;
   padding: 4rem 2rem;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
+  border: 3px solid #000;
+  background: #fff;
 }
 
 .empty-state p {
-  color: var(--color-text-secondary, #666);
+  color: #666;
   font-size: 1.1rem;
-}
-
-[data-theme="dark"] .book-card {
-  background: rgba(30, 30, 40, 0.85);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .search-input {
-  background: rgba(30, 30, 40, 0.85);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="dark"] .clear-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  margin: 0;
 }
 
 @media (max-width: 768px) {
   .library-container {
     padding: 1rem;
   }
-  
-  .library-header h1 {
-    font-size: 2rem;
-  }
-  
+
   .book-grid {
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     gap: 1rem;
   }
 }

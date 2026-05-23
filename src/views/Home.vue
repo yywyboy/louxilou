@@ -1,97 +1,17 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { getPosts } from '../lib/blog'
+import { useRouter } from 'vue-router'
+import { getPosts, getActiveAnnouncement } from '../lib/blog'
+import { handleMouseEnter } from '../composables/useRipple'
 import type { Post } from '../lib/types'
+import type { Announcement } from '../lib/blog'
 
+const router = useRouter()
 const posts = ref<Post[]>([])
 const loading = ref(false)
 const searchKeyword = ref('')
 const filteredPosts = ref<Post[]>([])
-
-interface RippleOptions {
-  color?: string
-  duration?: string
-  scale?: number
-}
-
-function createRipple(event: MouseEvent, options: RippleOptions = {}) {
-  const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
-  const target = event.currentTarget as HTMLElement
-
-  const rect = target.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
-
-  const ripple = document.createElement('span')
-  ripple.className = 'ripple-effect'
-  ripple.style.cssText = `
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: 0;
-  `
-
-  const circle = document.createElement('span')
-  const size = Math.max(rect.width, rect.height) * scale
-  circle.style.cssText = `
-    position: absolute;
-    width: ${size}px;
-    height: ${size}px;
-    left: ${x - size / 2}px;
-    top: ${y - size / 2}px;
-    background: ${color};
-    border-radius: 50%;
-    transform: scale(0);
-    opacity: 1;
-    transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
-                opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
-  `
-
-  ripple.appendChild(circle)
-  target.appendChild(ripple)
-
-  requestAnimationFrame(() => {
-    circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
-  })
-
-  const handleMouseLeave = (e: MouseEvent) => {
-    const leaveX = e.clientX - rect.left
-    const leaveY = e.clientY - rect.top
-
-    circle.style.left = `${leaveX - size / 2}px`
-    circle.style.top = `${leaveY - size / 2}px`
-    circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
-    circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
-
-    requestAnimationFrame(() => {
-      circle.style.transform = 'scale(0)'
-      circle.style.opacity = '0'
-    })
-
-    setTimeout(() => {
-      ripple.remove()
-    }, parseFloat(duration) * 1000)
-  }
-
-  target.addEventListener('mouseleave', handleMouseLeave, { once: true })
-
-  setTimeout(() => {
-    if (ripple.parentNode) {
-      ripple.remove()
-    }
-  }, 5000)
-}
-
-function handleMouseEnter(e: MouseEvent, options?: RippleOptions) {
-  createRipple(e, options)
-}
+const announcement = ref<Announcement | null>(null)
 
 async function loadPosts() {
   loading.value = true
@@ -106,6 +26,14 @@ async function loadPosts() {
   loading.value = false
 }
 
+async function loadAnnouncement() {
+  try {
+    announcement.value = await getActiveAnnouncement()
+  } catch (error) {
+    console.error('Failed to load announcement:', error)
+  }
+}
+
 function handleSearch() {
   if (!searchKeyword.value.trim()) {
     filteredPosts.value = posts.value
@@ -117,8 +45,13 @@ function handleSearch() {
   )
 }
 
+function navigateToPost(postId: string) {
+  router.push(`/blog/${postId}`)
+}
+
 onMounted(() => {
   loadPosts()
+  loadAnnouncement()
 })
 </script>
 
@@ -127,7 +60,8 @@ onMounted(() => {
     <aside class="left-sidebar">
       <div class="sidebar-section">
         <h3 class="sidebar-title">网站公告</h3>
-        <p class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
+        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
+        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
       </div>
     </aside>
 
@@ -180,12 +114,13 @@ onMounted(() => {
           v-for="post in filteredPosts"
           :key="post.id"
           class="post-card btn-ripple"
+          @click="navigateToPost(post.id)"
           @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
         >
           <div class="post-body">
             <span class="post-category">{{ post.category }}</span>
             <h2 class="post-title">{{ post.title }}</h2>
-            <p class="post-excerpt">{{ (post.content || '').substring(0, 100) }}...</p>
+            <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}...</p>
             <div class="post-meta">
               <span class="post-date">{{ new Date(post.created_at).toLocaleDateString() }}</span>
             </div>
@@ -335,6 +270,11 @@ onMounted(() => {
   overflow: hidden;
   cursor: pointer;
   border: 3px solid #000;
+  transition: background-color 0.3s ease;
+}
+
+.post-card:hover {
+  background-color: #9F353A;
 }
 
 .post-card .post-body {
