@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://louxilou.com/sitemap.xml
+Sitemap: https://louxilou.com.cn/sitemap.xml
