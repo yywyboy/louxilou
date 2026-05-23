@@ -50,6 +50,7 @@ function navigateToPost(postId: string) {
 }
 
 onMounted(() => {
+  document.title = '楼西楼的博客 - 技术、生活与阅读'
   loadPosts()
   loadAnnouncement()
 })
