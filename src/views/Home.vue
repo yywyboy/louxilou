@@ -370,8 +370,9 @@ onMounted(() => {
 }
 
 .modal-btn:hover {
-  background: #c44536;
+  background: #000;
   color: #000;
+  border-color: #9F353A;
 }
 
 .quick-links {
