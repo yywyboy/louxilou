@@ -61,6 +61,12 @@ onMounted(() => {
 <template>
   <div class="home-container">
     <aside class="left-sidebar">
+      <div class="sidebar-section announcement-desktop">
+        <h3 class="sidebar-title">网站公告</h3>
+        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
+        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
+      </div>
+
       <div class="sidebar-section music-section">
         <h3 class="sidebar-title">音乐</h3>
         <iframe 
@@ -85,7 +91,7 @@ onMounted(() => {
       </div>
     </aside>
 
-    <div class="announcement-section">
+    <div class="announcement-mobile">
       <div class="sidebar-section">
         <h3 class="sidebar-title">网站公告</h3>
         <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
@@ -272,13 +278,8 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-.announcement-section {
-  width: 250px;
-  float: left;
-  position: sticky;
-  top: 80px;
-  height: fit-content;
-  margin-left: 270px;
+.announcement-mobile {
+  display: none;
 }
 
 .quick-links {
@@ -490,10 +491,13 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .announcement-section {
+  .announcement-desktop {
+    display: none;
+  }
+
+  .announcement-mobile {
+    display: block;
     width: 100%;
-    float: none;
-    position: static;
     margin-bottom: 1.5rem;
     order: 1;
   }
