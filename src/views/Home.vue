@@ -12,6 +12,8 @@ const loading = ref(false)
 const searchKeyword = ref('')
 const filteredPosts = ref<Post[]>([])
 const announcement = ref<Announcement | null>(null)
+const musicLoaded = ref(false)
+const musicError = ref(false)
 
 async function loadPosts() {
   loading.value = true
@@ -59,12 +61,6 @@ onMounted(() => {
 <template>
   <div class="home-container">
     <aside class="left-sidebar">
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">网站公告</h3>
-        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
-        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
-      </div>
-
       <div class="sidebar-section music-section">
         <h3 class="sidebar-title">音乐</h3>
         <iframe 
@@ -76,9 +72,26 @@ onMounted(() => {
           height="450" 
           src="//music.163.com/outchain/player?type=0&id=17982886763&auto=0&height=430"
           class="music-player"
+          @load="musicLoaded = true"
+          @error="musicError = true"
         ></iframe>
+        <div v-if="!musicLoaded && !musicError" class="music-loading">
+          <div class="loading-spinner"></div>
+          <p>音乐加载中...</p>
+        </div>
+        <div v-if="musicError" class="music-error">
+          <p>音乐加载失败，请刷新页面重试</p>
+        </div>
       </div>
     </aside>
+
+    <div class="announcement-section">
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">网站公告</h3>
+        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
+        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
+      </div>
+    </div>
 
     <aside class="right-sidebar">
       <div class="sidebar-section">
@@ -224,6 +237,7 @@ onMounted(() => {
 
 .music-section {
   padding: 1.5rem;
+  position: relative;
 }
 
 .music-player {
@@ -234,6 +248,37 @@ onMounted(() => {
   margin-left: -1.5rem;
   margin-right: -1.5rem;
   margin-bottom: -1.5rem;
+}
+
+.music-loading,
+.music-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  z-index: 1;
+}
+
+.music-loading p,
+.music-error p {
+  margin-top: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.announcement-section {
+  width: 250px;
+  float: left;
+  position: sticky;
+  top: 80px;
+  height: fit-content;
+  margin-left: 270px;
 }
 
 .quick-links {
@@ -445,12 +490,20 @@ onMounted(() => {
     flex-direction: column;
   }
 
+  .announcement-section {
+    width: 100%;
+    float: none;
+    position: static;
+    margin-bottom: 1.5rem;
+    order: 1;
+  }
+
   .left-sidebar {
     width: 100%;
     float: none;
     position: static;
     margin-bottom: 1.5rem;
-    order: 3;
+    order: 4;
   }
 
   .right-sidebar {
@@ -458,18 +511,27 @@ onMounted(() => {
     float: none;
     position: static;
     margin-bottom: 1.5rem;
-    order: 2;
+    order: 3;
   }
 
   .main-content {
     margin-left: 0;
     margin-right: 0;
     margin-bottom: 1.5rem;
-    order: 1;
+    order: 2;
   }
 
   .sidebar-section {
     width: 100%;
+  }
+
+  .music-player {
+    height: 350px;
+  }
+
+  .music-loading,
+  .music-error {
+    height: 350px;
   }
 }
 </style>
