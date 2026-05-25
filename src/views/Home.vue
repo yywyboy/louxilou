@@ -113,7 +113,11 @@ onMounted(() => {
           <p class="modal-body">
             {{ announcement?.content || '欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。' }}
           </p>
-          <button class="modal-btn" @click="closeAnnouncementModal">知道了</button>
+          <button 
+  class="modal-btn btn-ripple" 
+  @click="closeAnnouncementModal"
+  @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+>知道了</button>
         </div>
       </div>
     </Teleport>
@@ -351,6 +355,7 @@ onMounted(() => {
 }
 
 .modal-btn {
+  position: relative;
   display: block;
   width: 100%;
   padding: 0.75rem 1rem;
@@ -360,11 +365,13 @@ onMounted(() => {
   border-radius: 0;
   font-size: 1rem;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .modal-btn:hover {
   background: #c44536;
+  color: #000;
 }
 
 .quick-links {
