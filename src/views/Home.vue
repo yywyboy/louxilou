@@ -14,6 +14,7 @@ const filteredPosts = ref<Post[]>([])
 const announcement = ref<Announcement | null>(null)
 const musicLoaded = ref(false)
 const musicError = ref(false)
+const showAnnouncementModal = ref(false)
 
 async function loadPosts() {
   loading.value = true
@@ -31,9 +32,22 @@ async function loadPosts() {
 async function loadAnnouncement() {
   try {
     announcement.value = await getActiveAnnouncement()
+    if (isMobile()) {
+      setTimeout(() => {
+        showAnnouncementModal.value = true
+      }, 500)
+    }
   } catch (error) {
     console.error('Failed to load announcement:', error)
   }
+}
+
+function isMobile() {
+  return window.innerWidth <= 768
+}
+
+function closeAnnouncementModal() {
+  showAnnouncementModal.value = false
 }
 
 function handleSearch() {
@@ -91,13 +105,18 @@ onMounted(() => {
       </div>
     </aside>
 
-    <div class="announcement-mobile">
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">网站公告</h3>
-        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
-        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
+    <Teleport to="body">
+      <div v-if="showAnnouncementModal" class="modal-overlay" @click="closeAnnouncementModal">
+        <div class="modal-content" @click.stop>
+          <button class="modal-close" @click="closeAnnouncementModal">×</button>
+          <h3 class="modal-title">网站公告</h3>
+          <p class="modal-body">
+            {{ announcement?.content || '欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。' }}
+          </p>
+          <button class="modal-btn" @click="closeAnnouncementModal">知道了</button>
+        </div>
       </div>
-    </div>
+    </Teleport>
 
     <aside class="right-sidebar">
       <div class="sidebar-section">
@@ -278,8 +297,74 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-.announcement-mobile {
-  display: none;
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-content {
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.75rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #9F353A;
+}
+
+.modal-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-body {
+  margin: 0 0 1.5rem 0;
+  color: #666;
+  line-height: 1.6;
+}
+
+.modal-btn {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: #9F353A;
+  color: white;
+  border: 3px solid #000;
+  border-radius: 0;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-btn:hover {
+  background: #c44536;
 }
 
 .quick-links {
@@ -493,13 +578,6 @@ onMounted(() => {
 
   .announcement-desktop {
     display: none;
-  }
-
-  .announcement-mobile {
-    display: block;
-    width: 100%;
-    margin-bottom: 1.5rem;
-    order: 1;
   }
 
   .left-sidebar {
