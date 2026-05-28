@@ -217,17 +217,19 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .category-tabs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  border: 3px solid #000;
   gap: 0;
 }
 
 .category-btn {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.25rem;
   background: #fff;
-  border: 3px solid #000;
-  border-right: none;
-  font-size: 0.9rem;
+  border: none;
+  border-right: 1px solid #000;
+  border-bottom: 1px solid #000;
+  font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
@@ -240,8 +242,12 @@ function handleKeydown(e: KeyboardEvent) {
   z-index: 1;
 }
 
-.category-btn:last-child {
-  border-right: 3px solid #000;
+.category-btn:nth-child(6n) {
+  border-right: none;
+}
+
+.category-btn:nth-last-child(-n+6) {
+  border-bottom: none;
 }
 
 .category-btn:hover {
@@ -489,6 +495,10 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 @media (max-width: 1024px) {
+  .category-tabs {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
   .photo-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -504,23 +514,12 @@ function handleKeydown(e: KeyboardEvent) {
   }
 
   .category-tabs {
-    gap: 0;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    padding-bottom: 0.5rem;
-  }
-
-  .category-tabs::-webkit-scrollbar {
-    display: none;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .category-btn {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
-    flex-shrink: 0;
+    padding: 0.4rem 0.25rem;
+    font-size: 0.75rem;
   }
 
   .photo-grid {
@@ -555,6 +554,15 @@ function handleKeydown(e: KeyboardEvent) {
 @media (max-width: 480px) {
   .gallery-container {
     padding: 0.75rem;
+  }
+
+  .category-tabs {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .category-btn {
+    padding: 0.35rem 0.2rem;
+    font-size: 0.7rem;
   }
 
   .photo-grid {
