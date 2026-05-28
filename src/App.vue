@@ -154,8 +154,7 @@ const handleAfterEnter = () => {
 const navItems = [
   { path: '/', name: '主页', icon: 'home' },
   { path: '/library', name: '藏书阁', icon: 'library' },
-  { path: '/gallery', name: '图片库', icon: 'gallery' },
-  { path: '/rss', name: 'RSS订阅', icon: 'rss' }
+  { path: '/gallery', name: '图片库', icon: 'gallery' }
 ]
 </script>
 
@@ -185,11 +184,6 @@ const navItems = [
               <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
               <circle cx="8.5" cy="8.5" r="1.5"/>
               <polyline points="21 15 16 10 5 21"/>
-            </svg>
-            <svg viewBox="0 0 24 24" v-else-if="item.icon === 'rss'" class="nav-icon">
-              <path d="M4 11a9 9 0 0 1 9 9"/>
-              <path d="M4 4a16 16 0 0 1 16 16"/>
-              <circle cx="5" cy="19" r="1"/>
             </svg>
             <span class="nav-text">{{ item.name }}</span>
           </RouterLink>

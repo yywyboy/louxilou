@@ -232,7 +232,7 @@ onMounted(() => {
           <button 
   class="modal-btn btn-ripple" 
   @click="closeAnnouncementModal"
-  @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+  @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
 >知道了</button>
         </div>
       </div>
@@ -290,7 +290,7 @@ onMounted(() => {
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'posts' }"
             @click="activeTab = 'posts'"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             文章
           </button>
@@ -298,7 +298,7 @@ onMounted(() => {
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'rss' }"
             @click="activeTab = 'rss'"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             RSS 订阅
           </button>

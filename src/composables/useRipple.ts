@@ -51,7 +51,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     background: ${color};
     border-radius: 50%;
     transform: scale(0);
-    opacity: 1;
+    opacity: 0.3;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
@@ -62,7 +62,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
 
   requestAnimationFrame(() => {
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
+    circle.style.opacity = '0.3'
   })
 
   const handleMouseLeave = (e: MouseEvent) => {
@@ -72,7 +72,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     circle.style.left = `${leaveX - size / 2}px`
     circle.style.top = `${leaveY - size / 2}px`
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
+    circle.style.opacity = '0.3'
     circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
 
     requestAnimationFrame(() => {
@@ -86,12 +86,6 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
   }
 
   target.addEventListener('mouseleave', handleMouseLeave, { once: true })
-
-  setTimeout(() => {
-    if (ripple.parentNode) {
-      ripple.remove()
-    }
-  }, 5000)
 }
 
 function attachRippleToModalBtn(color: string, duration: string, scale: number) {
@@ -129,7 +123,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     background: ${color};
     border-radius: 50%;
     transform: scale(0);
-    opacity: 1;
+    opacity: 0.3;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
@@ -140,14 +134,18 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
 
   requestAnimationFrame(() => {
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
+    circle.style.opacity = '0.3'
   })
 
-  setTimeout(() => {
-    if (ripple.parentNode) {
+  const handleMouseLeave = () => {
+    circle.style.transform = 'scale(0)'
+    circle.style.opacity = '0'
+    setTimeout(() => {
       ripple.remove()
-    }
-  }, parseFloat(duration) * 1000)
+    }, parseFloat(duration) * 1000)
+  }
+
+  modalBtn.addEventListener('mouseleave', handleMouseLeave, { once: true })
 }
 
 export function handleMouseEnter(e: MouseEvent, options?: RippleOptions) {
