@@ -197,6 +197,7 @@ onMounted(() => {
             target="_blank"
             class="quick-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">GitHub</span>
           </a>
@@ -205,6 +206,7 @@ onMounted(() => {
             target="_blank"
             class="quick-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">Bilibili</span>
           </a>
@@ -212,6 +214,7 @@ onMounted(() => {
             href="mailto:17766710131@163.com"
             class="quick-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">邮件联系</span>
           </a>
@@ -226,6 +229,7 @@ onMounted(() => {
             target="_blank"
             class="friend-link btn-ripple"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">楼西楼</span>
           </a>
@@ -241,6 +245,7 @@ onMounted(() => {
             :class="{ active: activeTab === 'posts' }"
             @click="activeTab = 'posts'"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="btn-text">文章</span>
           </button>
@@ -249,6 +254,7 @@ onMounted(() => {
             :class="{ active: activeTab === 'rss' }"
             @click="activeTab = 'rss'"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="btn-text">RSS</span>
           </button>
@@ -287,6 +293,7 @@ onMounted(() => {
             class="post-card btn-ripple"
             @click="navigateToPost(post.id)"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <div class="post-body">
               <span class="post-category">{{ post.category }}</span>
@@ -322,6 +329,7 @@ onMounted(() => {
                 rel="noopener noreferrer"
                 class="rss-feed-item btn-ripple"
                 @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+                @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
               >
                 <div class="rss-item-content">
                   <h4 class="rss-item-title">{{ item.title }}</h4>

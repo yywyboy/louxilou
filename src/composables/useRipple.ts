@@ -11,9 +11,9 @@ function isMobile(): boolean {
   return window.innerWidth <= 768
 }
 
-export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
+export function createRipple(event: MouseEvent | Touch, options: RippleOptions = {}) {
   const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
-  const target = event.currentTarget as HTMLElement
+  const target = (event.currentTarget || (event as Touch).target) as HTMLElement
 
   const existingRipples = target.querySelectorAll('.ripple-effect')
   existingRipples.forEach(r => r.remove())
@@ -28,8 +28,8 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
   }
 
   const rect = target.getBoundingClientRect()
-  const x = event.clientX - rect.left
-  const y = event.clientY - rect.top
+  const x = (event.clientX || (event as Touch).clientX) - rect.left
+  const y = (event.clientY || (event as Touch).clientY) - rect.top
 
   const ripple = document.createElement('span')
   ripple.className = 'ripple-effect'
@@ -180,6 +180,6 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
   }
 }
 
-export function handleMouseEnter(e: MouseEvent, options?: RippleOptions) {
+export function handleMouseEnter(e: MouseEvent | Touch, options?: RippleOptions) {
   createRipple(e, options)
 }

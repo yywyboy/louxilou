@@ -55,11 +55,11 @@ async function loadAnnouncement() {
   try {
     announcement.value = await getActiveAnnouncement()
     if (isMobileDevice.value && announcement.value) {
-      const hasShown = localStorage.getItem('announcement_shown')
+      const hasShown = sessionStorage.getItem('announcement_shown')
       if (!hasShown) {
         setTimeout(() => {
           showAnnouncementModal.value = true
-          localStorage.setItem('announcement_shown', 'true')
+          sessionStorage.setItem('announcement_shown', 'true')
         }, 500)
       }
     }
@@ -208,6 +208,7 @@ const navItems = [
             class="nav-link btn-ripple"
             :class="{ active: $route.path === item.path }"
             @mouseenter="(e) => createRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => createRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <svg viewBox="0 0 24 24" v-if="item.icon === 'home'" class="nav-icon">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
