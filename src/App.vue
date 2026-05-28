@@ -4,6 +4,8 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import { skipNextTransition } from './router'
 import { createRipple } from './composables/useRipple'
+import { getActiveAnnouncement } from './lib/blog'
+import type { Announcement } from './lib/blog'
 
 const loadingRef = ref()
 const isTransitioning = ref(false)
@@ -11,21 +13,35 @@ const isTransitioning = ref(false)
 const cursorRef = ref<HTMLElement | null>(null)
 let animationFrameId: number
 
+const isMobileDevice = ref(false)
+const announcement = ref<Announcement | null>(null)
+const showAnnouncementModal = ref(false)
+
+function checkMobile() {
+  isMobileDevice.value = window.innerWidth <= 768
+}
+
 onMounted(() => {
+  checkMobile()
+  window.addEventListener('resize', checkMobile)
+
   if (loadingRef.value) {
     loadingRef.value.forceHide()
   }
 
-  cursorRef.value = document.createElement('div')
-  cursorRef.value.className = 'custom-cursor'
-  document.body.appendChild(cursorRef.value)
+  if (!isMobileDevice.value) {
+    cursorRef.value = document.createElement('div')
+    cursorRef.value.className = 'custom-cursor'
+    document.body.appendChild(cursorRef.value)
+    document.addEventListener('mousemove', handleMouseMove)
+    animationFrameId = requestAnimationFrame(animate)
+  }
 
-  document.addEventListener('mousemove', handleMouseMove)
-
-  animationFrameId = requestAnimationFrame(animate)
+  loadAnnouncement()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile)
   document.removeEventListener('mousemove', handleMouseMove)
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
@@ -34,6 +50,27 @@ onUnmounted(() => {
     cursorRef.value.parentNode.removeChild(cursorRef.value)
   }
 })
+
+async function loadAnnouncement() {
+  try {
+    announcement.value = await getActiveAnnouncement()
+    if (isMobileDevice.value && announcement.value) {
+      const hasShown = localStorage.getItem('announcement_shown')
+      if (!hasShown) {
+        setTimeout(() => {
+          showAnnouncementModal.value = true
+          localStorage.setItem('announcement_shown', 'true')
+        }, 500)
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load announcement:', error)
+  }
+}
+
+function closeAnnouncementModal() {
+  showAnnouncementModal.value = false
+}
 
 let mouseX = 0
 let mouseY = 0
@@ -194,7 +231,7 @@ const navItems = [
     <div class="main-content">
       <RouterView v-slot="{ Component, route }">
         <Transition
-          name="page"
+          :name="isMobileDevice ? 'fade' : 'page'"
           @before-leave="handleBeforeLeave"
           @after-enter="handleAfterEnter"
         >
@@ -202,6 +239,21 @@ const navItems = [
         </Transition>
       </RouterView>
     </div>
+
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showAnnouncementModal" class="announcement-overlay" @click="closeAnnouncementModal">
+          <div class="announcement-modal" @click.stop>
+            <button class="announcement-close" @click="closeAnnouncementModal">×</button>
+            <h3 class="announcement-title">网站公告</h3>
+            <p class="announcement-body">
+              {{ announcement?.content || '欢迎访问我的博客！' }}
+            </p>
+            <button class="announcement-btn btn-ripple" @click="closeAnnouncementModal">知道了</button>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -348,6 +400,82 @@ body {
 .ripple-effect span {
   position: absolute;
   z-index: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.announcement-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.announcement-modal {
+  background: #fff;
+  border: 3px solid #000;
+  padding: 1.5rem;
+  max-width: 320px;
+  width: 100%;
+  position: relative;
+}
+
+.announcement-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #000;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.announcement-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000;
+}
+
+.announcement-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  color: #333;
+}
+
+.announcement-btn {
+  width: 100%;
+  padding: 0.6rem;
+  background: #9F353A;
+  color: white;
+  border: 2px solid #000;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.announcement-btn:hover {
+  background: #000;
 }
 
 @media (max-width: 768px) {

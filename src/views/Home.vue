@@ -14,7 +14,6 @@ const filteredPosts = ref<Post[]>([])
 const announcement = ref<Announcement | null>(null)
 const musicLoaded = ref(false)
 const musicError = ref(false)
-const showAnnouncementModal = ref(false)
 
 interface RSSItem {
   title: string
@@ -60,22 +59,9 @@ async function loadPosts() {
 async function loadAnnouncement() {
   try {
     announcement.value = await getActiveAnnouncement()
-    if (isMobile()) {
-      setTimeout(() => {
-        showAnnouncementModal.value = true
-      }, 500)
-    }
   } catch (error) {
     console.error('Failed to load announcement:', error)
   }
-}
-
-function isMobile() {
-  return window.innerWidth <= 768
-}
-
-function closeAnnouncementModal() {
-  showAnnouncementModal.value = false
 }
 
 async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
@@ -201,23 +187,6 @@ onMounted(() => {
         </div>
       </div>
     </aside>
-
-    <Teleport to="body">
-      <div v-if="showAnnouncementModal" class="modal-overlay" @click="closeAnnouncementModal">
-        <div class="modal-content" @click.stop>
-          <button class="modal-close" @click="closeAnnouncementModal">×</button>
-          <h3 class="modal-title">网站公告</h3>
-          <p class="modal-body">
-            {{ announcement?.content || '欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。' }}
-          </p>
-          <button 
-  class="modal-btn btn-ripple" 
-  @click="closeAnnouncementModal"
-  @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
->知道了</button>
-        </div>
-      </div>
-    </Teleport>
 
     <aside class="right-sidebar">
       <div class="sidebar-section">
