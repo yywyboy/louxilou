@@ -8,7 +8,6 @@ const photos = Array.from({ length: 125 }, (_, i) => ({
 }))
 
 const selectedPhoto = ref<typeof photos[0] | null>(null)
-const loadedImages = ref<Set<number>>(new Set())
 
 function openPhoto(photo: typeof photos[0]) {
   selectedPhoto.value = photo
@@ -16,10 +15,6 @@ function openPhoto(photo: typeof photos[0]) {
 
 function closePhoto() {
   selectedPhoto.value = null
-}
-
-function onImageLoad(id: number) {
-  loadedImages.value.add(id)
 }
 
 function prevPhoto() {
@@ -52,16 +47,16 @@ function handleKeydown(e: KeyboardEvent) {
         v-for="photo in photos"
         :key="photo.id"
         class="photo-card"
-        :class="{ loaded: loadedImages.has(photo.id) }"
         @click="openPhoto(photo)"
       >
-        <img 
-          :src="photo.src" 
-          :alt="photo.alt" 
-          loading="lazy"
-          @load="onImageLoad(photo.id)"
-        />
-        <div class="photo-overlay">
+        <div class="photo-wrapper">
+          <img 
+            :src="photo.src" 
+            :alt="photo.alt" 
+            loading="lazy"
+          />
+        </div>
+        <div class="photo-info">
           <span class="photo-number">#{{ photo.id }}</span>
         </div>
       </div>
@@ -70,16 +65,34 @@ function handleKeydown(e: KeyboardEvent) {
     <Teleport to="body">
       <Transition name="modal">
         <div v-if="selectedPhoto" class="photo-modal" @click="closePhoto">
-          <button class="nav-btn prev-btn" @click.stop="prevPhoto">‹</button>
-          <div class="modal-content" @click.stop>
-            <button class="close-btn" @click="closePhoto">✕</button>
+          <div class="modal-image-wrapper" @click.stop>
             <img :src="selectedPhoto.src" :alt="selectedPhoto.alt" />
-            <div class="photo-info">
-              <span>{{ selectedPhoto.alt }}</span>
+          </div>
+          
+          <div class="modal-controls" @click.stop>
+            <div class="controls-info">
+              <span class="photo-title">{{ selectedPhoto.alt }}</span>
               <span class="photo-counter">{{ photos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ photos.length }}</span>
             </div>
+            <div class="controls-buttons">
+              <button class="control-btn" @click="prevPhoto" title="上一张 (←)">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                  <polyline points="15 18 9 12 15 6"/>
+                </svg>
+              </button>
+              <button class="control-btn" @click="nextPhoto" title="下一张 (→)">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </button>
+              <button class="control-btn close" @click="closePhoto" title="关闭 (ESC)">
+                <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
           </div>
-          <button class="nav-btn next-btn" @click.stop="nextPhoto">›</button>
         </div>
       </Transition>
     </Teleport>
@@ -97,7 +110,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.25rem;
 }
 
@@ -106,19 +119,20 @@ function handleKeydown(e: KeyboardEvent) {
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
-  position: relative;
-  background: #f0f0f0;
+  background: #fff;
   opacity: 0;
   transform: translateY(20px);
   animation: fadeInUp 0.5s ease forwards;
 }
 
-.photo-card:nth-child(1) { animation-delay: 0.05s; }
-.photo-card:nth-child(2) { animation-delay: 0.1s; }
-.photo-card:nth-child(3) { animation-delay: 0.15s; }
-.photo-card:nth-child(4) { animation-delay: 0.2s; }
-.photo-card:nth-child(5) { animation-delay: 0.25s; }
-.photo-card:nth-child(6) { animation-delay: 0.3s; }
+.photo-card:nth-child(1) { animation-delay: 0.02s; }
+.photo-card:nth-child(2) { animation-delay: 0.04s; }
+.photo-card:nth-child(3) { animation-delay: 0.06s; }
+.photo-card:nth-child(4) { animation-delay: 0.08s; }
+.photo-card:nth-child(5) { animation-delay: 0.1s; }
+.photo-card:nth-child(6) { animation-delay: 0.12s; }
+.photo-card:nth-child(7) { animation-delay: 0.14s; }
+.photo-card:nth-child(8) { animation-delay: 0.16s; }
 
 @keyframes fadeInUp {
   to {
@@ -133,37 +147,34 @@ function handleKeydown(e: KeyboardEvent) {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
-.photo-card img {
+.photo-wrapper {
   width: 100%;
-  height: 200px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.photo-wrapper img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
   transition: transform 0.5s ease;
 }
 
-.photo-card:hover img {
+.photo-card:hover .photo-wrapper img {
   transform: scale(1.08);
 }
 
-.photo-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: 0.5rem;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.photo-card:hover .photo-overlay {
-  opacity: 1;
+.photo-info {
+  padding: 0.5rem 0.75rem;
+  border-top: 2px solid #000;
 }
 
 .photo-number {
-  color: white;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 500;
+  color: #666;
 }
 
 .photo-modal {
@@ -174,83 +185,77 @@ function handleKeydown(e: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  padding: 2rem;
 }
 
-.modal-content {
-  position: relative;
-  max-width: 85vw;
-  max-height: 90vh;
+.modal-image-wrapper {
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-image-wrapper img {
+  max-width: 100%;
+  max-height: 85vh;
+  object-fit: contain;
+}
+
+.modal-controls {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-end;
+  gap: 1rem;
+  z-index: 10001;
 }
 
-.modal-content img {
-  max-width: 100%;
-  max-height: 80vh;
-  object-fit: contain;
-  border: 2px solid #fff;
-}
-
-.photo-info {
+.controls-info {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  padding: 1rem 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.photo-title {
   color: white;
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .photo-counter {
   color: #999;
+  font-size: 0.8rem;
 }
 
-.close-btn {
-  position: absolute;
-  top: -50px;
-  right: 0;
-  background: none;
-  border: 2px solid #fff;
-  color: white;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  transition: all 0.2s ease;
-  z-index: 10;
+.controls-buttons {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.close-btn:hover {
-  background: #9F353A;
-  border-color: #9F353A;
-}
-
-.nav-btn {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+.control-btn {
+  width: 48px;
+  height: 48px;
   background: rgba(255, 255, 255, 0.1);
-  border: 2px solid #fff;
+  border: 2px solid rgba(255, 255, 255, 0.3);
   color: white;
-  font-size: 2.5rem;
   cursor: pointer;
-  padding: 0.5rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
-  z-index: 10;
 }
 
-.prev-btn {
-  left: 1rem;
-}
-
-.next-btn {
-  right: 1rem;
-}
-
-.nav-btn:hover {
+.control-btn:hover {
   background: #9F353A;
   border-color: #9F353A;
+}
+
+.control-btn.close:hover {
+  background: #c44536;
+  border-color: #c44536;
 }
 
 .modal-enter-active,
@@ -273,21 +278,14 @@ function handleKeydown(e: KeyboardEvent) {
     gap: 0.75rem;
   }
 
-  .photo-card img {
-    height: 150px;
+  .modal-controls {
+    bottom: 1rem;
+    right: 1rem;
   }
 
-  .nav-btn {
-    font-size: 1.5rem;
-    padding: 0.25rem 0.5rem;
-  }
-
-  .prev-btn {
-    left: 0.5rem;
-  }
-
-  .next-btn {
-    right: 0.5rem;
+  .control-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -297,8 +295,14 @@ function handleKeydown(e: KeyboardEvent) {
     gap: 0.5rem;
   }
 
-  .photo-card img {
-    height: 120px;
+  .modal-controls {
+    bottom: 0.75rem;
+    right: 0.75rem;
+  }
+
+  .control-btn {
+    width: 36px;
+    height: 36px;
   }
 }
 </style>
