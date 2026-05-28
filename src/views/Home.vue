@@ -32,6 +32,7 @@ interface RSSFeed {
 const rssFeeds = ref<RSSFeed[]>([])
 const rssLoading = ref(false)
 const rssError = ref(false)
+const activeTab = ref<'posts' | 'rss'>('posts')
 
 const CORS_PROXY = 'https://api.allorigins.win/raw?url='
 
@@ -158,6 +159,12 @@ function formatDate(dateString: string): string {
   return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
+function stripHtml(html: string): string {
+  const div = document.createElement('div')
+  div.innerHTML = html
+  return div.textContent || div.innerText || ''
+}
+
 function handleSearch() {
   if (!searchKeyword.value.trim()) {
     filteredPosts.value = posts.value
@@ -274,73 +281,100 @@ onMounted(() => {
           </a>
         </div>
       </div>
+    </aside>
 
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">RSS 订阅</h3>
-        <div v-if="rssLoading" class="rss-loading">
+    <main class="main-content">
+      <div class="content-header">
+        <div class="tab-buttons">
+          <button 
+            class="tab-btn btn-ripple" 
+            :class="{ active: activeTab === 'posts' }"
+            @click="activeTab = 'posts'"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+          >
+            文章
+          </button>
+          <button 
+            class="tab-btn btn-ripple" 
+            :class="{ active: activeTab === 'rss' }"
+            @click="activeTab = 'rss'"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#fff', duration: '0.5s', scale: 2.5 })"
+          >
+            RSS 订阅
+          </button>
+        </div>
+        <div v-if="activeTab === 'posts'" class="search-box">
+          <input
+            v-model="searchKeyword"
+            type="text"
+            placeholder="搜索文章..."
+            class="search-input"
+            @input="handleSearch"
+          />
+        </div>
+      </div>
+
+      <div v-if="activeTab === 'posts'">
+        <div v-if="loading" class="loading-state">
           <div class="loading-spinner"></div>
+          <p>加载中...</p>
         </div>
-        <div v-else-if="rssError" class="rss-error">
-          <p>加载失败</p>
+
+        <div v-else-if="filteredPosts.length === 0" class="empty-state">
+          <p>还没有文章，敬请期待</p>
         </div>
+
+        <div v-else class="post-list">
+          <article
+            v-for="post in filteredPosts"
+            :key="post.id"
+            class="post-card btn-ripple"
+            @click="navigateToPost(post.id)"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+          >
+            <div class="post-body">
+              <span class="post-category">{{ post.category }}</span>
+              <h2 class="post-title">{{ post.title }}</h2>
+              <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}...</p>
+              <div class="post-meta">
+                <span class="post-date">{{ new Date(post.created_at).toLocaleDateString() }}</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <div v-else class="rss-content">
+        <div v-if="rssLoading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>加载 RSS 订阅中...</p>
+        </div>
+
+        <div v-else-if="rssError" class="empty-state">
+          <p>RSS 加载失败，请稍后重试</p>
+        </div>
+
         <div v-else class="rss-feeds">
-          <div v-for="feed in rssFeeds" :key="feed.url" class="rss-feed">
-            <h4 class="rss-feed-title">{{ feed.title }}</h4>
-            <div class="rss-items">
+          <div v-for="feed in rssFeeds" :key="feed.url" class="rss-feed-section">
+            <h3 class="rss-feed-title">{{ feed.title }}</h3>
+            <div class="rss-feed-items">
               <a
                 v-for="item in feed.items"
                 :key="item.link"
                 :href="item.link"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="rss-item"
+                class="rss-feed-item"
               >
-                <span class="rss-item-title">{{ item.title }}</span>
-                <span class="rss-item-date">{{ formatDate(item.pubDate) }}</span>
+                <div class="rss-item-content">
+                  <h4 class="rss-item-title">{{ item.title }}</h4>
+                  <p class="rss-item-desc">{{ stripHtml(item.description).substring(0, 80) }}...</p>
+                  <span class="rss-item-date">{{ formatDate(item.pubDate) }}</span>
+                </div>
               </a>
             </div>
           </div>
         </div>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <div class="search-box">
-        <input
-          v-model="searchKeyword"
-          type="text"
-          placeholder="搜索文章..."
-          class="search-input"
-          @input="handleSearch"
-        />
-      </div>
-
-      <div v-if="loading" class="loading-state">
-        <div class="loading-spinner"></div>
-        <p>加载中...</p>
-      </div>
-
-      <div v-else-if="filteredPosts.length === 0" class="empty-state">
-        <p>还没有文章，敬请期待</p>
-      </div>
-
-      <div v-else class="post-list">
-        <article
-          v-for="post in filteredPosts"
-          :key="post.id"
-          class="post-card btn-ripple"
-          @click="navigateToPost(post.id)"
-          @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-        >
-          <div class="post-body">
-            <span class="post-category">{{ post.category }}</span>
-            <h2 class="post-title">{{ post.title }}</h2>
-            <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}...</p>
-            <div class="post-meta">
-              <span class="post-date">{{ new Date(post.created_at).toLocaleDateString() }}</span>
-            </div>
-          </div>
-        </article>
       </div>
     </main>
   </div>
@@ -583,91 +617,58 @@ onMounted(() => {
   border-top: 3px solid #000;
 }
 
-.rss-loading,
-.rss-error {
-  text-align: center;
-  padding: 1rem;
-  color: #666;
-}
-
-.rss-loading .loading-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid rgba(0, 0, 0, 0.2);
-  border-top-color: #9F353A;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto;
-}
-
-.rss-feeds {
+.content-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
   gap: 1rem;
 }
 
-.rss-feed {
-  border-bottom: 2px solid #000;
-  padding-bottom: 0.75rem;
+.tab-buttons {
+  display: flex;
+  gap: 0;
 }
 
-.rss-feed:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.rss-feed-title {
-  margin: 0 0 0.5rem 0;
+.tab-btn {
+  position: relative;
+  padding: 0.6rem 1.25rem;
+  background: #fff;
+  color: #333;
+  border: 3px solid #000;
+  border-right: none;
   font-size: 0.95rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.rss-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.rss-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.5rem;
-  padding: 0.35rem 0;
-  text-decoration: none;
-  color: #333;
-  font-size: 0.85rem;
-  transition: color 0.2s ease;
-}
-
-.rss-item:hover {
-  color: #9F353A;
-}
-
-.rss-item-title {
-  flex: 1;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-.rss-item-date {
-  font-size: 0.75rem;
-  color: #999;
-  white-space: nowrap;
+.tab-btn:last-child {
+  border-right: 3px solid #000;
+}
+
+.tab-btn.active {
+  background: #9F353A;
+  color: white;
+}
+
+.tab-btn:hover {
+  background: #9F353A;
+  color: white;
 }
 
 .search-box {
-  margin-bottom: 2rem;
+  flex: 1;
+  max-width: 300px;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.875rem 1rem;
+  padding: 0.6rem 1rem;
   border: 3px solid #000;
   border-radius: 0;
-  font-size: 1rem;
+  font-size: 0.9rem;
   background: #fff;
   transition: border-color 0.3s ease;
 }
@@ -677,9 +678,88 @@ onMounted(() => {
   border-color: #9F353A;
 }
 
-.loading-state {
+.rss-content {
+  min-height: 300px;
+}
+
+.rss-feeds {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.rss-feed-section {
+  border: 3px solid #000;
+  background: #fff;
+  padding: 1.25rem;
+}
+
+.rss-feed-title {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #000;
+}
+
+.rss-feed-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.rss-feed-item {
+  display: block;
+  text-decoration: none;
+  border: 2px solid #000;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.rss-feed-item:hover {
+  background: #9F353A;
+  border-color: #9F353A;
+}
+
+.rss-feed-item:hover .rss-item-title,
+.rss-feed-item:hover .rss-item-desc,
+.rss-feed-item:hover .rss-item-date {
+  color: white;
+}
+
+.rss-item-content {
+  position: relative;
+  z-index: 2;
+}
+
+.rss-item-title {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+  transition: color 0.3s ease;
+}
+
+.rss-item-desc {
+  margin: 0 0 0.4rem 0;
+  font-size: 0.85rem;
+  color: #666;
+  line-height: 1.4;
+  transition: color 0.3s ease;
+}
+
+.rss-item-date {
+  font-size: 0.75rem;
+  color: #999;
+  transition: color 0.3s ease;
+}
+
+.loading-state,
+.empty-state {
   text-align: center;
-  padding: 4rem 2rem;
+  padding: 3rem;
+  color: #666;
 }
 
 .loading-spinner {
