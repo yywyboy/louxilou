@@ -217,24 +217,23 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 .category-tabs {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  border: 3px solid #000;
-  gap: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .category-btn {
-  padding: 0.5rem 0.25rem;
+  width: 80px;
+  padding: 0.5rem;
   background: #fff;
-  border: none;
-  border-right: 1px solid #000;
-  border-bottom: 1px solid #000;
+  border: 2px solid #000;
   font-size: 0.85rem;
   cursor: pointer;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
   z-index: 1;
+  text-align: center;
 }
 
 .btn-ripple > *:not(.ripple-effect) {
@@ -242,22 +241,16 @@ function handleKeydown(e: KeyboardEvent) {
   z-index: 1;
 }
 
-.category-btn:nth-child(6n) {
-  border-right: none;
-}
-
-.category-btn:nth-last-child(-n+6) {
-  border-bottom: none;
-}
-
 .category-btn:hover {
   background: #9F353A;
   color: white;
+  border-color: #9F353A;
 }
 
 .category-btn.active {
   background: #9F353A;
   color: white;
+  border-color: #9F353A;
 }
 
 .results-info {
@@ -495,8 +488,9 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 @media (max-width: 1024px) {
-  .category-tabs {
-    grid-template-columns: repeat(4, 1fr);
+  .category-btn {
+    width: 72px;
+    font-size: 0.8rem;
   }
 
   .photo-grid {
@@ -514,11 +508,12 @@ function handleKeydown(e: KeyboardEvent) {
   }
 
   .category-tabs {
-    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
   }
 
   .category-btn {
-    padding: 0.4rem 0.25rem;
+    width: 65px;
+    padding: 0.4rem;
     font-size: 0.75rem;
   }
 
@@ -557,11 +552,12 @@ function handleKeydown(e: KeyboardEvent) {
   }
 
   .category-tabs {
-    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
   }
 
   .category-btn {
-    padding: 0.35rem 0.2rem;
+    width: 58px;
+    padding: 0.35rem;
     font-size: 0.7rem;
   }
 
