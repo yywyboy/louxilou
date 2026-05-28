@@ -45,6 +45,7 @@ const photos = Array.from({ length: 125 }, (_, i) => {
 
 const selectedPhoto = ref<typeof photos[0] | null>(null)
 const activeCategories = ref<string[]>([])
+const loadedImages = ref<Set<number>>(new Set())
 
 const filteredPhotos = computed(() => {
   if (activeCategories.value.length === 0) return photos
@@ -64,6 +65,10 @@ function toggleCategory(categoryId: string) {
   } else {
     activeCategories.value.splice(index, 1)
   }
+}
+
+function onImageLoad(id: number) {
+  loadedImages.value.add(id)
 }
 
 function openPhoto(photo: typeof photos[0]) {
@@ -131,13 +136,18 @@ function handleKeydown(e: KeyboardEvent) {
         v-for="photo in filteredPhotos"
         :key="photo.id"
         class="photo-card"
+        :class="{ loaded: loadedImages.has(photo.id) }"
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
+          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)">
+            <div class="loading-spinner"></div>
+          </div>
           <img 
             :src="photo.src" 
             :alt="photo.alt" 
             loading="lazy"
+            @load="onImageLoad(photo.id)"
           />
         </div>
         <div class="photo-info">
@@ -262,6 +272,21 @@ function handleKeydown(e: KeyboardEvent) {
   cursor: pointer;
   transition: all 0.3s ease;
   background: #fff;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.photo-card.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .photo-card:hover {
@@ -275,6 +300,31 @@ function handleKeydown(e: KeyboardEvent) {
   aspect-ratio: 1;
   overflow: hidden;
   background: #f5f5f5;
+  position: relative;
+}
+
+.photo-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #9F353A;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .photo-wrapper img {
@@ -282,7 +332,12 @@ function handleKeydown(e: KeyboardEvent) {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.5s ease;
+  transition: transform 0.5s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.photo-card.loaded .photo-wrapper img {
+  opacity: 1;
 }
 
 .photo-card:hover .photo-wrapper img {
@@ -433,23 +488,49 @@ function handleKeydown(e: KeyboardEvent) {
   opacity: 0;
 }
 
+@media (max-width: 1024px) {
+  .photo-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .gallery-container {
     padding: 1rem;
   }
 
   .gallery-header {
-    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .category-tabs {
+    gap: 0;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 0.5rem;
+  }
+
+  .category-tabs::-webkit-scrollbar {
+    display: none;
   }
 
   .category-btn {
     padding: 0.4rem 0.75rem;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 
   .photo-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
+  }
+
+  .photo-tag {
+    font-size: 0.6rem;
+    padding: 0.05rem 0.3rem;
   }
 
   .modal-controls {
@@ -461,22 +542,57 @@ function handleKeydown(e: KeyboardEvent) {
     width: 40px;
     height: 40px;
   }
+
+  .photo-title {
+    font-size: 0.8rem;
+  }
+
+  .modal-tag {
+    font-size: 0.65rem;
+  }
 }
 
 @media (max-width: 480px) {
+  .gallery-container {
+    padding: 0.75rem;
+  }
+
   .photo-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 
+  .photo-info {
+    padding: 0.4rem 0.5rem;
+  }
+
+  .photo-number {
+    font-size: 0.7rem;
+  }
+
+  .photo-tag {
+    font-size: 0.55rem;
+    padding: 0.05rem 0.25rem;
+  }
+
   .modal-controls {
     bottom: 0.75rem;
     right: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .controls-buttons {
+    gap: 0.4rem;
   }
 
   .control-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .control-btn svg {
+    width: 16px;
+    height: 16px;
   }
 }
 </style>
