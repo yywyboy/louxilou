@@ -6,7 +6,9 @@ export interface RippleOptions {
 
 export function createRipple(event: MouseEvent | Touch, options: RippleOptions = {}) {
   const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
-  const target = (event.currentTarget || (event as Touch).target) as HTMLElement
+  let raw = (event.currentTarget || (event as Touch).target) as HTMLElement
+  if (!raw) return
+  const target = raw.closest('.btn-ripple') as HTMLElement || raw
 
   if (!target) return
 
