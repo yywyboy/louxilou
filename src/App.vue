@@ -3,7 +3,7 @@ import { RouterView } from 'vue-router'
 import { ref, onMounted, onUnmounted } from 'vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import { skipNextTransition } from './router'
-import { createRipple } from './composables/useRipple'
+import { handleRipple } from './composables/useRipple'
 import { getActiveAnnouncement } from './lib/blog'
 import type { Announcement } from './lib/blog'
 
@@ -207,8 +207,8 @@ const navItems = [
             :to="item.path"
             class="nav-link btn-ripple"
             :class="{ active: $route.path === item.path }"
-            @mouseenter="(e) => createRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => createRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <svg viewBox="0 0 24 24" v-if="item.icon === 'home'" class="nav-icon">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>

@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getPosts, getActiveAnnouncement } from '../lib/blog'
-import { handleMouseEnter } from '../composables/useRipple'
+import { handleRipple } from '../composables/useRipple'
 import type { Post } from '../lib/types'
 import type { Announcement } from '../lib/blog'
 
@@ -196,8 +196,8 @@ onMounted(() => {
             href="https://github.com/yywyboy"
             target="_blank"
             class="quick-link btn-ripple"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">GitHub</span>
           </a>
@@ -205,16 +205,16 @@ onMounted(() => {
             href="https://space.bilibili.com/603244446"
             target="_blank"
             class="quick-link btn-ripple"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">Bilibili</span>
           </a>
           <a
             href="mailto:17766710131@163.com"
             class="quick-link btn-ripple"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">邮件联系</span>
           </a>
@@ -228,8 +228,8 @@ onMounted(() => {
             href="https://louxilou.com.cn"
             target="_blank"
             class="friend-link btn-ripple"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="link-text">楼西楼</span>
           </a>
@@ -244,8 +244,8 @@ onMounted(() => {
             href="/feed.xml"
             target="_blank"
             class="rss-link btn-ripple"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
               <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
@@ -263,8 +263,8 @@ onMounted(() => {
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'posts' }"
             @click="activeTab = 'posts'"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="btn-text">文章</span>
           </button>
@@ -272,8 +272,8 @@ onMounted(() => {
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'rss' }"
             @click="activeTab = 'rss'"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <span class="btn-text">RSS</span>
           </button>
@@ -311,8 +311,8 @@ onMounted(() => {
             :key="post.id"
             class="post-card btn-ripple"
             @click="navigateToPost(post.id)"
-            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
             <div class="post-body">
               <span class="post-category">{{ post.category }}</span>
@@ -347,8 +347,8 @@ onMounted(() => {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="rss-feed-item btn-ripple"
-                @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-                @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+                @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+                @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
               >
                 <div class="rss-item-content">
                   <h4 class="rss-item-title">{{ item.title }}</h4>

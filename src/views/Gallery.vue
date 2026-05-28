@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { handleMouseEnter } from '../composables/useRipple'
+import { handleRipple } from '../composables/useRipple'
 
 const categories = [
   { id: 'all', name: '全部' },
@@ -110,8 +110,8 @@ function handleKeydown(e: KeyboardEvent) {
           class="category-btn btn-ripple"
           :class="{ active: activeCategories.length === 0 }"
           @click="toggleCategory('all')"
-          @mouseenter="(e) => handleMouseEnter(e)"
-          @touchstart="(e) => handleMouseEnter(e.touches[0])"
+          @mousedown="(e) => handleRipple(e)"
+          @touchstart="(e) => handleRipple(e.touches[0])"
         >
           全部
         </button>
@@ -121,8 +121,8 @@ function handleKeydown(e: KeyboardEvent) {
           class="category-btn btn-ripple"
           :class="{ active: activeCategories.includes(cat.id) }"
           @click="toggleCategory(cat.id)"
-          @mouseenter="(e) => handleMouseEnter(e)"
-          @touchstart="(e) => handleMouseEnter(e.touches[0])"
+          @mousedown="(e) => handleRipple(e)"
+          @touchstart="(e) => handleRipple(e.touches[0])"
         >
           {{ cat.name }}
         </button>
@@ -181,17 +181,17 @@ function handleKeydown(e: KeyboardEvent) {
               <span class="photo-counter">{{ filteredPhotos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ filteredPhotos.length }}</span>
             </div>
             <div class="controls-buttons">
-              <button class="control-btn btn-ripple" @click="prevPhoto" @mouseenter="(e) => handleMouseEnter(e)" @touchstart="(e) => handleMouseEnter(e.touches[0])" title="上一张 (←)">
+              <button class="control-btn btn-ripple" @click="prevPhoto" @mousedown="(e) => handleRipple(e)" @touchstart="(e) => handleRipple(e.touches[0])" title="上一张 (←)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
               </button>
-              <button class="control-btn btn-ripple" @click="nextPhoto" @mouseenter="(e) => handleMouseEnter(e)" @touchstart="(e) => handleMouseEnter(e.touches[0])" title="下一张 (→)">
+              <button class="control-btn btn-ripple" @click="nextPhoto" @mousedown="(e) => handleRipple(e)" @touchstart="(e) => handleRipple(e.touches[0])" title="下一张 (→)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
-              <button class="control-btn close btn-ripple" @click="closePhoto" @mouseenter="(e) => handleMouseEnter(e)" @touchstart="(e) => handleMouseEnter(e.touches[0])" title="关闭 (ESC)">
+              <button class="control-btn close btn-ripple" @click="closePhoto" @mousedown="(e) => handleRipple(e)" @touchstart="(e) => handleRipple(e.touches[0])" title="关闭 (ESC)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>

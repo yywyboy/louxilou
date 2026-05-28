@@ -4,32 +4,20 @@ export interface RippleOptions {
   scale?: number
 }
 
-let globalCircle: HTMLSpanElement | null = null
-let globalRipple: HTMLSpanElement | null = null
-
-function isMobile(): boolean {
-  return window.innerWidth <= 768
-}
-
 export function createRipple(event: MouseEvent | Touch, options: RippleOptions = {}) {
   const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
   const target = (event.currentTarget || (event as Touch).target) as HTMLElement
 
+  if (!target) return
+
   const existingRipples = target.querySelectorAll('.ripple-effect')
   existingRipples.forEach(r => r.remove())
 
-  const modalBtn = document.querySelector('.modal-btn') as HTMLElement
-  if (modalBtn && !target.classList.contains('modal-btn')) {
-    const modalOverlay = document.querySelector('.modal-overlay')
-    if (modalOverlay && window.getComputedStyle(modalOverlay).display !== 'none') {
-      attachRippleToModalBtn(color, duration, scale)
-      return
-    }
-  }
-
   const rect = target.getBoundingClientRect()
-  const x = (event.clientX || (event as Touch).clientX) - rect.left
-  const y = (event.clientY || (event as Touch).clientY) - rect.top
+  const clientX = 'clientX' in event ? event.clientX : (event as Touch).clientX
+  const clientY = 'clientY' in event ? event.clientY : (event as Touch).clientY
+  const x = clientX - rect.left
+  const y = clientY - rect.top
 
   const ripple = document.createElement('span')
   ripple.className = 'ripple-effect'
@@ -68,118 +56,15 @@ export function createRipple(event: MouseEvent | Touch, options: RippleOptions =
     circle.style.opacity = '1'
   })
 
-  function removeRipple() {
+  setTimeout(() => {
     circle.style.transform = 'scale(0)'
     circle.style.opacity = '0'
     setTimeout(() => {
       ripple.remove()
     }, parseFloat(duration) * 1000)
-  }
-
-  if (isMobile()) {
-    const handleTouchEnd = () => {
-      removeRipple()
-      target.removeEventListener('touchend', handleTouchEnd)
-      target.removeEventListener('touchcancel', handleTouchEnd)
-    }
-    target.addEventListener('touchend', handleTouchEnd, { once: true })
-    target.addEventListener('touchcancel', handleTouchEnd, { once: true })
-  } else {
-    const handleMouseLeave = (e: MouseEvent) => {
-      const leaveX = e.clientX - rect.left
-      const leaveY = e.clientY - rect.top
-
-      circle.style.left = `${leaveX - size / 2}px`
-      circle.style.top = `${leaveY - size / 2}px`
-      circle.style.transform = 'scale(1)'
-      circle.style.opacity = '1'
-      circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
-
-      requestAnimationFrame(() => {
-        circle.style.transform = 'scale(0)'
-        circle.style.opacity = '0'
-      })
-
-      setTimeout(() => {
-        ripple.remove()
-      }, parseFloat(duration) * 1000)
-    }
-    target.addEventListener('mouseleave', handleMouseLeave, { once: true })
-  }
+  }, parseFloat(duration) * 500)
 }
 
-function attachRippleToModalBtn(color: string, duration: string, scale: number) {
-  const modalBtn = document.querySelector('.modal-btn') as HTMLElement
-  if (!modalBtn) return
-
-  const existingRipples = modalBtn.querySelectorAll('.ripple-effect')
-  existingRipples.forEach(r => r.remove())
-
-  const rect = modalBtn.getBoundingClientRect()
-  const x = rect.width / 2
-  const y = rect.height / 2
-
-  const ripple = document.createElement('span')
-  ripple.className = 'ripple-effect'
-  ripple.style.cssText = `
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    overflow: hidden;
-    z-index: -1;
-  `
-
-  const circle = document.createElement('span')
-  const size = Math.max(rect.width, rect.height) * scale
-  circle.style.cssText = `
-    position: absolute;
-    width: ${size}px;
-    height: ${size}px;
-    left: ${x - size / 2}px;
-    top: ${y - size / 2}px;
-    background: ${color};
-    border-radius: 50%;
-    transform: scale(0);
-    opacity: 1;
-    transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
-                opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
-  `
-
-  ripple.appendChild(circle)
-  modalBtn.appendChild(ripple)
-
-  requestAnimationFrame(() => {
-    circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
-  })
-
-  function removeRipple() {
-    circle.style.transform = 'scale(0)'
-    circle.style.opacity = '0'
-    setTimeout(() => {
-      ripple.remove()
-    }, parseFloat(duration) * 1000)
-  }
-
-  if (isMobile()) {
-    const handleTouchEnd = () => {
-      removeRipple()
-      modalBtn.removeEventListener('touchend', handleTouchEnd)
-      modalBtn.removeEventListener('touchcancel', handleTouchEnd)
-    }
-    modalBtn.addEventListener('touchend', handleTouchEnd, { once: true })
-    modalBtn.addEventListener('touchcancel', handleTouchEnd, { once: true })
-  } else {
-    const handleMouseLeave = () => {
-      removeRipple()
-    }
-    modalBtn.addEventListener('mouseleave', handleMouseLeave, { once: true })
-  }
-}
-
-export function handleMouseEnter(e: MouseEvent | Touch, options?: RippleOptions) {
-  createRipple(e, options)
+export function handleRipple(event: MouseEvent | Touch, options?: RippleOptions) {
+  createRipple(event, options)
 }
