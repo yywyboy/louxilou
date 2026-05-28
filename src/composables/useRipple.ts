@@ -12,13 +12,14 @@ function isMobile(): boolean {
 }
 
 export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
-  if (isMobile()) return
-
-  const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
   const target = event.currentTarget as HTMLElement
 
   const existingRipples = target.querySelectorAll('.ripple-effect')
   existingRipples.forEach(r => r.remove())
+
+  if (isMobile()) return
+
+  const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
 
   const modalBtn = document.querySelector('.modal-btn') as HTMLElement
   if (modalBtn && !target.classList.contains('modal-btn')) {
