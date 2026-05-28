@@ -292,7 +292,7 @@ onMounted(() => {
             @click="activeTab = 'posts'"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
-            文章
+            <span class="btn-text">文章</span>
           </button>
           <button 
             class="tab-btn btn-ripple" 
@@ -300,7 +300,7 @@ onMounted(() => {
             @click="activeTab = 'rss'"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
-            RSS
+            <span class="btn-text">RSS</span>
           </button>
         </div>
         <div v-if="activeTab === 'posts'" class="search-box">
@@ -649,6 +649,14 @@ onMounted(() => {
   transition: all 0.3s ease;
   overflow: hidden;
   height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tab-btn .btn-text {
+  position: relative;
+  z-index: 2;
 }
 
 .tab-btn:last-child {

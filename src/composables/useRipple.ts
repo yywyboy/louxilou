@@ -37,7 +37,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     left: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 0;
+    z-index: 1;
   `
 
   const circle = document.createElement('span')
@@ -54,7 +54,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     opacity: 1;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
+    z-index: 1;
   `
 
   ripple.appendChild(circle)
@@ -109,7 +109,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     left: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 0;
+    z-index: 1;
   `
 
   const circle = document.createElement('span')
@@ -126,7 +126,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     opacity: 1;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 0;
+    z-index: 1;
   `
 
   ripple.appendChild(circle)
