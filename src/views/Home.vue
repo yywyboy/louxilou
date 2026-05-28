@@ -300,7 +300,7 @@ onMounted(() => {
             @click="activeTab = 'rss'"
             @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
           >
-            RSS 订阅
+            RSS
           </button>
         </div>
         <div v-if="activeTab === 'posts'" class="search-box">
@@ -311,6 +311,12 @@ onMounted(() => {
             class="search-input"
             @input="handleSearch"
           />
+          <button class="search-btn" @click="handleSearch">
+            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -622,7 +628,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .tab-buttons {
@@ -632,16 +638,17 @@ onMounted(() => {
 
 .tab-btn {
   position: relative;
-  padding: 0.6rem 1.25rem;
+  padding: 0.5rem 1rem;
   background: #fff;
   color: #333;
   border: 3px solid #000;
   border-right: none;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
   overflow: hidden;
+  height: 38px;
 }
 
 .tab-btn:last-child {
@@ -661,20 +668,44 @@ onMounted(() => {
 .search-box {
   flex: 1;
   max-width: 300px;
+  display: flex;
+  gap: 0;
 }
 
 .search-input {
-  width: 100%;
-  padding: 0.6rem 1rem;
+  flex: 1;
+  padding: 0.5rem 0.75rem;
   border: 3px solid #000;
+  border-right: none;
   border-radius: 0;
   font-size: 0.9rem;
   background: #fff;
   transition: border-color 0.3s ease;
+  height: 38px;
 }
 
 .search-input:focus {
   outline: none;
+  border-color: #9F353A;
+}
+
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+}
+
+.search-btn:hover {
+  background: #9F353A;
+  color: white;
   border-color: #9F353A;
 }
 

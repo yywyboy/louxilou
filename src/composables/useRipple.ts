@@ -51,7 +51,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     background: ${color};
     border-radius: 50%;
     transform: scale(0);
-    opacity: 0.3;
+    opacity: 1;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
@@ -62,7 +62,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
 
   requestAnimationFrame(() => {
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '0.3'
+    circle.style.opacity = '1'
   })
 
   const handleMouseLeave = (e: MouseEvent) => {
@@ -72,7 +72,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     circle.style.left = `${leaveX - size / 2}px`
     circle.style.top = `${leaveY - size / 2}px`
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '0.3'
+    circle.style.opacity = '1'
     circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
 
     requestAnimationFrame(() => {
@@ -123,7 +123,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     background: ${color};
     border-radius: 50%;
     transform: scale(0);
-    opacity: 0.3;
+    opacity: 1;
     transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                 opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
@@ -134,7 +134,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
 
   requestAnimationFrame(() => {
     circle.style.transform = 'scale(1)'
-    circle.style.opacity = '0.3'
+    circle.style.opacity = '1'
   })
 
   const handleMouseLeave = () => {
