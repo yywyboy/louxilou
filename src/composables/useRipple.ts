@@ -37,7 +37,7 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     left: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 0;
+    z-index: -1;
   `
 
   const circle = document.createElement('span')
@@ -108,7 +108,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     left: 0;
     pointer-events: none;
     overflow: hidden;
-    z-index: 0;
+    z-index: -1;
   `
 
   const circle = document.createElement('span')
