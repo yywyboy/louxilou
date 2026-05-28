@@ -7,7 +7,13 @@ export interface RippleOptions {
 let globalCircle: HTMLSpanElement | null = null
 let globalRipple: HTMLSpanElement | null = null
 
+function isMobile(): boolean {
+  return window.innerWidth <= 768
+}
+
 export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
+  if (isMobile()) return
+
   const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
   const target = event.currentTarget as HTMLElement
 
