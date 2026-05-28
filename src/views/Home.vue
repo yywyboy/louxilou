@@ -37,7 +37,12 @@ const activeTab = ref<'posts' | 'rss'>('posts')
 const presetFeeds = [
   { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
   { title: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
-  { title: '少数派', url: 'https://sspai.com/feed' }
+  { title: '少数派', url: 'https://sspai.com/feed' },
+  { title: 'V2EX', url: 'https://www.v2ex.com/feed/tab/tech.xml' },
+  { title: '36氪', url: 'https://36kr.com/feed' },
+  { title: '虎嗅', url: 'https://www.huxiu.com/rss/0.xml' },
+  { title: '掘金', url: 'https://juejin.cn/rss' },
+  { title: 'InfoQ', url: 'https://www.infoq.cn/feed' }
 ]
 
 async function loadPosts() {
