@@ -90,29 +90,49 @@ function parseRSS(xmlText: string, feedUrl: string): RSSFeed {
   const doc = parser.parseFromString(xmlText, 'text/xml')
   
   const channel = doc.querySelector('channel')
-  if (!channel) {
-    throw new Error('Invalid RSS feed format')
-  }
-
-  const title = channel.querySelector('title')?.textContent || 'Unknown Feed'
+  const feed = doc.querySelector('feed')
+  
+  let title = 'Unknown Feed'
   const items: RSSItem[] = []
 
-  const itemElements = doc.querySelectorAll('item')
-  itemElements.forEach(item => {
-    const itemTitle = item.querySelector('title')?.textContent || ''
-    const itemLink = item.querySelector('link')?.textContent || ''
-    const itemPubDate = item.querySelector('pubDate')?.textContent || ''
-    const itemDescription = item.querySelector('description')?.textContent || ''
+  if (channel) {
+    title = channel.querySelector('title')?.textContent || 'Unknown Feed'
+    const itemElements = doc.querySelectorAll('item')
+    itemElements.forEach(item => {
+      const itemTitle = item.querySelector('title')?.textContent || ''
+      const itemLink = item.querySelector('link')?.textContent || ''
+      const itemPubDate = item.querySelector('pubDate')?.textContent || ''
+      const itemDescription = item.querySelector('description')?.textContent || ''
 
-    if (itemTitle && itemLink) {
-      items.push({
-        title: itemTitle,
-        link: itemLink,
-        pubDate: itemPubDate,
-        description: itemDescription
-      })
-    }
-  })
+      if (itemTitle && itemLink) {
+        items.push({
+          title: itemTitle,
+          link: itemLink,
+          pubDate: itemPubDate,
+          description: itemDescription
+        })
+      }
+    })
+  } else if (feed) {
+    title = feed.querySelector('title')?.textContent || 'Unknown Feed'
+    const entryElements = doc.querySelectorAll('entry')
+    entryElements.forEach(entry => {
+      const itemTitle = entry.querySelector('title')?.textContent || ''
+      const linkElement = entry.querySelector('link')
+      const itemLink = linkElement?.getAttribute('href') || ''
+      const itemPubDate = entry.querySelector('published')?.textContent || entry.querySelector('updated')?.textContent || ''
+      const itemDescription = entry.querySelector('summary')?.textContent || entry.querySelector('content')?.textContent || ''
+
+      if (itemTitle && itemLink) {
+        items.push({
+          title: itemTitle,
+          link: itemLink,
+          pubDate: itemPubDate,
+          description: itemDescription
+        })
+      }
+    })
+  }
 
   return {
     title,
