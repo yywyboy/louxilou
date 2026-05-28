@@ -34,8 +34,6 @@ const rssLoading = ref(false)
 const rssError = ref(false)
 const activeTab = ref<'posts' | 'rss'>('posts')
 
-const CORS_PROXY = 'https://corsproxy.io/?'
-
 const presetFeeds = [
   { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
   { title: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
@@ -77,68 +75,26 @@ function closeAnnouncementModal() {
 }
 
 async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
-  const proxyUrl = `${CORS_PROXY}url=${encodeURIComponent(feedUrl)}`
-  const response = await fetch(proxyUrl)
+  const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`
+  const response = await fetch(apiUrl)
   if (!response.ok) {
     throw new Error(`Failed to fetch RSS feed: ${response.statusText}`)
   }
-  const text = await response.text()
-  return parseRSS(text, feedUrl)
-}
-
-function parseRSS(xmlText: string, feedUrl: string): RSSFeed {
-  const parser = new DOMParser()
-  const doc = parser.parseFromString(xmlText, 'text/xml')
+  const data = await response.json()
   
-  const channel = doc.querySelector('channel')
-  const feed = doc.querySelector('feed')
-  
-  let title = 'Unknown Feed'
-  const items: RSSItem[] = []
-
-  if (channel) {
-    title = channel.querySelector('title')?.textContent || 'Unknown Feed'
-    const itemElements = doc.querySelectorAll('item')
-    itemElements.forEach(item => {
-      const itemTitle = item.querySelector('title')?.textContent || ''
-      const itemLink = item.querySelector('link')?.textContent || ''
-      const itemPubDate = item.querySelector('pubDate')?.textContent || ''
-      const itemDescription = item.querySelector('description')?.textContent || ''
-
-      if (itemTitle && itemLink) {
-        items.push({
-          title: itemTitle,
-          link: itemLink,
-          pubDate: itemPubDate,
-          description: itemDescription
-        })
-      }
-    })
-  } else if (feed) {
-    title = feed.querySelector('title')?.textContent || 'Unknown Feed'
-    const entryElements = doc.querySelectorAll('entry')
-    entryElements.forEach(entry => {
-      const itemTitle = entry.querySelector('title')?.textContent || ''
-      const linkElement = entry.querySelector('link')
-      const itemLink = linkElement?.getAttribute('href') || ''
-      const itemPubDate = entry.querySelector('published')?.textContent || entry.querySelector('updated')?.textContent || ''
-      const itemDescription = entry.querySelector('summary')?.textContent || entry.querySelector('content')?.textContent || ''
-
-      if (itemTitle && itemLink) {
-        items.push({
-          title: itemTitle,
-          link: itemLink,
-          pubDate: itemPubDate,
-          description: itemDescription
-        })
-      }
-    })
+  if (data.status !== 'ok') {
+    throw new Error('RSS feed returned error')
   }
 
   return {
-    title,
+    title: data.feed?.title || 'Unknown Feed',
     url: feedUrl,
-    items: items.slice(0, 3)
+    items: (data.items || []).slice(0, 3).map((item: any) => ({
+      title: item.title || '',
+      link: item.link || '',
+      pubDate: item.pubDate || '',
+      description: item.description || item.content || ''
+    }))
   }
 }
 
