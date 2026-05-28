@@ -92,9 +92,22 @@ l:\
 
 ### 5. 图片库 (`/gallery`)
 
-- 三列瀑布流布局
-- 点击放大预览
+**功能特性**：
+- 网格布局展示（自动适应列数）
+- 多标签分类系统
+- 点击放大预览（右下角控制按钮）
+- 键盘导航支持（←→切换，ESC关闭）
 - 响应式设计
+
+**类别系统**：
+- 全部、风景、城市、人物、动物、美食、艺术、自然、建筑
+- 支持多类别同时筛选
+- 每张图片可属于多个类别
+
+**如何使用**：
+1. 点击类别按钮筛选图片（可多选）
+2. 点击图片卡片查看大图
+3. 使用右下角按钮切换图片或关闭
 
 ### 6. 文章详情 (`/blog/:id`)
 
@@ -179,14 +192,60 @@ DELETE FROM comments WHERE id = '评论UUID';
 3. 修改 `src/views/Gallery.vue` 中的照片数量：
 
 ```typescript
-const photos = Array.from({ length: 36 }, (_, i) => ({  // 修改 36 为实际数量
-  id: i + 1,
-  src: `/photos/photo (${i + 1}).jpg`,
-  alt: `Photo ${i + 1}`
-}))
+const photos = Array.from({ length: 125 }, (_, i) => {  // 修改 125 为实际数量
+  const cats = getCategories(i + 1)
+  return {
+    id: i + 1,
+    src: `/photos/photo (${i + 1}).jpg`,
+    alt: `Photo ${i + 1}`,
+    categories: cats,
+    categoryNames: getCategoryNames(cats)
+  }
+})
 ```
 
 4. 重新构建并部署
+
+### 管理图片类别
+
+**类别定义**（在 `Gallery.vue` 顶部）：
+
+```typescript
+const categories = [
+  { id: 'all', name: '全部' },
+  { id: 'landscape', name: '风景' },
+  { id: 'city', name: '城市' },
+  { id: 'people', name: '人物' },
+  { id: 'animal', name: '动物' },
+  { id: 'food', name: '美食' },
+  { id: 'art', name: '艺术' },
+  { id: 'nature', name: '自然' },
+  { id: 'architecture', name: '建筑' }
+]
+```
+
+**修改类别分配规则**：
+
+编辑 `getCategories` 函数，根据图片ID分配类别：
+
+```typescript
+function getCategories(id: number): string[] {
+  const cats: string[] = []
+  // 示例：根据ID取模分配类别
+  if (id % 3 === 0) cats.push('landscape')  // 每3张一个风景
+  if (id % 5 === 0) cats.push('city')       // 每5张一个城市
+  if (id % 7 === 0) cats.push('people')     // 每7张一个人物
+  // ... 可自定义规则
+  if (cats.length === 0) cats.push('landscape')  // 默认类别
+  return cats
+}
+```
+
+**添加新类别**：
+
+1. 在 `categories` 数组中添加新项
+2. 在 `getCategories` 函数中添加分配规则
+3. 重新构建并部署
 
 ### 图片优化建议
 

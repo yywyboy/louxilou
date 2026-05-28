@@ -1,13 +1,70 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { handleMouseEnter } from '../composables/useRipple'
 
-const photos = Array.from({ length: 125 }, (_, i) => ({
-  id: i + 1,
-  src: `/photos/photo (${i + 1}).jpg`,
-  alt: `Photo ${i + 1}`
-}))
+const categories = [
+  { id: 'all', name: '全部' },
+  { id: 'landscape', name: '风景' },
+  { id: 'city', name: '城市' },
+  { id: 'people', name: '人物' },
+  { id: 'animal', name: '动物' },
+  { id: 'food', name: '美食' },
+  { id: 'art', name: '艺术' },
+  { id: 'nature', name: '自然' },
+  { id: 'architecture', name: '建筑' }
+]
+
+function getCategories(id: number): string[] {
+  const cats: string[] = []
+  if (id % 3 === 0) cats.push('landscape')
+  if (id % 5 === 0) cats.push('city')
+  if (id % 7 === 0) cats.push('people')
+  if (id % 11 === 0) cats.push('animal')
+  if (id % 13 === 0) cats.push('food')
+  if (id % 2 === 0) cats.push('art')
+  if (id % 4 === 0) cats.push('nature')
+  if (id % 6 === 0) cats.push('architecture')
+  if (cats.length === 0) cats.push('landscape')
+  return cats
+}
+
+function getCategoryNames(ids: string[]): string[] {
+  return ids.map(id => categories.find(c => c.id === id)?.name || '').filter(Boolean)
+}
+
+const photos = Array.from({ length: 125 }, (_, i) => {
+  const cats = getCategories(i + 1)
+  return {
+    id: i + 1,
+    src: `/photos/photo (${i + 1}).jpg`,
+    alt: `Photo ${i + 1}`,
+    categories: cats,
+    categoryNames: getCategoryNames(cats)
+  }
+})
 
 const selectedPhoto = ref<typeof photos[0] | null>(null)
+const activeCategories = ref<string[]>([])
+
+const filteredPhotos = computed(() => {
+  if (activeCategories.value.length === 0) return photos
+  return photos.filter(p => 
+    activeCategories.value.some(cat => p.categories.includes(cat))
+  )
+})
+
+function toggleCategory(categoryId: string) {
+  if (categoryId === 'all') {
+    activeCategories.value = []
+    return
+  }
+  const index = activeCategories.value.indexOf(categoryId)
+  if (index === -1) {
+    activeCategories.value.push(categoryId)
+  } else {
+    activeCategories.value.splice(index, 1)
+  }
+}
 
 function openPhoto(photo: typeof photos[0]) {
   selectedPhoto.value = photo
@@ -19,17 +76,17 @@ function closePhoto() {
 
 function prevPhoto() {
   if (!selectedPhoto.value) return
-  const currentIndex = photos.findIndex(p => p.id === selectedPhoto.value!.id)
+  const currentIndex = filteredPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
   if (currentIndex > 0) {
-    selectedPhoto.value = photos[currentIndex - 1]
+    selectedPhoto.value = filteredPhotos.value[currentIndex - 1]
   }
 }
 
 function nextPhoto() {
   if (!selectedPhoto.value) return
-  const currentIndex = photos.findIndex(p => p.id === selectedPhoto.value!.id)
-  if (currentIndex < photos.length - 1) {
-    selectedPhoto.value = photos[currentIndex + 1]
+  const currentIndex = filteredPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
+  if (currentIndex < filteredPhotos.value.length - 1) {
+    selectedPhoto.value = filteredPhotos.value[currentIndex + 1]
   }
 }
 
@@ -42,9 +99,36 @@ function handleKeydown(e: KeyboardEvent) {
 
 <template>
   <div class="gallery-container" @keydown="handleKeydown" tabindex="0">
-    <div class="photo-grid">
+    <div class="gallery-header">
+      <div class="category-tabs">
+        <button
+          class="category-btn btn-ripple"
+          :class="{ active: activeCategories.length === 0 }"
+          @click="toggleCategory('all')"
+          @mouseenter="(e) => handleMouseEnter(e)"
+        >
+          全部
+        </button>
+        <button
+          v-for="cat in categories.filter(c => c.id !== 'all')"
+          :key="cat.id"
+          class="category-btn btn-ripple"
+          :class="{ active: activeCategories.includes(cat.id) }"
+          @click="toggleCategory(cat.id)"
+          @mouseenter="(e) => handleMouseEnter(e)"
+        >
+          {{ cat.name }}
+        </button>
+      </div>
+    </div>
+
+    <div class="results-info">
+      <span>共 {{ filteredPhotos.length }} 张图片</span>
+    </div>
+
+    <div class="photo-grid" v-if="filteredPhotos.length > 0">
       <div
-        v-for="photo in photos"
+        v-for="photo in filteredPhotos"
         :key="photo.id"
         class="photo-card"
         @click="openPhoto(photo)"
@@ -58,8 +142,15 @@ function handleKeydown(e: KeyboardEvent) {
         </div>
         <div class="photo-info">
           <span class="photo-number">#{{ photo.id }}</span>
+          <div class="photo-tags">
+            <span v-for="name in photo.categoryNames.slice(0, 2)" :key="name" class="photo-tag">{{ name }}</span>
+          </div>
         </div>
       </div>
+    </div>
+
+    <div v-else class="empty-state">
+      <p>没有找到匹配的图片</p>
     </div>
 
     <Teleport to="body">
@@ -72,20 +163,23 @@ function handleKeydown(e: KeyboardEvent) {
           <div class="modal-controls" @click.stop>
             <div class="controls-info">
               <span class="photo-title">{{ selectedPhoto.alt }}</span>
-              <span class="photo-counter">{{ photos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ photos.length }}</span>
+              <div class="modal-tags">
+                <span v-for="name in selectedPhoto.categoryNames" :key="name" class="modal-tag">{{ name }}</span>
+              </div>
+              <span class="photo-counter">{{ filteredPhotos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ filteredPhotos.length }}</span>
             </div>
             <div class="controls-buttons">
-              <button class="control-btn" @click="prevPhoto" title="上一张 (←)">
+              <button class="control-btn btn-ripple" @click="prevPhoto" @mouseenter="(e) => handleMouseEnter(e)" title="上一张 (←)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
               </button>
-              <button class="control-btn" @click="nextPhoto" title="下一张 (→)">
+              <button class="control-btn btn-ripple" @click="nextPhoto" @mouseenter="(e) => handleMouseEnter(e)" title="下一张 (→)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
-              <button class="control-btn close" @click="closePhoto" title="关闭 (ESC)">
+              <button class="control-btn close btn-ripple" @click="closePhoto" @mouseenter="(e) => handleMouseEnter(e)" title="关闭 (ESC)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -108,6 +202,54 @@ function handleKeydown(e: KeyboardEvent) {
   outline: none;
 }
 
+.gallery-header {
+  margin-bottom: 1.5rem;
+}
+
+.category-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+}
+
+.category-btn {
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 3px solid #000;
+  border-right: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.btn-ripple > *:not(.ripple-effect) {
+  position: relative;
+  z-index: 1;
+}
+
+.category-btn:last-child {
+  border-right: 3px solid #000;
+}
+
+.category-btn:hover {
+  background: #9F353A;
+  color: white;
+}
+
+.category-btn.active {
+  background: #9F353A;
+  color: white;
+}
+
+.results-info {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #666;
+}
+
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -120,25 +262,6 @@ function handleKeydown(e: KeyboardEvent) {
   cursor: pointer;
   transition: all 0.3s ease;
   background: #fff;
-  opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-.photo-card:nth-child(1) { animation-delay: 0.02s; }
-.photo-card:nth-child(2) { animation-delay: 0.04s; }
-.photo-card:nth-child(3) { animation-delay: 0.06s; }
-.photo-card:nth-child(4) { animation-delay: 0.08s; }
-.photo-card:nth-child(5) { animation-delay: 0.1s; }
-.photo-card:nth-child(6) { animation-delay: 0.12s; }
-.photo-card:nth-child(7) { animation-delay: 0.14s; }
-.photo-card:nth-child(8) { animation-delay: 0.16s; }
-
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .photo-card:hover {
@@ -169,11 +292,37 @@ function handleKeydown(e: KeyboardEvent) {
 .photo-info {
   padding: 0.5rem 0.75rem;
   border-top: 2px solid #000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .photo-number {
   font-size: 0.8rem;
   font-weight: 500;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.photo-tags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.photo-tag {
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: #9F353A;
+  color: white;
+  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
   color: #666;
 }
 
@@ -216,13 +365,27 @@ function handleKeydown(e: KeyboardEvent) {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .photo-title {
   color: white;
   font-size: 0.9rem;
   font-weight: 500;
+}
+
+.modal-tags {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.modal-tag {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  background: #9F353A;
+  color: white;
 }
 
 .photo-counter {
@@ -246,6 +409,8 @@ function handleKeydown(e: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .control-btn:hover {
@@ -271,6 +436,15 @@ function handleKeydown(e: KeyboardEvent) {
 @media (max-width: 768px) {
   .gallery-container {
     padding: 1rem;
+  }
+
+  .gallery-header {
+    gap: 0.75rem;
+  }
+
+  .category-btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
   }
 
   .photo-grid {
