@@ -235,6 +235,25 @@ onMounted(() => {
           </a>
         </div>
       </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">RSS 订阅</h3>
+        <div class="rss-subscribe">
+          <p class="rss-desc">订阅我的博客，获取最新文章更新</p>
+          <a
+            href="/feed.xml"
+            target="_blank"
+            class="rss-link btn-ripple"
+            @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @touchstart="(e) => handleMouseEnter(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+          >
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
+              <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
+            </svg>
+            <span>订阅 RSS</span>
+          </a>
+        </div>
+      </div>
     </aside>
 
     <main class="main-content">
@@ -580,6 +599,43 @@ onMounted(() => {
 
 .friend-link:first-child {
   border-top: 3px solid #000;
+}
+
+.rss-subscribe {
+  padding: 0.75rem;
+  background: #fff;
+  border: 3px solid #000;
+}
+
+.rss-desc {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 0 0 0.75rem 0;
+  line-height: 1.4;
+}
+
+.rss-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: #9F353A;
+  color: white;
+  border: 2px solid #000;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.rss-link:hover {
+  background: #000;
+}
+
+.rss-icon {
+  flex-shrink: 0;
 }
 
 .content-header {
