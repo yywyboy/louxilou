@@ -34,7 +34,7 @@ const rssLoading = ref(false)
 const rssError = ref(false)
 const activeTab = ref<'posts' | 'rss'>('posts')
 
-const CORS_PROXY = 'https://api.allorigins.win/raw?url='
+const CORS_PROXY = 'https://corsproxy.io/?'
 
 const presetFeeds = [
   { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
@@ -77,7 +77,8 @@ function closeAnnouncementModal() {
 }
 
 async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
-  const response = await fetch(CORS_PROXY + encodeURIComponent(feedUrl))
+  const proxyUrl = `${CORS_PROXY}url=${encodeURIComponent(feedUrl)}`
+  const response = await fetch(proxyUrl)
   if (!response.ok) {
     throw new Error(`Failed to fetch RSS feed: ${response.statusText}`)
   }
