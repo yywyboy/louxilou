@@ -347,7 +347,8 @@ onMounted(() => {
                 :href="item.link"
                 target="_blank"
                 rel="noopener noreferrer"
-                class="rss-feed-item"
+                class="rss-feed-item btn-ripple"
+                @mouseenter="(e) => handleMouseEnter(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
               >
                 <div class="rss-item-content">
                   <h4 class="rss-item-title">{{ item.title }}</h4>
@@ -718,14 +719,15 @@ onMounted(() => {
   padding-left: 1.5rem;
   border-bottom: 2px solid #000;
   position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .rss-feed-title::before {
   content: '';
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0.55rem;
   width: 10px;
   height: 10px;
   border: 3px solid #9F353A;
@@ -745,6 +747,8 @@ onMounted(() => {
   border: 2px solid #000;
   padding: 0.75rem;
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
 
 .rss-feed-item:hover {
@@ -944,6 +948,51 @@ onMounted(() => {
   .music-loading,
   .music-error {
     height: 350px;
+  }
+
+  .content-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .tab-buttons {
+    flex: 1;
+  }
+
+  .tab-btn {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
+  }
+
+  .search-box {
+    flex: 1;
+    max-width: none;
+    width: 100%;
+  }
+
+  .search-input {
+    font-size: 0.85rem;
+  }
+
+  .rss-feed-section {
+    padding: 1rem;
+  }
+
+  .rss-feed-title {
+    font-size: 1rem;
+  }
+
+  .rss-feed-item {
+    padding: 0.6rem;
+  }
+
+  .rss-item-title {
+    font-size: 0.9rem;
+  }
+
+  .rss-item-desc {
+    font-size: 0.8rem;
   }
 }
 </style>
