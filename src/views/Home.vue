@@ -40,7 +40,6 @@ const presetFeeds = [
   { title: '少数派', url: 'https://sspai.com/feed' },
   { title: 'V2EX', url: 'https://www.v2ex.com/feed/tab/tech.xml' },
   { title: '36氪', url: 'https://36kr.com/feed' },
-  { title: '虎嗅', url: 'https://www.huxiu.com/rss/0.xml' },
   { title: '掘金', url: 'https://juejin.cn/rss' },
   { title: 'InfoQ', url: 'https://www.infoq.cn/feed' }
 ]

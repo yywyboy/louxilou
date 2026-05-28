@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
-const photos = Array.from({ length: 51 }, (_, i) => ({
+const photos = Array.from({ length: 143 }, (_, i) => ({
   id: i + 1,
   src: `/photos/photo (${i + 1}).jpg`,
   alt: `Photo ${i + 1}`
