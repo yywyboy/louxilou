@@ -384,7 +384,13 @@ body {
 .btn-ripple {
   position: relative;
   overflow: hidden;
+  z-index: 1;
   transition: border-color 0.3s ease;
+}
+
+.btn-ripple > *:not(.ripple-effect) {
+  position: relative;
+  z-index: 1;
 }
 
 .ripple-effect {
