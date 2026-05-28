@@ -705,7 +705,6 @@ onMounted(() => {
 }
 
 .rss-feed-section {
-  border: 3px solid #000;
   background: #fff;
   padding: 1.25rem;
 }
@@ -716,7 +715,22 @@ onMounted(() => {
   font-weight: 600;
   color: #333;
   padding-bottom: 0.75rem;
+  padding-left: 1.5rem;
   border-bottom: 2px solid #000;
+  position: relative;
+}
+
+.rss-feed-title::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border: 3px solid #9F353A;
+  border-radius: 50%;
+  background: transparent;
 }
 
 .rss-feed-items {
