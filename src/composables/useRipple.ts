@@ -12,14 +12,11 @@ function isMobile(): boolean {
 }
 
 export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
+  const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
   const target = event.currentTarget as HTMLElement
 
   const existingRipples = target.querySelectorAll('.ripple-effect')
   existingRipples.forEach(r => r.remove())
-
-  if (isMobile()) return
-
-  const { color = '#9F353A', duration = '0.5s', scale = 2.5 } = options
 
   const modalBtn = document.querySelector('.modal-btn') as HTMLElement
   if (modalBtn && !target.classList.contains('modal-btn')) {
@@ -71,27 +68,44 @@ export function createRipple(event: MouseEvent, options: RippleOptions = {}) {
     circle.style.opacity = '1'
   })
 
-  const handleMouseLeave = (e: MouseEvent) => {
-    const leaveX = e.clientX - rect.left
-    const leaveY = e.clientY - rect.top
-
-    circle.style.left = `${leaveX - size / 2}px`
-    circle.style.top = `${leaveY - size / 2}px`
-    circle.style.transform = 'scale(1)'
-    circle.style.opacity = '1'
-    circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
-
-    requestAnimationFrame(() => {
-      circle.style.transform = 'scale(0)'
-      circle.style.opacity = '0'
-    })
-
+  function removeRipple() {
+    circle.style.transform = 'scale(0)'
+    circle.style.opacity = '0'
     setTimeout(() => {
       ripple.remove()
     }, parseFloat(duration) * 1000)
   }
 
-  target.addEventListener('mouseleave', handleMouseLeave, { once: true })
+  if (isMobile()) {
+    const handleTouchEnd = () => {
+      removeRipple()
+      target.removeEventListener('touchend', handleTouchEnd)
+      target.removeEventListener('touchcancel', handleTouchEnd)
+    }
+    target.addEventListener('touchend', handleTouchEnd, { once: true })
+    target.addEventListener('touchcancel', handleTouchEnd, { once: true })
+  } else {
+    const handleMouseLeave = (e: MouseEvent) => {
+      const leaveX = e.clientX - rect.left
+      const leaveY = e.clientY - rect.top
+
+      circle.style.left = `${leaveX - size / 2}px`
+      circle.style.top = `${leaveY - size / 2}px`
+      circle.style.transform = 'scale(1)'
+      circle.style.opacity = '1'
+      circle.style.transition = `left ${duration} cubic-bezier(0.4, 0, 0.2, 1), top ${duration} cubic-bezier(0.4, 0, 0.2, 1), transform ${duration} cubic-bezier(0.4, 0, 0.2, 1), opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1)`
+
+      requestAnimationFrame(() => {
+        circle.style.transform = 'scale(0)'
+        circle.style.opacity = '0'
+      })
+
+      setTimeout(() => {
+        ripple.remove()
+      }, parseFloat(duration) * 1000)
+    }
+    target.addEventListener('mouseleave', handleMouseLeave, { once: true })
+  }
 }
 
 function attachRippleToModalBtn(color: string, duration: string, scale: number) {
@@ -142,7 +156,7 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     circle.style.opacity = '1'
   })
 
-  const handleMouseLeave = () => {
+  function removeRipple() {
     circle.style.transform = 'scale(0)'
     circle.style.opacity = '0'
     setTimeout(() => {
@@ -150,7 +164,20 @@ function attachRippleToModalBtn(color: string, duration: string, scale: number) 
     }, parseFloat(duration) * 1000)
   }
 
-  modalBtn.addEventListener('mouseleave', handleMouseLeave, { once: true })
+  if (isMobile()) {
+    const handleTouchEnd = () => {
+      removeRipple()
+      modalBtn.removeEventListener('touchend', handleTouchEnd)
+      modalBtn.removeEventListener('touchcancel', handleTouchEnd)
+    }
+    modalBtn.addEventListener('touchend', handleTouchEnd, { once: true })
+    modalBtn.addEventListener('touchcancel', handleTouchEnd, { once: true })
+  } else {
+    const handleMouseLeave = () => {
+      removeRipple()
+    }
+    modalBtn.addEventListener('mouseleave', handleMouseLeave, { once: true })
+  }
 }
 
 export function handleMouseEnter(e: MouseEvent, options?: RippleOptions) {
