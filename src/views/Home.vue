@@ -16,6 +16,31 @@ const musicLoaded = ref(false)
 const musicError = ref(false)
 const showAnnouncementModal = ref(false)
 
+interface RSSItem {
+  title: string
+  link: string
+  pubDate: string
+  description: string
+}
+
+interface RSSFeed {
+  title: string
+  url: string
+  items: RSSItem[]
+}
+
+const rssFeeds = ref<RSSFeed[]>([])
+const rssLoading = ref(false)
+const rssError = ref(false)
+
+const CORS_PROXY = 'https://api.allorigins.win/raw?url='
+
+const presetFeeds = [
+  { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
+  { title: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
+  { title: '少数派', url: 'https://sspai.com/feed' }
+]
+
 async function loadPosts() {
   loading.value = true
   try {
@@ -50,6 +75,89 @@ function closeAnnouncementModal() {
   showAnnouncementModal.value = false
 }
 
+async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
+  const response = await fetch(CORS_PROXY + encodeURIComponent(feedUrl))
+  if (!response.ok) {
+    throw new Error(`Failed to fetch RSS feed: ${response.statusText}`)
+  }
+  const text = await response.text()
+  return parseRSS(text, feedUrl)
+}
+
+function parseRSS(xmlText: string, feedUrl: string): RSSFeed {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(xmlText, 'text/xml')
+  
+  const channel = doc.querySelector('channel')
+  if (!channel) {
+    throw new Error('Invalid RSS feed format')
+  }
+
+  const title = channel.querySelector('title')?.textContent || 'Unknown Feed'
+  const items: RSSItem[] = []
+
+  const itemElements = doc.querySelectorAll('item')
+  itemElements.forEach(item => {
+    const itemTitle = item.querySelector('title')?.textContent || ''
+    const itemLink = item.querySelector('link')?.textContent || ''
+    const itemPubDate = item.querySelector('pubDate')?.textContent || ''
+    const itemDescription = item.querySelector('description')?.textContent || ''
+
+    if (itemTitle && itemLink) {
+      items.push({
+        title: itemTitle,
+        link: itemLink,
+        pubDate: itemPubDate,
+        description: itemDescription
+      })
+    }
+  })
+
+  return {
+    title,
+    url: feedUrl,
+    items: items.slice(0, 3)
+  }
+}
+
+async function loadAllFeeds() {
+  rssLoading.value = true
+  rssError.value = false
+  rssFeeds.value = []
+
+  try {
+    const results = await Promise.allSettled(
+      presetFeeds.map(feed => fetchRSSFeed(feed.url))
+    )
+
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') {
+        rssFeeds.value.push(result.value)
+      } else {
+        console.error(`Failed to load ${presetFeeds[index].title}:`, result.reason)
+      }
+    })
+  } catch (err) {
+    rssError.value = true
+  } finally {
+    rssLoading.value = false
+  }
+}
+
+function formatDate(dateString: string): string {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) return '今天'
+  if (diffDays === 1) return '昨天'
+  if (diffDays < 7) return `${diffDays}天前`
+  
+  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+}
+
 function handleSearch() {
   if (!searchKeyword.value.trim()) {
     filteredPosts.value = posts.value
@@ -69,6 +177,7 @@ onMounted(() => {
   document.title = '楼西楼的博客 - 技术、生活与阅读'
   loadPosts()
   loadAnnouncement()
+  loadAllFeeds()
 })
 </script>
 
@@ -163,6 +272,34 @@ onMounted(() => {
           >
             <span class="link-text">楼西楼</span>
           </a>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <h3 class="sidebar-title">RSS 订阅</h3>
+        <div v-if="rssLoading" class="rss-loading">
+          <div class="loading-spinner"></div>
+        </div>
+        <div v-else-if="rssError" class="rss-error">
+          <p>加载失败</p>
+        </div>
+        <div v-else class="rss-feeds">
+          <div v-for="feed in rssFeeds" :key="feed.url" class="rss-feed">
+            <h4 class="rss-feed-title">{{ feed.title }}</h4>
+            <div class="rss-items">
+              <a
+                v-for="item in feed.items"
+                :key="item.link"
+                :href="item.link"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="rss-item"
+              >
+                <span class="rss-item-title">{{ item.title }}</span>
+                <span class="rss-item-date">{{ formatDate(item.pubDate) }}</span>
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </aside>
@@ -444,6 +581,81 @@ onMounted(() => {
 
 .friend-link:first-child {
   border-top: 3px solid #000;
+}
+
+.rss-loading,
+.rss-error {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+}
+
+.rss-loading .loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+  border-top-color: #9F353A;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto;
+}
+
+.rss-feeds {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rss-feed {
+  border-bottom: 2px solid #000;
+  padding-bottom: 0.75rem;
+}
+
+.rss-feed:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.rss-feed-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.rss-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rss-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  text-decoration: none;
+  color: #333;
+  font-size: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.rss-item:hover {
+  color: #9F353A;
+}
+
+.rss-item-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rss-item-date {
+  font-size: 0.75rem;
+  color: #999;
+  white-space: nowrap;
 }
 
 .search-box {
