@@ -389,23 +389,23 @@ body {
   padding: 0.6rem 1.25rem;
   border-radius: 0;
   border: 3px solid #000;
-  border-left: none;
   text-decoration: none;
-  color: var(--color-text);
+  color: #000;
   font-weight: 500;
   overflow: hidden;
   background: transparent;
   transition: color 0.3s ease;
   z-index: 1;
+  margin-left: -3px;
+}
+
+.nav-link:first-child {
+  margin-left: 0;
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: white;
-}
-
-.nav-link:first-child {
-  border-left: 3px solid #000;
 }
 
 .nav-icon {

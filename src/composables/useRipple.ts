@@ -4,7 +4,7 @@ export interface RippleOptions {
 }
 
 export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
-  const { color = '#9F353A', duration = '0.4s' } = options
+  const { color = '#9F353A', duration = '0.7s' } = options
 
   let rippleEl: HTMLSpanElement | null = null
   let circleEl: HTMLSpanElement | null = null
@@ -22,7 +22,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
       background: ${color};
       border-radius: 50%;
       transform: scale(0);
-      opacity: 0.6;
+      opacity: 1;
       transition: transform ${duration} cubic-bezier(0.4, 0, 0.2, 1),
                   opacity ${duration} cubic-bezier(0.4, 0, 0.2, 1);
       pointer-events: none;
@@ -65,7 +65,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
 
     requestAnimationFrame(() => {
       circle.style.transform = 'scale(1)'
-      circle.style.opacity = '0.6'
+      circle.style.opacity = '1'
     })
   }
 
@@ -104,7 +104,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
 
     requestAnimationFrame(() => {
       circle.style.transform = 'scale(1)'
-      circle.style.opacity = '0.6'
+      circle.style.opacity = '1'
     })
 
     setTimeout(() => {

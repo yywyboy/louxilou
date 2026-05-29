@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { getPosts, getActiveAnnouncement } from '../lib/blog'
 import { initRipple } from '../composables/useRipple'
@@ -38,6 +38,25 @@ const rssFeeds = ref<RSSFeed[]>([])
 const rssLoading = ref(false)
 const rssError = ref(false)
 const activeTab = ref<'posts' | 'rss'>('posts')
+const tabSliderLeft = ref(0)
+const tabSliderWidth = ref(0)
+const tabButtonsRef = ref<HTMLElement | null>(null)
+
+function updateTabSlider() {
+  if (!tabButtonsRef.value) return
+  const idx = activeTab.value === 'posts' ? 0 : 1
+  const btns = tabButtonsRef.value.querySelectorAll('.tab-btn')
+  const btn = btns[idx] as HTMLElement
+  if (!btn) return
+  tabSliderLeft.value = btn.offsetLeft
+  tabSliderWidth.value = btn.offsetWidth
+}
+
+watch(activeTab, () => nextTick(updateTabSlider))
+
+onMounted(() => {
+  nextTick(updateTabSlider)
+})
 
 const presetFeeds = [
   { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
@@ -247,7 +266,7 @@ onMounted(() => {
             target="_blank"
             class="rss-link"
             v-ripple
->
+          >
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
               <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
             </svg>
@@ -259,21 +278,23 @@ onMounted(() => {
 
     <main class="main-content">
       <div class="content-header">
-        <div class="tab-buttons">
+        <div class="tab-buttons" ref="tabButtonsRef">
+          <div
+            class="tab-slider"
+            :style="{ left: tabSliderLeft + 'px', width: tabSliderWidth + 'px' }"
+          ></div>
           <button 
-            class="tab-btn btn-ripple" 
+            class="tab-btn" 
             :class="{ active: activeTab === 'posts' }"
             @click="activeTab = 'posts'"
-            v-ripple
->
+          >
             <span class="btn-text">文章</span>
           </button>
           <button 
-            class="tab-btn btn-ripple" 
+            class="tab-btn" 
             :class="{ active: activeTab === 'rss' }"
             @click="activeTab = 'rss'"
-            v-ripple
->
+          >
             <span class="btn-text">RSS</span>
           </button>
         </div>
@@ -537,15 +558,20 @@ onMounted(() => {
   position: relative;
   display: block;
   padding: 0.5rem 0.75rem;
-  background: #fff;
+  background: transparent;
   border-radius: 0;
   border: 3px solid #000;
-  border-top: none;
   text-decoration: none;
-  color: #333;
+  color: #000;
   font-size: 0.9rem;
   overflow: hidden;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  transition: color 0.3s ease;
+  margin-top: -3px;
+  z-index: 1;
+}
+
+.quick-link:first-child {
+  margin-top: 0;
 }
 
 .quick-link .link-text {
@@ -555,10 +581,6 @@ onMounted(() => {
 
 .quick-link:hover {
   color: white;
-}
-
-.quick-link:first-child {
-  border-top: 3px solid #000;
 }
 
 .friend-links {
@@ -573,15 +595,20 @@ onMounted(() => {
   align-items: center;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem;
-  background: #fff;
+  background: transparent;
   border-radius: 0;
   border: 3px solid #000;
-  border-top: none;
   text-decoration: none;
-  color: #333;
+  color: #000;
   font-size: 0.9rem;
   overflow: hidden;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  transition: color 0.3s ease;
+  margin-top: -3px;
+  z-index: 1;
+}
+
+.friend-link:first-child {
+  margin-top: 0;
 }
 
 .friend-link .link-icon,
@@ -592,10 +619,6 @@ onMounted(() => {
 
 .friend-link:hover {
   color: white;
-}
-
-.friend-link:first-child {
-  border-top: 3px solid #000;
 }
 
 .rss-subscribe {
@@ -617,18 +640,20 @@ onMounted(() => {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.5rem;
-  background: #9F353A;
-  color: white;
-  border: 2px solid #000;
+  background: transparent;
+  color: #000;
+  border: 3px solid #000;
   text-decoration: none;
   font-size: 0.85rem;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 .rss-link:hover {
-  background: #000;
+  color: white;
 }
 
 .rss-icon {
@@ -646,24 +671,42 @@ onMounted(() => {
 .tab-buttons {
   display: flex;
   gap: 0;
+  position: relative;
+}
+
+.tab-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #9F353A;
+  z-index: 0;
+  transition: left 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+              width 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
 }
 
 .tab-btn {
   position: relative;
   padding: 0.5rem 1rem;
-  background: #fff;
-  color: #333;
+  background: transparent;
+  color: #000;
   border: 3px solid #000;
-  border-right: none;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   overflow: hidden;
   height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-left: -3px;
+  z-index: 1;
+}
+
+.tab-btn:first-child {
+  margin-left: 0;
 }
 
 .tab-btn .btn-text {
@@ -672,16 +715,14 @@ onMounted(() => {
 }
 
 .tab-btn:last-child {
-  border-right: 3px solid #000;
+  margin-left: -3px;
 }
 
 .tab-btn.active {
-  background: #9F353A;
   color: white;
 }
 
 .tab-btn:hover {
-  background: #9F353A;
   color: white;
 }
 
@@ -852,16 +893,16 @@ onMounted(() => {
 
 .post-card {
   position: relative;
-  background: #fff;
+  background: transparent;
   border-radius: 0;
   overflow: hidden;
   cursor: pointer;
   border: 3px solid #000;
-  transition: background-color 0.3s ease;
+  transition: color 0.3s ease;
 }
 
 .post-card:hover {
-  background-color: #9F353A;
+  color: white;
 }
 
 .post-card .post-body {

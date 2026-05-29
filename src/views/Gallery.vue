@@ -117,7 +117,7 @@ function handleKeydown(e: KeyboardEvent) {
           :class="{ active: activeCategories.length === 0 }"
           @click="toggleCategory('all')"
           v-ripple
->
+            >
           全部
         </button>
         <button
@@ -127,7 +127,7 @@ function handleKeydown(e: KeyboardEvent) {
           :class="{ active: activeCategories.includes(cat.id) }"
           @click="toggleCategory(cat.id)"
           v-ripple
->
+            >
           {{ cat.name }}
         </button>
       </div>
@@ -234,15 +234,16 @@ title="关闭 (ESC)">
 .category-btn {
   width: 80px;
   padding: 0.5rem;
-  background: #fff;
-  border: 2px solid #000;
+  background: transparent;
+  border: 3px solid #000;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   position: relative;
   overflow: hidden;
   z-index: 1;
   text-align: center;
+  color: #000;
 }
 
 .btn-ripple > *:not(.ripple-effect) {
@@ -251,13 +252,10 @@ title="关闭 (ESC)">
 }
 
 .category-btn:hover {
-  background: #9F353A;
   color: white;
-  border-color: #9F353A;
 }
 
 .category-btn.active {
-  background: #9F353A;
   color: white;
   border-color: #9F353A;
 }
