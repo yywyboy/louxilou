@@ -255,7 +255,7 @@ const handleAfterEnter = () => {
             :key="item.path"
             :to="item.path"
             class="nav-link"
-            :class="{ active: $route.path === item.path }"
+            :style="{ color: (hoverIndex === index || (hoverIndex === -1 && activeNavIndex === index)) ? 'white' : '#000' }"
             @mouseenter="onNavHover(index)"
             @mouseleave="onNavLeave"
           >
@@ -367,6 +367,7 @@ body {
   display: flex;
   gap: 0;
   position: relative;
+  border: 3px solid #000;
 }
 
 .nav-slider {
@@ -388,7 +389,7 @@ body {
   gap: 0.5rem;
   padding: 0.6rem 1.25rem;
   border-radius: 0;
-  border: 3px solid #000;
+  border: none;
   text-decoration: none;
   color: #000;
   font-weight: 500;
@@ -396,16 +397,6 @@ body {
   background: transparent;
   transition: color 0.3s ease;
   z-index: 1;
-  margin-left: -3px;
-}
-
-.nav-link:first-child {
-  margin-left: 0;
-}
-
-.nav-link:hover,
-.nav-link.active {
-  color: white;
 }
 
 .nav-icon {
@@ -542,11 +533,14 @@ body {
   border: 2px solid #000;
   font-size: 0.9rem;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
 }
 
 .announcement-btn:hover {
-  background: #000;
+  color: white;
 }
 
 @media (max-width: 768px) {

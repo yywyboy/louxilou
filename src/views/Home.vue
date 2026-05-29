@@ -259,20 +259,17 @@ onMounted(() => {
 
       <div class="sidebar-section">
         <h3 class="sidebar-title">RSS订阅</h3>
-        <div class="rss-subscribe">
-          <p class="rss-desc">订阅我的博客，获取最新文章更新</p>
-          <a
-            href="/feed.xml"
-            target="_blank"
-            class="rss-link"
-            v-ripple
-          >
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
-              <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
-            </svg>
-            <span>订阅 RSS</span>
-          </a>
-        </div>
+        <a
+          href="/feed.xml"
+          target="_blank"
+          class="rss-link"
+          v-ripple
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
+            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
+          </svg>
+          <span>订阅 RSS</span>
+        </a>
       </div>
     </aside>
 
@@ -285,14 +282,14 @@ onMounted(() => {
           ></div>
           <button 
             class="tab-btn" 
-            :class="{ active: activeTab === 'posts' }"
+            :style="{ color: activeTab === 'posts' ? 'white' : '#000' }"
             @click="activeTab = 'posts'"
           >
             <span class="btn-text">文章</span>
           </button>
           <button 
             class="tab-btn" 
-            :class="{ active: activeTab === 'rss' }"
+            :style="{ color: activeTab === 'rss' ? 'white' : '#000' }"
             @click="activeTab = 'rss'"
           >
             <span class="btn-text">RSS</span>
@@ -552,6 +549,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0;
+  border: 3px solid #000;
 }
 
 .quick-link {
@@ -560,18 +558,13 @@ onMounted(() => {
   padding: 0.5rem 0.75rem;
   background: transparent;
   border-radius: 0;
-  border: 3px solid #000;
+  border: none;
   text-decoration: none;
   color: #000;
   font-size: 0.9rem;
   overflow: hidden;
   transition: color 0.3s ease;
-  margin-top: -3px;
   z-index: 1;
-}
-
-.quick-link:first-child {
-  margin-top: 0;
 }
 
 .quick-link .link-text {
@@ -587,6 +580,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0;
+  border: 3px solid #000;
 }
 
 .friend-link {
@@ -597,18 +591,13 @@ onMounted(() => {
   padding: 0.6rem 0.75rem;
   background: transparent;
   border-radius: 0;
-  border: 3px solid #000;
+  border: none;
   text-decoration: none;
   color: #000;
   font-size: 0.9rem;
   overflow: hidden;
   transition: color 0.3s ease;
-  margin-top: -3px;
   z-index: 1;
-}
-
-.friend-link:first-child {
-  margin-top: 0;
 }
 
 .friend-link .link-icon,
@@ -619,19 +608,6 @@ onMounted(() => {
 
 .friend-link:hover {
   color: white;
-}
-
-.rss-subscribe {
-  padding: 0.75rem;
-  background: #fff;
-  border: 3px solid #000;
-}
-
-.rss-desc {
-  font-size: 0.8rem;
-  color: #666;
-  margin: 0 0 0.75rem 0;
-  line-height: 1.4;
 }
 
 .rss-link {
@@ -652,12 +628,20 @@ onMounted(() => {
   z-index: 1;
 }
 
+.rss-link span,
+.rss-link svg {
+  position: relative;
+  z-index: 2;
+}
+
 .rss-link:hover {
   color: white;
 }
 
 .rss-icon {
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .content-header {
@@ -672,6 +656,7 @@ onMounted(() => {
   display: flex;
   gap: 0;
   position: relative;
+  border: 3px solid #000;
 }
 
 .tab-slider {
@@ -691,7 +676,7 @@ onMounted(() => {
   padding: 0.5rem 1rem;
   background: transparent;
   color: #000;
-  border: 3px solid #000;
+  border: none;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
@@ -701,12 +686,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-left: -3px;
   z-index: 1;
-}
-
-.tab-btn:first-child {
-  margin-left: 0;
 }
 
 .tab-btn .btn-text {
@@ -715,15 +695,6 @@ onMounted(() => {
 }
 
 .tab-btn:last-child {
-  margin-left: -3px;
-}
-
-.tab-btn.active {
-  color: white;
-}
-
-.tab-btn:hover {
-  color: white;
 }
 
 .search-box {
@@ -821,14 +792,14 @@ onMounted(() => {
   text-decoration: none;
   border: 2px solid #000;
   padding: 0.75rem;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   position: relative;
   overflow: hidden;
+  z-index: 1;
 }
 
 .rss-feed-item:hover {
-  background: #9F353A;
-  border-color: #9F353A;
+  color: white;
 }
 
 .rss-feed-item:hover .rss-item-title,
