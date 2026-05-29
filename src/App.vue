@@ -138,7 +138,7 @@ function handleMouseMove(e: MouseEvent) {
 let lastHoveredButton: HTMLElement | null = null
 
 function animate() {
-  const buttons = document.querySelectorAll('.btn-ripple, .nav-link, .quick-link, .post-card')
+  const buttons = document.querySelectorAll('.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn')
 
   let nearestButton: HTMLElement | null = null
   let minDistance = Infinity
