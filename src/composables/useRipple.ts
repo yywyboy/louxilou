@@ -4,7 +4,7 @@ export interface RippleOptions {
 }
 
 export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
-  const { color = '#9F353A', duration = '0.7s' } = options
+  const { color = '#9F353A', duration = '1s' } = options
 
   let rippleEl: HTMLSpanElement | null = null
   let circleEl: HTMLSpanElement | null = null
