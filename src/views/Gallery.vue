@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import { initRipple } from '../composables/useRipple'
 
 const vRipple = {
@@ -52,6 +52,7 @@ const photos = Array.from({ length: 125 }, (_, i) => {
 const selectedPhoto = ref<typeof photos[0] | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
+const filterKey = ref(0)
 
 const filteredPhotos = computed(() => {
   if (activeCategories.value.length === 0) return photos
@@ -63,14 +64,16 @@ const filteredPhotos = computed(() => {
 function toggleCategory(categoryId: string) {
   if (categoryId === 'all') {
     activeCategories.value = []
-    return
-  }
-  const index = activeCategories.value.indexOf(categoryId)
-  if (index === -1) {
-    activeCategories.value.push(categoryId)
   } else {
-    activeCategories.value.splice(index, 1)
+    const index = activeCategories.value.indexOf(categoryId)
+    if (index === -1) {
+      activeCategories.value.push(categoryId)
+    } else {
+      activeCategories.value.splice(index, 1)
+    }
   }
+  filterKey.value++
+  loadedImages.value.clear()
 }
 
 function onImageLoad(id: number) {
@@ -113,21 +116,19 @@ function handleKeydown(e: KeyboardEvent) {
     <div class="gallery-header">
       <div class="category-tabs">
         <button
-          class="category-btn btn-ripple"
+          class="category-btn"
           :class="{ active: activeCategories.length === 0 }"
           @click="toggleCategory('all')"
-          v-ripple
-            >
+          v-ripple>
           全部
         </button>
         <button
           v-for="cat in categories.filter(c => c.id !== 'all')"
           :key="cat.id"
-          class="category-btn btn-ripple"
+          class="category-btn"
           :class="{ active: activeCategories.includes(cat.id) }"
           @click="toggleCategory(cat.id)"
-          v-ripple
-            >
+          v-ripple>
           {{ cat.name }}
         </button>
       </div>
@@ -137,12 +138,13 @@ function handleKeydown(e: KeyboardEvent) {
       <span>共 {{ filteredPhotos.length }} 张图片</span>
     </div>
 
-    <div class="photo-grid" v-if="filteredPhotos.length > 0">
+    <div class="photo-grid" :key="filterKey" v-if="filteredPhotos.length > 0">
       <div
-        v-for="photo in filteredPhotos"
+        v-for="(photo, index) in filteredPhotos"
         :key="photo.id"
         class="photo-card"
         :class="{ loaded: loadedImages.has(photo.id) }"
+        :style="{ animationDelay: `${Math.min(index * 0.03, 0.5)}s` }"
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
@@ -185,20 +187,17 @@ function handleKeydown(e: KeyboardEvent) {
               <span class="photo-counter">{{ filteredPhotos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ filteredPhotos.length }}</span>
             </div>
             <div class="controls-buttons">
-              <button class="control-btn btn-ripple" @click="prevPhoto" v-ripple
-title="上一张 (←)">
+              <button class="control-btn" @click="prevPhoto" v-ripple title="上一张 (←)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="15 18 9 12 15 6"/>
                 </svg>
               </button>
-              <button class="control-btn btn-ripple" @click="nextPhoto" v-ripple
-title="下一张 (→)">
+              <button class="control-btn" @click="nextPhoto" v-ripple title="下一张 (→)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
               </button>
-              <button class="control-btn close btn-ripple" @click="closePhoto" v-ripple
-title="关闭 (ESC)">
+              <button class="control-btn close" @click="closePhoto" v-ripple title="关闭 (ESC)">
                 <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
                   <line x1="18" y1="6" x2="6" y2="18"/>
                   <line x1="6" y1="6" x2="18" y2="18"/>
@@ -244,11 +243,6 @@ title="关闭 (ESC)">
   z-index: 1;
   text-align: center;
   color: #000;
-}
-
-.btn-ripple > *:not(.ripple-effect) {
-  position: relative;
-  z-index: 1;
 }
 
 .category-btn:hover {

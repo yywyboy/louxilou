@@ -54,10 +54,6 @@ function updateTabSlider() {
 
 watch(activeTab, () => nextTick(updateTabSlider))
 
-onMounted(() => {
-  nextTick(updateTabSlider)
-})
-
 const presetFeeds = [
   { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
   { title: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
@@ -177,6 +173,7 @@ onMounted(() => {
   loadPosts()
   loadAnnouncement()
   loadAllFeeds()
+  nextTick(updateTabSlider)
 })
 </script>
 

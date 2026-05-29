@@ -129,34 +129,39 @@ let circleX = 0
 let circleY = 0
 let isAttached = false
 let attachedButton: HTMLElement | null = null
+let lastHoveredButton: HTMLElement | null = null
+let cachedButtons: HTMLElement[] = []
+let buttonCacheFrame = 0
+
+const BUTTON_SELECTOR = '.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn'
 
 function handleMouseMove(e: MouseEvent) {
   mouseX = e.clientX
   mouseY = e.clientY
 }
 
-let lastHoveredButton: HTMLElement | null = null
-
 function animate() {
-  const buttons = document.querySelectorAll('.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn')
+  buttonCacheFrame++
+  if (buttonCacheFrame % 60 === 0) {
+    cachedButtons = Array.from(document.querySelectorAll(BUTTON_SELECTOR))
+  }
 
   let nearestButton: HTMLElement | null = null
   let minDistance = Infinity
 
-  buttons.forEach(btn => {
+  for (const btn of cachedButtons) {
     const rect = btn.getBoundingClientRect()
     const centerX = rect.left + rect.width / 2
     const centerY = rect.top + rect.height / 2
-
-    const distance = Math.sqrt(
-      Math.pow(mouseX - centerX, 2) + Math.pow(mouseY - centerY, 2)
-    )
+    const dx = mouseX - centerX
+    const dy = mouseY - centerY
+    const distance = Math.sqrt(dx * dx + dy * dy)
 
     if (distance < minDistance && distance < 100) {
       minDistance = distance
-      nearestButton = btn as HTMLElement
+      nearestButton = btn
     }
-  })
+  }
 
   if (nearestButton && minDistance < 100) {
     const rect = nearestButton.getBoundingClientRect()
