@@ -584,7 +584,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0;
-  border: 3px solid #000;
 }
 
 .friend-link {
@@ -595,13 +594,18 @@ onMounted(() => {
   padding: 0.6rem 0.75rem;
   background: transparent;
   border-radius: 0;
-  border: none;
+  border: 3px solid #000;
+  border-top: none;
   text-decoration: none;
   color: #000;
   font-size: 0.9rem;
   overflow: hidden;
   transition: color 0.3s ease;
   z-index: 1;
+}
+
+.friend-link:first-child {
+  border-top: 3px solid #000;
 }
 
 .friend-link .link-icon,
