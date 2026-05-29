@@ -2,7 +2,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getPosts, getActiveAnnouncement } from '../lib/blog'
-import { handleRipple } from '../composables/useRipple'
+import { initRipple } from '../composables/useRipple'
+
+const vRipple = {
+  mounted(el: HTMLElement) {
+    initRipple(el)
+  }
+}
 import type { Post } from '../lib/types'
 import type { Announcement } from '../lib/blog'
 
@@ -196,26 +202,23 @@ onMounted(() => {
             href="https://github.com/yywyboy"
             target="_blank"
             class="quick-link btn-ripple"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="link-text">GitHub</span>
           </a>
           <a
             href="https://space.bilibili.com/603244446"
             target="_blank"
             class="quick-link btn-ripple"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="link-text">Bilibili</span>
           </a>
           <a
             href="mailto:17766710131@163.com"
             class="quick-link btn-ripple"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="link-text">邮件联系</span>
           </a>
         </div>
@@ -228,25 +231,23 @@ onMounted(() => {
             href="https://louxilou.com.cn"
             target="_blank"
             class="friend-link btn-ripple"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="link-text">楼西楼</span>
           </a>
         </div>
       </div>
 
       <div class="sidebar-section">
-        <h3 class="sidebar-title">RSS 订阅</h3>
+        <h3 class="sidebar-title">RSS订阅</h3>
         <div class="rss-subscribe">
           <p class="rss-desc">订阅我的博客，获取最新文章更新</p>
           <a
             href="/feed.xml"
             target="_blank"
-            class="rss-link btn-ripple"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            class="rss-link"
+            v-ripple
+>
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
               <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
             </svg>
@@ -263,18 +264,16 @@ onMounted(() => {
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'posts' }"
             @click="activeTab = 'posts'"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="btn-text">文章</span>
           </button>
           <button 
             class="tab-btn btn-ripple" 
             :class="{ active: activeTab === 'rss' }"
             @click="activeTab = 'rss'"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <span class="btn-text">RSS</span>
           </button>
         </div>
@@ -311,9 +310,8 @@ onMounted(() => {
             :key="post.id"
             class="post-card btn-ripple"
             @click="navigateToPost(post.id)"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-          >
+            v-ripple
+>
             <div class="post-body">
               <span class="post-category">{{ post.category }}</span>
               <h2 class="post-title">{{ post.title }}</h2>
@@ -347,9 +345,8 @@ onMounted(() => {
                 target="_blank"
                 rel="noopener noreferrer"
                 class="rss-feed-item btn-ripple"
-                @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-                @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-              >
+                v-ripple
+>
                 <div class="rss-item-content">
                   <h4 class="rss-item-title">{{ item.title }}</h4>
                   <p class="rss-item-desc">{{ stripHtml(item.description).substring(0, 80) }}...</p>

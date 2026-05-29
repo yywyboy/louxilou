@@ -14,6 +14,9 @@ export default defineConfig({
     outDir: 'dist'
   },
   server: {
+    watch: {
+      ignored: ['**/vue-framework/**', '**/node_modules/**', '**/.git/**', '**/node-v24*/**']
+    },
     fs: {
       allow: [__dirname, resolve(__dirname, 'public')],
       deny: ['$RECYCLE.BIN', 'System Volume Information', 'node-v24.15.0-win-x64']

@@ -1,12 +1,13 @@
 <script setup lang="ts">
-import { RouterView } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import { skipNextTransition } from './router'
-import { handleRipple } from './composables/useRipple'
+import { initRipple } from './composables/useRipple'
 import { getActiveAnnouncement } from './lib/blog'
 import type { Announcement } from './lib/blog'
 
+const route = useRoute()
 const loadingRef = ref()
 const isTransitioning = ref(false)
 
@@ -20,6 +21,54 @@ const showAnnouncementModal = ref(false)
 function checkMobile() {
   isMobileDevice.value = window.innerWidth <= 768
 }
+
+const vRipple = {
+  mounted(el: HTMLElement) {
+    initRipple(el)
+  }
+}
+
+const navItems = [
+  { path: '/', name: '主页', icon: 'home' },
+  { path: '/library', name: '藏书阁', icon: 'library' },
+  { path: '/gallery', name: '图片库', icon: 'gallery' }
+]
+
+const activeNavIndex = computed(() => {
+  const idx = navItems.findIndex(item => {
+    if (item.path === '/') return route.path === '/'
+    return route.path.startsWith(item.path)
+  })
+  return idx >= 0 ? idx : 0
+})
+
+const sliderLeft = ref(0)
+const sliderWidth = ref(0)
+const navLinksRef = ref<HTMLElement | null>(null)
+const hoverIndex = ref(-1)
+
+function updateSliderPosition(index: number) {
+  if (!navLinksRef.value) return
+  const links = navLinksRef.value.querySelectorAll('.nav-link')
+  const link = links[index] as HTMLElement
+  if (!link) return
+  sliderLeft.value = link.offsetLeft
+  sliderWidth.value = link.offsetWidth
+}
+
+function onNavHover(index: number) {
+  hoverIndex.value = index
+  updateSliderPosition(index)
+}
+
+function onNavLeave() {
+  hoverIndex.value = -1
+  updateSliderPosition(activeNavIndex.value)
+}
+
+watch(() => route.path, () => {
+  nextTick(() => updateSliderPosition(activeNavIndex.value))
+}, { immediate: true })
 
 onMounted(() => {
   checkMobile()
@@ -38,6 +87,8 @@ onMounted(() => {
   }
 
   loadAnnouncement()
+
+  nextTick(() => updateSliderPosition(activeNavIndex.value))
 })
 
 onUnmounted(() => {
@@ -187,12 +238,6 @@ const handleAfterEnter = () => {
     loadingRef.value.forceHide()
   }
 }
-
-const navItems = [
-  { path: '/', name: '主页', icon: 'home' },
-  { path: '/library', name: '藏书阁', icon: 'library' },
-  { path: '/gallery', name: '图片库', icon: 'gallery' }
-]
 </script>
 
 <template>
@@ -200,15 +245,19 @@ const navItems = [
     <nav class="top-nav">
       <div class="nav-content">
         <img src="/logo.png" alt="Logo" class="site-logo" />
-        <div class="nav-links">
+        <div class="nav-links" ref="navLinksRef">
+          <div
+            class="nav-slider"
+            :style="{ left: sliderLeft + 'px', width: sliderWidth + 'px' }"
+          ></div>
           <RouterLink
-            v-for="item in navItems"
+            v-for="(item, index) in navItems"
             :key="item.path"
             :to="item.path"
-            class="nav-link btn-ripple"
+            class="nav-link"
             :class="{ active: $route.path === item.path }"
-            @mousedown="(e) => handleRipple(e, { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
-            @touchstart="(e) => handleRipple(e.touches[0], { color: '#9F353A', duration: '0.5s', scale: 2.5 })"
+            @mouseenter="onNavHover(index)"
+            @mouseleave="onNavLeave"
           >
             <svg viewBox="0 0 24 24" v-if="item.icon === 'home'" class="nav-icon">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
@@ -250,7 +299,7 @@ const navItems = [
             <p class="announcement-body">
               {{ announcement?.content || '欢迎访问我的博客！' }}
             </p>
-            <button class="announcement-btn btn-ripple" @click="closeAnnouncementModal">知道了</button>
+            <button class="announcement-btn" v-ripple @click="closeAnnouncementModal">知道了</button>
           </div>
         </div>
       </Transition>
@@ -317,6 +366,19 @@ body {
 .nav-links {
   display: flex;
   gap: 0;
+  position: relative;
+}
+
+.nav-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: #9F353A;
+  z-index: 0;
+  transition: left 0.35s cubic-bezier(0.32, 0.72, 0, 1),
+              width 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  pointer-events: none;
 }
 
 .nav-link {
@@ -332,11 +394,13 @@ body {
   color: var(--color-text);
   font-weight: 500;
   overflow: hidden;
-  background: #fff;
-  transition: color 0.3s ease, border-color 0.3s ease;
+  background: transparent;
+  transition: color 0.3s ease;
+  z-index: 1;
 }
 
-.nav-link:hover {
+.nav-link:hover,
+.nav-link.active {
   color: white;
 }
 
