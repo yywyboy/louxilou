@@ -19,7 +19,7 @@ const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: st
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
 const displayedPhotos = ref<(Photo & { src: string; alt: string; categoryNames: string[] })[]>([])
-const visibleCount = ref(30)
+const visibleCount = ref(16)
 const sentinelRef = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
@@ -38,7 +38,7 @@ const visiblePhotos = computed(() => displayedPhotos.value.slice(0, visibleCount
 const hasMore = computed(() => visibleCount.value < displayedPhotos.value.length)
 
 function loadMore() {
-  visibleCount.value = Math.min(visibleCount.value + 30, displayedPhotos.value.length)
+  visibleCount.value = Math.min(visibleCount.value + 16, displayedPhotos.value.length)
 }
 
 function applyFilter() {
@@ -51,7 +51,7 @@ function applyFilter() {
       cats.every(cat => p.categories.includes(cat))
     )
   }
-  visibleCount.value = 30
+  visibleCount.value = 16
   filtering.value = false
 }
 
@@ -207,7 +207,7 @@ onUnmounted(() => {
 
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="selectedPhoto" class="photo-modal" data-lenis-prevent @click="closePhoto">
+        <div v-if="selectedPhoto" class="photo-modal" @click="closePhoto">
           <div class="modal-image-wrapper" @click.stop>
             <img :src="selectedPhoto.src" :alt="selectedPhoto.alt" />
           </div>
@@ -304,7 +304,6 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.25rem;
-  will-change: contents;
 }
 
 .photo-card {
@@ -313,50 +312,34 @@ onUnmounted(() => {
   cursor: pointer;
   background: #fff;
   opacity: 0;
-  transform: translateY(8px);
-  transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  will-change: opacity, transform;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
 }
 
 .photo-card.loaded {
   opacity: 1;
-  transform: translateY(0);
 }
 
 .photo-card.filtering {
   opacity: 0.3;
-  transform: scale(0.97);
   pointer-events: none;
 }
 
 .photo-card:hover {
   border-color: #9F353A;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .photo-wrapper {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #f0f0f0;
+  background: #eee;
   position: relative;
 }
 
 .photo-placeholder {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  background: #eee;
 }
 
 .loading-spinner {
@@ -380,17 +363,11 @@ onUnmounted(() => {
   object-fit: cover;
   display: block;
   opacity: 0;
-  transform: scale(1.02);
-  transition: opacity 0.6s ease, transform 0.6s ease;
+  transition: opacity 0.3s ease;
 }
 
 .photo-card.loaded .photo-wrapper img {
   opacity: 1;
-  transform: scale(1);
-}
-
-.photo-card:hover .photo-wrapper img {
-  transform: scale(1.08);
 }
 
 .photo-info {
