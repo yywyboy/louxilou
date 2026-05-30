@@ -4,8 +4,11 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import { skipNextTransition } from './router'
 import { initRipple } from './composables/useRipple'
+import { useLenis } from './composables/useLenis'
 import { getActiveAnnouncement } from './lib/blog'
 import type { Announcement } from './lib/blog'
+
+const { getLenis } = useLenis()
 
 const route = useRoute()
 const loadingRef = ref()
@@ -298,6 +301,23 @@ const handleAfterEnter = () => {
 </template>
 
 <style>
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
 * {
   box-sizing: border-box;
 }

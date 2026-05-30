@@ -207,7 +207,7 @@ onUnmounted(() => {
 
     <Teleport to="body">
       <Transition name="modal">
-        <div v-if="selectedPhoto" class="photo-modal" @click="closePhoto">
+        <div v-if="selectedPhoto" class="photo-modal" data-lenis-prevent @click="closePhoto">
           <div class="modal-image-wrapper" @click.stop>
             <img :src="selectedPhoto.src" :alt="selectedPhoto.alt" />
           </div>
