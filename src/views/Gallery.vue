@@ -28,7 +28,7 @@ const filteredPhotos = computed(() => {
   }))
   if (activeCategories.value.length === 0) return mapped
   return mapped.filter(p =>
-    activeCategories.value.some(cat => p.categories.includes(cat))
+    activeCategories.value.every(cat => p.categories.includes(cat))
   )
 })
 
