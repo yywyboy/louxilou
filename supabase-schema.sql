@@ -74,6 +74,18 @@ CREATE INDEX IF NOT EXISTS idx_announcements_active ON announcements(is_active);
 CREATE INDEX IF NOT EXISTS idx_announcements_created_at ON announcements(created_at DESC);
 
 -- =====================================================
+-- Photos Table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS photos (
+  id SERIAL PRIMARY KEY,
+  filename TEXT NOT NULL,
+  categories TEXT[] DEFAULT '{}',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_photos_categories ON photos USING GIN (categories);
+
+-- =====================================================
 -- Row Level Security (RLS)
 -- =====================================================
 
@@ -82,6 +94,7 @@ ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
+ALTER TABLE photos ENABLE ROW LEVEL SECURITY;
 
 -- Posts: Everyone can read, only authenticated users can insert/update/delete
 CREATE POLICY "Posts are publicly readable" ON posts
@@ -128,6 +141,13 @@ CREATE POLICY "Authenticated users can update announcements" ON announcements
 
 CREATE POLICY "Authenticated users can delete announcements" ON announcements
   FOR DELETE USING (auth.role() = 'authenticated');
+
+-- Photos: Everyone can read, only authenticated can manage
+CREATE POLICY "Photos are publicly readable" ON photos
+  FOR SELECT USING (true);
+
+CREATE POLICY "Authenticated users can manage photos" ON photos
+  FOR ALL USING (auth.role() = 'authenticated');
 
 -- =====================================================
 -- Realtime

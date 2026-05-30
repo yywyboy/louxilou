@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { initRipple } from '../composables/useRipple'
+import { getPhotos, CATEGORIES, getCategoryNames } from '../lib/gallery'
+import type { Photo } from '../lib/gallery'
 
 const vRipple = {
   mounted(el: HTMLElement) {
@@ -8,55 +10,24 @@ const vRipple = {
   }
 }
 
-const categories = [
-  { id: 'all', name: '全部' },
-  { id: 'landscape', name: '风景' },
-  { id: 'city', name: '城市' },
-  { id: 'people', name: '人物' },
-  { id: 'animal', name: '动物' },
-  { id: 'food', name: '美食' },
-  { id: 'art', name: '艺术' },
-  { id: 'nature', name: '自然' },
-  { id: 'architecture', name: '建筑' }
-]
+const allCategories = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
-function getCategories(id: number): string[] {
-  const cats: string[] = []
-  if (id % 3 === 0) cats.push('landscape')
-  if (id % 5 === 0) cats.push('city')
-  if (id % 7 === 0) cats.push('people')
-  if (id % 11 === 0) cats.push('animal')
-  if (id % 13 === 0) cats.push('food')
-  if (id % 2 === 0) cats.push('art')
-  if (id % 4 === 0) cats.push('nature')
-  if (id % 6 === 0) cats.push('architecture')
-  if (cats.length === 0) cats.push('landscape')
-  return cats
-}
-
-function getCategoryNames(ids: string[]): string[] {
-  return ids.map(id => categories.find(c => c.id === id)?.name || '').filter(Boolean)
-}
-
-const photos = Array.from({ length: 125 }, (_, i) => {
-  const cats = getCategories(i + 1)
-  return {
-    id: i + 1,
-    src: `/photos/photo (${i + 1}).jpg`,
-    alt: `Photo ${i + 1}`,
-    categories: cats,
-    categoryNames: getCategoryNames(cats)
-  }
-})
-
-const selectedPhoto = ref<typeof photos[0] | null>(null)
+const photos = ref<Photo[]>([])
+const loading = ref(true)
+const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: string[] }) | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
 const filterKey = ref(0)
 
 const filteredPhotos = computed(() => {
-  if (activeCategories.value.length === 0) return photos
-  return photos.filter(p => 
+  const mapped = photos.value.map(p => ({
+    ...p,
+    src: `/photos/${p.filename}`,
+    alt: `Photo ${p.id}`,
+    categoryNames: getCategoryNames(p.categories)
+  }))
+  if (activeCategories.value.length === 0) return mapped
+  return mapped.filter(p =>
     activeCategories.value.some(cat => p.categories.includes(cat))
   )
 })
@@ -80,7 +51,7 @@ function onImageLoad(id: number) {
   loadedImages.value.add(id)
 }
 
-function openPhoto(photo: typeof photos[0]) {
+function openPhoto(photo: typeof filteredPhotos.value[0]) {
   selectedPhoto.value = photo
 }
 
@@ -109,6 +80,29 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'ArrowLeft') prevPhoto()
   if (e.key === 'ArrowRight') nextPhoto()
 }
+
+function generateFallbackPhotos(): Photo[] {
+  return Array.from({ length: 125 }, (_, i) => {
+    const id = i + 1
+    const cats: string[] = []
+    if (id % 3 === 0) cats.push('landscape')
+    if (id % 5 === 0) cats.push('city')
+    if (id % 7 === 0) cats.push('people')
+    if (id % 11 === 0) cats.push('animal')
+    if (id % 13 === 0) cats.push('food')
+    if (id % 2 === 0) cats.push('art')
+    if (id % 4 === 0) cats.push('nature')
+    if (id % 6 === 0) cats.push('architecture')
+    if (cats.length === 0) cats.push('landscape')
+    return { id, filename: `photo (${id}).jpg`, categories: cats, created_at: '' }
+  })
+}
+
+onMounted(async () => {
+  const data = await getPhotos()
+  photos.value = data.length > 0 ? data : generateFallbackPhotos()
+  loading.value = false
+})
 </script>
 
 <template>
@@ -123,7 +117,7 @@ function handleKeydown(e: KeyboardEvent) {
           全部
         </button>
         <button
-          v-for="cat in categories.filter(c => c.id !== 'all')"
+          v-for="cat in allCategories.filter(c => c.id !== 'all')"
           :key="cat.id"
           class="category-btn"
           :class="{ active: activeCategories.includes(cat.id) }"
