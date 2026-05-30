@@ -233,16 +233,21 @@ function handleKeydown(e: KeyboardEvent) {
 .category-btn {
   width: 80px;
   padding: 0.5rem;
-  background: transparent;
+  background: #fff;
   border: 3px solid #000;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
   position: relative;
   overflow: hidden;
-  z-index: 1;
+  isolation: isolate;
   text-align: center;
   color: #000;
+}
+
+.category-btn > * {
+  position: relative;
+  z-index: 2;
 }
 
 .category-btn:hover {
@@ -251,6 +256,7 @@ function handleKeydown(e: KeyboardEvent) {
 
 .category-btn.active {
   color: white;
+  background: #9F353A;
   border-color: #9F353A;
 }
 
