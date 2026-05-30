@@ -181,9 +181,7 @@ onUnmounted(() => {
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
-          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)">
-            <div class="loading-spinner"></div>
-          </div>
+          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)"></div>
           <img 
             :src="photo.src" 
             :alt="photo.alt" 
@@ -306,26 +304,28 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.25rem;
+  will-change: contents;
 }
 
 .photo-card {
   border: 3px solid #000;
   overflow: hidden;
   cursor: pointer;
-  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, opacity 0.2s ease;
   background: #fff;
   opacity: 0;
-  contain: layout style paint;
-  content-visibility: auto;
-  contain-intrinsic-size: 220px 260px;
+  transform: translateY(8px);
+  transition: opacity 0.4s ease, transform 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  will-change: opacity, transform;
 }
 
 .photo-card.loaded {
   opacity: 1;
+  transform: translateY(0);
 }
 
 .photo-card.filtering {
-  opacity: 0.4;
+  opacity: 0.3;
+  transform: scale(0.97);
   pointer-events: none;
 }
 
@@ -339,7 +339,7 @@ onUnmounted(() => {
   width: 100%;
   aspect-ratio: 1;
   overflow: hidden;
-  background: #f5f5f5;
+  background: #f0f0f0;
   position: relative;
 }
 
@@ -349,7 +349,14 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f5f5f5;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .loading-spinner {
@@ -372,12 +379,14 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.5s ease, opacity 0.3s ease;
   opacity: 0;
+  transform: scale(1.02);
+  transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 .photo-card.loaded .photo-wrapper img {
   opacity: 1;
+  transform: scale(1);
 }
 
 .photo-card:hover .photo-wrapper img {
