@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, nextTick, watch } from 'vue'
 import { initRipple } from '../composables/useRipple'
 import { getPhotos, CATEGORIES, getCategoryNames } from '../lib/gallery'
 import type { Photo } from '../lib/gallery'
@@ -14,23 +14,41 @@ const allCategories = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
 const photos = ref<Photo[]>([])
 const loading = ref(true)
+const filtering = ref(false)
 const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: string[] }) | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
-const filterKey = ref(0)
+const displayedPhotos = ref<(Photo & { src: string; alt: string; categoryNames: string[] })[]>([])
 
-const filteredPhotos = computed(() => {
-  const mapped = photos.value.map(p => ({
+const mappedPhotos = computed(() =>
+  photos.value.map(p => ({
     ...p,
     src: `/photos/${p.filename}`,
     alt: `Photo ${p.id}`,
     categoryNames: getCategoryNames(p.categories)
   }))
-  if (activeCategories.value.length === 0) return mapped
-  return mapped.filter(p =>
-    activeCategories.value.every(cat => p.categories.includes(cat))
-  )
-})
+)
+
+let filterTimer: ReturnType<typeof setTimeout> | null = null
+
+function applyFilter() {
+  const cats = activeCategories.value
+  const all = mappedPhotos.value
+  if (cats.length === 0) {
+    displayedPhotos.value = all
+  } else {
+    displayedPhotos.value = all.filter(p =>
+      cats.every(cat => p.categories.includes(cat))
+    )
+  }
+  filtering.value = false
+}
+
+watch(activeCategories, () => {
+  filtering.value = true
+  if (filterTimer) clearTimeout(filterTimer)
+  filterTimer = setTimeout(applyFilter, 150)
+}, { deep: true })
 
 function toggleCategory(categoryId: string) {
   if (categoryId === 'all') {
@@ -43,15 +61,13 @@ function toggleCategory(categoryId: string) {
       activeCategories.value.splice(index, 1)
     }
   }
-  filterKey.value++
-  loadedImages.value.clear()
 }
 
 function onImageLoad(id: number) {
   loadedImages.value.add(id)
 }
 
-function openPhoto(photo: typeof filteredPhotos.value[0]) {
+function openPhoto(photo: typeof displayedPhotos.value[0]) {
   selectedPhoto.value = photo
 }
 
@@ -61,17 +77,17 @@ function closePhoto() {
 
 function prevPhoto() {
   if (!selectedPhoto.value) return
-  const currentIndex = filteredPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
+  const currentIndex = displayedPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
   if (currentIndex > 0) {
-    selectedPhoto.value = filteredPhotos.value[currentIndex - 1]
+    selectedPhoto.value = displayedPhotos.value[currentIndex - 1]
   }
 }
 
 function nextPhoto() {
   if (!selectedPhoto.value) return
-  const currentIndex = filteredPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
-  if (currentIndex < filteredPhotos.value.length - 1) {
-    selectedPhoto.value = filteredPhotos.value[currentIndex + 1]
+  const currentIndex = displayedPhotos.value.findIndex(p => p.id === selectedPhoto.value!.id)
+  if (currentIndex < displayedPhotos.value.length - 1) {
+    selectedPhoto.value = displayedPhotos.value[currentIndex + 1]
   }
 }
 
@@ -101,6 +117,7 @@ function generateFallbackPhotos(): Photo[] {
 onMounted(async () => {
   const data = await getPhotos()
   photos.value = data.length > 0 ? data : generateFallbackPhotos()
+  displayedPhotos.value = mappedPhotos.value
   loading.value = false
 })
 </script>
@@ -129,16 +146,15 @@ onMounted(async () => {
     </div>
 
     <div class="results-info">
-      <span>共 {{ filteredPhotos.length }} 张图片</span>
+      <span>共 {{ displayedPhotos.length }} 张图片</span>
     </div>
 
-    <div class="photo-grid" :key="filterKey" v-if="filteredPhotos.length > 0">
+    <div class="photo-grid" v-if="displayedPhotos.length > 0">
       <div
-        v-for="(photo, index) in filteredPhotos"
+        v-for="(photo, index) in displayedPhotos"
         :key="photo.id"
         class="photo-card"
-        :class="{ loaded: loadedImages.has(photo.id) }"
-        :style="{ animationDelay: `${Math.min(index * 0.03, 0.5)}s` }"
+        :class="{ loaded: loadedImages.has(photo.id), filtering: filtering }"
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
@@ -178,7 +194,7 @@ onMounted(async () => {
               <div class="modal-tags">
                 <span v-for="name in selectedPhoto.categoryNames" :key="name" class="modal-tag">{{ name }}</span>
               </div>
-              <span class="photo-counter">{{ filteredPhotos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ filteredPhotos.length }}</span>
+              <span class="photo-counter">{{ displayedPhotos.findIndex(p => p.id === selectedPhoto?.id) + 1 }} / {{ displayedPhotos.length }}</span>
             </div>
             <div class="controls-buttons">
               <button class="control-btn" @click="prevPhoto" v-ripple title="上一张 (←)">
@@ -270,23 +286,18 @@ onMounted(async () => {
   border: 3px solid #000;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease, opacity 0.2s ease;
   background: #fff;
   opacity: 0;
-  transform: translateY(20px);
-  animation: fadeInUp 0.5s ease forwards;
 }
 
 .photo-card.loaded {
   opacity: 1;
-  transform: translateY(0);
 }
 
-@keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.photo-card.filtering {
+  opacity: 0.4;
+  pointer-events: none;
 }
 
 .photo-card:hover {
