@@ -83,7 +83,8 @@ onMounted(() => {
     cursorRef.value.className = 'custom-cursor'
     document.body.appendChild(cursorRef.value)
     document.addEventListener('mousemove', handleMouseMove)
-    animationFrameId = requestAnimationFrame(animate)
+    document.addEventListener('mouseover', onButtonEnter)
+    document.addEventListener('mouseout', onButtonLeave)
   }
 
   loadAnnouncement()
@@ -94,6 +95,8 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('resize', checkMobile)
   document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('mouseover', onButtonEnter)
+  document.removeEventListener('mouseout', onButtonLeave)
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId)
   }
@@ -127,100 +130,82 @@ let mouseX = 0
 let mouseY = 0
 let circleX = 0
 let circleY = 0
-let isAttached = false
-let attachedButton: HTMLElement | null = null
+let targetX = 0
+let targetY = 0
+let targetButton: HTMLElement | null = null
 let lastHoveredButton: HTMLElement | null = null
-let cachedButtons: HTMLElement[] = []
-let buttonCacheFrame = 0
+let isAnimating = false
 
 const BUTTON_SELECTOR = '.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn'
 
 function handleMouseMove(e: MouseEvent) {
   mouseX = e.clientX
   mouseY = e.clientY
+  if (!targetButton) {
+    targetX = mouseX
+    targetY = mouseY
+  }
+  if (!isAnimating) {
+    isAnimating = true
+    animationFrameId = requestAnimationFrame(animate)
+  }
+}
+
+function onButtonEnter(e: MouseEvent) {
+  const btn = (e.target as HTMLElement).closest(BUTTON_SELECTOR) as HTMLElement | null
+  if (!btn) return
+  targetButton = btn
+  const rect = btn.getBoundingClientRect()
+  targetX = rect.left + rect.width / 2
+  targetY = rect.top + rect.height / 2
+  if (!isAnimating) {
+    isAnimating = true
+    animationFrameId = requestAnimationFrame(animate)
+  }
+}
+
+function onButtonLeave(e: MouseEvent) {
+  const btn = (e.target as HTMLElement).closest(BUTTON_SELECTOR) as HTMLElement | null
+  if (!btn) return
+  if (targetButton === btn) {
+    targetButton = null
+    targetX = mouseX
+    targetY = mouseY
+  }
 }
 
 function animate() {
-  buttonCacheFrame++
-  if (buttonCacheFrame % 60 === 0) {
-    cachedButtons = Array.from(document.querySelectorAll(BUTTON_SELECTOR))
-  }
+  const dx = targetX - circleX
+  const dy = targetY - circleY
+  const dist = Math.sqrt(dx * dx + dy * dy)
 
-  let nearestButton: HTMLElement | null = null
-  let minDistance = Infinity
+  circleX += dx * 0.08
+  circleY += dy * 0.08
 
-  for (const btn of cachedButtons) {
-    const rect = btn.getBoundingClientRect()
-    const centerX = rect.left + rect.width / 2
-    const centerY = rect.top + rect.height / 2
-    const dx = mouseX - centerX
-    const dy = mouseY - centerY
-    const distance = Math.sqrt(dx * dx + dy * dy)
-
-    if (distance < minDistance && distance < 100) {
-      minDistance = distance
-      nearestButton = btn
+  if (targetButton && dist < 5) {
+    if (lastHoveredButton !== targetButton) {
+      if (lastHoveredButton) lastHoveredButton.style.borderColor = '#000'
+      targetButton.style.borderColor = '#9F353A'
+      lastHoveredButton = targetButton
     }
-  }
-
-  if (nearestButton && minDistance < 100) {
-    const rect = nearestButton.getBoundingClientRect()
-    const attachX = rect.left + rect.width / 2
-    const attachY = rect.top + rect.height / 2
-
-    if (!isAttached) {
-      isAttached = true
-      attachedButton = nearestButton
-    }
-
-    const distToButton = Math.sqrt(
-      Math.pow(circleX - attachX, 2) + Math.pow(circleY - attachY, 2)
-    )
-
-    if (distToButton < 5 && lastHoveredButton !== nearestButton) {
-      if (lastHoveredButton) {
-        lastHoveredButton.style.borderColor = '#000'
-      }
-      nearestButton.style.borderColor = '#9F353A'
-      lastHoveredButton = nearestButton
-    }
-
-    circleX += (attachX - circleX) * 0.05
-    circleY += (attachY - circleY) * 0.05
-
-    if (cursorRef.value) {
-      cursorRef.value.style.left = `${circleX - 7.5}px`
-      cursorRef.value.style.top = `${circleY - 7.5}px`
-      cursorRef.value.style.opacity = distToButton < 5 ? '0' : '1'
-    }
+    if (cursorRef.value) cursorRef.value.style.opacity = '0'
   } else {
-    if (isAttached && attachedButton) {
-      const rect = attachedButton.getBoundingClientRect()
-      const startX = rect.left + rect.width / 2
-      const startY = rect.top + rect.height / 2
-      circleX = startX
-      circleY = startY
-    }
-
-    if (lastHoveredButton) {
+    if (lastHoveredButton && !targetButton) {
       lastHoveredButton.style.borderColor = '#000'
       lastHoveredButton = null
     }
-
-    isAttached = false
-    attachedButton = null
-
-    circleX += (mouseX - circleX) * 0.05
-    circleY += (mouseY - circleY) * 0.05
-
-    if (cursorRef.value) {
-      cursorRef.value.style.left = `${circleX - 7.5}px`
-      cursorRef.value.style.top = `${circleY - 7.5}px`
-      cursorRef.value.style.opacity = '1'
-    }
+    if (cursorRef.value) cursorRef.value.style.opacity = '1'
   }
 
-  animationFrameId = requestAnimationFrame(animate)
+  if (cursorRef.value) {
+    cursorRef.value.style.transform = `translate(${circleX - 7.5}px, ${circleY - 7.5}px)`
+  }
+
+  if (dist > 0.5 || (targetButton && dist > 0.5)) {
+    animationFrameId = requestAnimationFrame(animate)
+  } else {
+    isAnimating = false
+  }
 }
 
 const handleBeforeLeave = () => {
@@ -325,12 +310,15 @@ body {
 
 .custom-cursor {
   position: fixed;
+  left: 0;
+  top: 0;
   width: 15px;
   height: 15px;
   background: #9F353A;
   border-radius: 50%;
   pointer-events: none;
   z-index: 9999;
+  will-change: transform, opacity;
   transition: opacity 0.3s ease;
 }
 
