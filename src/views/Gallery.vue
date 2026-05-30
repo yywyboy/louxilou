@@ -472,6 +472,12 @@ function handleKeydown(e: KeyboardEvent) {
   transition: all 0.2s ease;
   position: relative;
   overflow: hidden;
+  z-index: 1;
+}
+
+.control-btn > * {
+  position: relative;
+  z-index: 2;
 }
 
 .control-btn:hover {

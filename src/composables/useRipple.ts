@@ -42,7 +42,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
       left: 0;
       pointer-events: none;
       overflow: hidden;
-      z-index: 0;
+      z-index: -1;
     `
     target.appendChild(r)
     rippleEl = r

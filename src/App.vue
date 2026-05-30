@@ -304,7 +304,7 @@ const handleAfterEnter = () => {
             <p class="announcement-body">
               {{ announcement?.content || '欢迎访问我的博客！' }}
             </p>
-            <button class="announcement-btn" v-ripple @click="closeAnnouncementModal">知道了</button>
+            <button class="announcement-btn" @click="closeAnnouncementModal">知道了</button>
           </div>
         </div>
       </Transition>
