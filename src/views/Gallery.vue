@@ -170,9 +170,8 @@ onMounted(async () => {
         class="photo-card"
         :class="{ loaded: loadedImages.has(photo.id), filtering: filtering }"
         @click="openPhoto(photo)"
-        v-ripple
       >
-        <div class="photo-wrapper">
+        <div class="photo-wrapper" v-ripple>
           <div class="photo-placeholder">
             <div class="loading-ring"></div>
           </div>
