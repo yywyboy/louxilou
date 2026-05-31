@@ -343,6 +343,11 @@ onMounted(async () => {
 
 .photo-card:hover {
   border-color: #9F353A;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.photo-card:hover .photo-wrapper img {
+  transform: scale(1.05);
 }
 
 .photo-card.selected {
@@ -421,7 +426,7 @@ onMounted(async () => {
   object-fit: cover;
   display: block;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .photo-card.loaded .photo-wrapper img {
