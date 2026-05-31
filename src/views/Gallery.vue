@@ -350,6 +350,10 @@ onMounted(async () => {
   transform: scale(1.05);
 }
 
+.photo-card:hover .photo-info {
+  border-top-color: #9F353A;
+}
+
 .photo-card.selected {
   border-color: #9F353A;
   border-width: 4px;
