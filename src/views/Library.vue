@@ -6,7 +6,14 @@
         type="text"
         placeholder="搜索书籍或作者..."
         class="search-input"
+        @keyup.enter="searchKeyword"
       />
+      <button class="search-btn">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
+          <circle cx="11" cy="11" r="8"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+      </button>
       <button v-if="searchKeyword" class="clear-btn" @click="searchKeyword = ''">✕</button>
     </div>
 
@@ -70,12 +77,15 @@ const navigateToBook = (bookId: string) => {
 .search-box {
   position: relative;
   margin-bottom: 2rem;
+  display: flex;
+  gap: 0;
 }
 
 .search-input {
-  width: 100%;
+  flex: 1;
   padding: 0.875rem 2.5rem 0.875rem 1rem;
   border: 3px solid #000;
+  border-right: none;
   border-radius: 0;
   font-size: 1rem;
   background: #fff;
@@ -88,9 +98,29 @@ const navigateToBook = (bookId: string) => {
   border-color: #9F353A;
 }
 
+.search-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.search-btn:hover {
+  background: #9F353A;
+  color: white;
+  border-color: #9F353A;
+}
+
 .clear-btn {
   position: absolute;
-  right: 1rem;
+  right: 60px;
   top: 50%;
   transform: translateY(-50%);
   background: none;

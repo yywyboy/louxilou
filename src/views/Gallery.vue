@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { initRipple } from '../composables/useRipple'
 import { getPhotos, CATEGORIES, getCategoryNames } from '../lib/gallery'
 import type { Photo } from '../lib/gallery'
@@ -18,47 +18,26 @@ const filtering = ref(false)
 const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: string[] }) | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
-const displayedPhotos = ref<(Photo & { src: string; alt: string; categoryNames: string[] })[]>([])
-const visibleCount = ref(16)
-const sentinelRef = ref<HTMLElement | null>(null)
-let observer: IntersectionObserver | null = null
 
-const mappedPhotos = computed(() =>
-  photos.value.map(p => ({
+const displayedPhotos = computed(() => {
+  const mapped = photos.value.map(p => ({
     ...p,
     src: `/photos/${p.filename}`,
     alt: `Photo ${p.id}`,
     categoryNames: getCategoryNames(p.categories)
   }))
-)
+  if (activeCategories.value.length === 0) return mapped
+  return mapped.filter(p =>
+    activeCategories.value.every(cat => p.categories.includes(cat))
+  )
+})
 
 let filterTimer: ReturnType<typeof setTimeout> | null = null
-
-const visiblePhotos = computed(() => displayedPhotos.value.slice(0, visibleCount.value))
-const hasMore = computed(() => visibleCount.value < displayedPhotos.value.length)
-
-function loadMore() {
-  visibleCount.value = Math.min(visibleCount.value + 16, displayedPhotos.value.length)
-}
-
-function applyFilter() {
-  const cats = activeCategories.value
-  const all = mappedPhotos.value
-  if (cats.length === 0) {
-    displayedPhotos.value = all
-  } else {
-    displayedPhotos.value = all.filter(p =>
-      cats.every(cat => p.categories.includes(cat))
-    )
-  }
-  visibleCount.value = 16
-  filtering.value = false
-}
 
 watch(activeCategories, () => {
   filtering.value = true
   if (filterTimer) clearTimeout(filterTimer)
-  filterTimer = setTimeout(applyFilter, 150)
+  filterTimer = setTimeout(() => { filtering.value = false }, 200)
 }, { deep: true })
 
 function toggleCategory(categoryId: string) {
@@ -128,20 +107,7 @@ function generateFallbackPhotos(): Photo[] {
 onMounted(async () => {
   const data = await getPhotos()
   photos.value = data.length > 0 ? data : generateFallbackPhotos()
-  displayedPhotos.value = mappedPhotos.value
   loading.value = false
-
-  await nextTick()
-  observer = new IntersectionObserver((entries) => {
-    if (entries[0]?.isIntersecting && hasMore.value) {
-      loadMore()
-    }
-  }, { rootMargin: '400px' })
-  if (sentinelRef.value) observer.observe(sentinelRef.value)
-})
-
-onUnmounted(() => {
-  observer?.disconnect()
 })
 </script>
 
@@ -174,7 +140,7 @@ onUnmounted(() => {
 
     <div class="photo-grid" v-if="displayedPhotos.length > 0">
       <div
-        v-for="photo in visiblePhotos"
+        v-for="photo in displayedPhotos"
         :key="photo.id"
         class="photo-card"
         :class="{ loaded: loadedImages.has(photo.id), filtering: filtering }"
@@ -195,9 +161,6 @@ onUnmounted(() => {
             <span v-for="name in photo.categoryNames.slice(0, 2)" :key="name" class="photo-tag">{{ name }}</span>
           </div>
         </div>
-      </div>
-      <div ref="sentinelRef" class="load-sentinel" v-if="hasMore">
-        <div class="loading-spinner"></div>
       </div>
     </div>
 
@@ -399,12 +362,6 @@ onUnmounted(() => {
   background: #9F353A;
   color: white;
   white-space: nowrap;
-}
-
-.load-sentinel {
-  display: flex;
-  justify-content: center;
-  padding: 2rem 0;
 }
 
 .empty-state {
