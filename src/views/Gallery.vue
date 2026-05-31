@@ -145,7 +145,7 @@ onMounted(async () => {
           :class="{ active: activeCategories.length === 0 }"
           @click="toggleCategory('all')"
           v-ripple>
-          全部
+          <span>全部</span>
         </button>
         <button
           v-for="cat in allCategories.filter(c => c.id !== 'all')"
@@ -154,7 +154,7 @@ onMounted(async () => {
           :class="{ active: activeCategories.includes(cat.id) }"
           @click="toggleCategory(cat.id)"
           v-ripple>
-          {{ cat.name }}
+          <span>{{ cat.name }}</span>
         </button>
       </div>
     </div>
