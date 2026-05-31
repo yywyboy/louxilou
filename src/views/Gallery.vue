@@ -16,7 +16,6 @@ const photos = ref<Photo[]>([])
 const loading = ref(true)
 const filtering = ref(false)
 const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: string[] }) | null>(null)
-const selectedId = ref<number | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
 const currentPage = ref(1)
@@ -85,7 +84,6 @@ function onImageLoad(id: number) {
 
 function openPhoto(photo: typeof displayedPhotos.value[0]) {
   selectedPhoto.value = photo
-  selectedId.value = photo.id
 }
 
 function closePhoto() {
@@ -170,8 +168,9 @@ onMounted(async () => {
         v-for="photo in paginatedPhotos"
         :key="photo.id"
         class="photo-card"
-        :class="{ loaded: loadedImages.has(photo.id), filtering: filtering, selected: selectedId === photo.id }"
+        :class="{ loaded: loadedImages.has(photo.id), filtering: filtering }"
         @click="openPhoto(photo)"
+        v-ripple
       >
         <div class="photo-wrapper">
           <div class="photo-placeholder">
@@ -183,11 +182,6 @@ onMounted(async () => {
             loading="lazy"
             @load="onImageLoad(photo.id)"
           />
-          <div class="select-indicator" v-if="selectedId === photo.id">
-            <svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          </div>
         </div>
         <div class="photo-info">
           <span class="photo-number">#{{ photo.id }}</span>
@@ -328,6 +322,7 @@ onMounted(async () => {
   overflow: hidden;
   cursor: pointer;
   background: #fff;
+  position: relative;
   opacity: 0;
   transition: opacity 0.3s ease, border-color 0.3s ease;
 }
@@ -348,32 +343,6 @@ onMounted(async () => {
 
 .photo-card:hover .photo-wrapper img {
   transform: scale(1.05);
-}
-
-.photo-card:hover .photo-info {
-  border-top-color: #9F353A;
-}
-
-.photo-card.selected {
-  border-color: #9F353A;
-  border-width: 4px;
-  box-shadow: 0 0 0 3px rgba(159, 53, 58, 0.4), 0 4px 16px rgba(159, 53, 58, 0.25);
-}
-
-.select-indicator {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  background: #9F353A;
-  border: 2px solid #fff;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .photo-wrapper {
@@ -444,6 +413,13 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
+  background: #fff;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.photo-card:hover .photo-info {
+  background: #9F353A;
+  border-top-color: #9F353A;
 }
 
 .photo-number {
@@ -451,6 +427,11 @@ onMounted(async () => {
   font-weight: 500;
   color: #666;
   flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+.photo-card:hover .photo-number {
+  color: #fff;
 }
 
 .photo-tags {
@@ -466,6 +447,11 @@ onMounted(async () => {
   background: #9F353A;
   color: white;
   white-space: nowrap;
+  transition: background 0.3s ease;
+}
+
+.photo-card:hover .photo-tag {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .pagination {
