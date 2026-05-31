@@ -20,7 +20,7 @@ const selectedId = ref<number | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
 const currentPage = ref(1)
-const pageSize = 20
+const pageSize = 15
 
 const displayedPhotos = computed(() => {
   const mapped = photos.value.map(p => ({
@@ -174,7 +174,9 @@ onMounted(async () => {
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
-          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)"></div>
+          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)">
+            <div class="loading-ring"></div>
+          </div>
           <img 
             :src="photo.src" 
             :alt="photo.alt" 
@@ -374,12 +376,15 @@ onMounted(async () => {
   position: absolute;
   inset: 0;
   background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.loading-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid #e0e0e0;
+.loading-ring {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #ddd;
   border-top-color: #9F353A;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
