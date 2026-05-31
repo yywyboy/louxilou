@@ -64,8 +64,10 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
     circleEl = circle
 
     requestAnimationFrame(() => {
-      circle.style.transform = 'scale(1)'
-      circle.style.opacity = '1'
+      requestAnimationFrame(() => {
+        circle.style.transform = 'scale(1)'
+        circle.style.opacity = '0.15'
+      })
     })
   }
 
@@ -103,8 +105,10 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
     circleEl = circle
 
     requestAnimationFrame(() => {
-      circle.style.transform = 'scale(1)'
-      circle.style.opacity = '1'
+      requestAnimationFrame(() => {
+        circle.style.transform = 'scale(1)'
+        circle.style.opacity = '0.15'
+      })
     })
 
     setTimeout(() => {
