@@ -66,7 +66,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         circle.style.transform = 'scale(1)'
-        circle.style.opacity = '0.15'
+        circle.style.opacity = '1'
       })
     })
   }
@@ -107,7 +107,7 @@ export function initRipple(target: HTMLElement, options: RippleOptions = {}) {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         circle.style.transform = 'scale(1)'
-        circle.style.opacity = '0.15'
+        circle.style.opacity = '1'
       })
     })
 
