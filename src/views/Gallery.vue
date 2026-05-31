@@ -174,7 +174,7 @@ onMounted(async () => {
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
-          <div class="photo-placeholder" v-if="!loadedImages.has(photo.id)">
+          <div class="photo-placeholder">
             <div class="loading-ring"></div>
           </div>
           <img 
@@ -379,6 +379,13 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: opacity 0.4s ease;
+  z-index: 1;
+}
+
+.photo-card.loaded .photo-placeholder {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .loading-ring {
