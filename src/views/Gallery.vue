@@ -347,21 +347,24 @@ onMounted(async () => {
 
 .photo-card.selected {
   border-color: #9F353A;
-  box-shadow: 0 0 0 2px #9F353A;
+  border-width: 4px;
+  box-shadow: 0 0 0 3px rgba(159, 53, 58, 0.4), 0 4px 16px rgba(159, 53, 58, 0.25);
 }
 
 .select-indicator {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 32px;
-  height: 32px;
+  top: 10px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
   background: #9F353A;
+  border: 2px solid #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .photo-wrapper {
@@ -370,6 +373,15 @@ onMounted(async () => {
   overflow: hidden;
   background: #eee;
   position: relative;
+}
+
+.photo-card.selected .photo-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(159, 53, 58, 0.12);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .photo-placeholder {
