@@ -380,6 +380,7 @@ onMounted(async () => {
   height: 72px;
   border: 2px solid #fff;
   gap: 2px;
+  pointer-events: none;
 }
 
 .hover-text-box span {
