@@ -341,10 +341,6 @@ onMounted(async () => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
-.photo-card:hover .photo-wrapper img {
-  transform: scale(1.05);
-}
-
 .photo-wrapper {
   width: 100%;
   aspect-ratio: 1;
@@ -399,11 +395,16 @@ onMounted(async () => {
   object-fit: cover;
   display: block;
   opacity: 0;
+  transform: scale(1.01);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .photo-card.loaded .photo-wrapper img {
   opacity: 1;
+}
+
+.photo-card:hover .photo-wrapper img {
+  transform: scale(1.08);
 }
 
 .photo-info {
