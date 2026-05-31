@@ -139,7 +139,7 @@ let targetButton: HTMLElement | null = null
 let lastHoveredButton: HTMLElement | null = null
 let isAnimating = false
 
-const BUTTON_SELECTOR = '.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn'
+const BUTTON_SELECTOR = '.btn-ripple, .nav-link, .quick-link, .friend-link, .post-card, .rss-link, .rss-feed-item, .tab-btn, .category-btn, .control-btn, .photo-card'
 
 function handleMouseMove(e: MouseEvent) {
   mouseX = e.clientX
