@@ -16,8 +16,11 @@ const photos = ref<Photo[]>([])
 const loading = ref(true)
 const filtering = ref(false)
 const selectedPhoto = ref<(Photo & { src: string; alt: string; categoryNames: string[] }) | null>(null)
+const selectedId = ref<number | null>(null)
 const activeCategories = ref<string[]>([])
 const loadedImages = ref<Set<number>>(new Set())
+const currentPage = ref(1)
+const pageSize = 20
 
 const displayedPhotos = computed(() => {
   const mapped = photos.value.map(p => ({
@@ -32,10 +35,33 @@ const displayedPhotos = computed(() => {
   )
 })
 
+const totalPages = computed(() => Math.max(1, Math.ceil(displayedPhotos.value.length / pageSize)))
+
+const paginatedPhotos = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return displayedPhotos.value.slice(start, start + pageSize)
+})
+
+const visiblePages = computed(() => {
+  const total = totalPages.value
+  const current = currentPage.value
+  const pages: number[] = []
+  const start = Math.max(1, current - 2)
+  const end = Math.min(total, current + 2)
+  for (let i = start; i <= end; i++) pages.push(i)
+  return pages
+})
+
+function goToPage(page: number) {
+  if (page < 1 || page > totalPages.value) return
+  currentPage.value = page
+}
+
 let filterTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(activeCategories, () => {
   filtering.value = true
+  currentPage.value = 1
   if (filterTimer) clearTimeout(filterTimer)
   filterTimer = setTimeout(() => { filtering.value = false }, 200)
 }, { deep: true })
@@ -59,6 +85,7 @@ function onImageLoad(id: number) {
 
 function openPhoto(photo: typeof displayedPhotos.value[0]) {
   selectedPhoto.value = photo
+  selectedId.value = photo.id
 }
 
 function closePhoto() {
@@ -140,10 +167,10 @@ onMounted(async () => {
 
     <div class="photo-grid" v-if="displayedPhotos.length > 0">
       <div
-        v-for="photo in displayedPhotos"
+        v-for="photo in paginatedPhotos"
         :key="photo.id"
         class="photo-card"
-        :class="{ loaded: loadedImages.has(photo.id), filtering: filtering }"
+        :class="{ loaded: loadedImages.has(photo.id), filtering: filtering, selected: selectedId === photo.id }"
         @click="openPhoto(photo)"
       >
         <div class="photo-wrapper">
@@ -154,6 +181,11 @@ onMounted(async () => {
             loading="lazy"
             @load="onImageLoad(photo.id)"
           />
+          <div class="select-indicator" v-if="selectedId === photo.id">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="white" stroke="white" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
         </div>
         <div class="photo-info">
           <span class="photo-number">#{{ photo.id }}</span>
@@ -162,6 +194,26 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+    </div>
+
+    <div class="pagination" v-if="totalPages > 1">
+      <button class="page-btn" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+      <button
+        v-for="page in visiblePages"
+        :key="page"
+        class="page-btn"
+        :class="{ active: page === currentPage }"
+        @click="goToPage(page)"
+      >{{ page }}</button>
+      <button class="page-btn" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </button>
     </div>
 
     <div v-else class="empty-state">
@@ -291,6 +343,25 @@ onMounted(async () => {
   border-color: #9F353A;
 }
 
+.photo-card.selected {
+  border-color: #9F353A;
+  box-shadow: 0 0 0 2px #9F353A;
+}
+
+.select-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  background: #9F353A;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
 .photo-wrapper {
   width: 100%;
   aspect-ratio: 1;
@@ -362,6 +433,47 @@ onMounted(async () => {
   background: #9F353A;
   color: white;
   white-space: nowrap;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem 0;
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+  border: 3px solid #000;
+  color: #000;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #9F353A;
+  color: white;
+  border-color: #9F353A;
+}
+
+.page-btn.active {
+  background: #9F353A;
+  color: white;
+  border-color: #9F353A;
+}
+
+.page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 .empty-state {
