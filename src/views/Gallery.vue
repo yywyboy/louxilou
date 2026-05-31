@@ -182,6 +182,12 @@ onMounted(async () => {
             loading="lazy"
             @load="onImageLoad(photo.id)"
           />
+          <div class="photo-hover-overlay">
+            <div class="hover-text-box">
+              <span>点击</span>
+              <span>查看</span>
+            </div>
+          </div>
         </div>
         <div class="photo-info">
           <span class="photo-number">#{{ photo.id }}</span>
@@ -341,6 +347,10 @@ onMounted(async () => {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
+.photo-card:hover .photo-hover-overlay {
+  opacity: 1;
+}
+
 .photo-wrapper {
   width: 100%;
   aspect-ratio: 1;
@@ -349,13 +359,36 @@ onMounted(async () => {
   position: relative;
 }
 
-.photo-card.selected .photo-wrapper::after {
-  content: '';
+.photo-hover-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(159, 53, 58, 0.12);
-  z-index: 1;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 2;
   pointer-events: none;
+}
+
+.hover-text-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 2px solid #fff;
+  gap: 2px;
+}
+
+.hover-text-box span {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1.3;
 }
 
 .photo-placeholder {
