@@ -299,16 +299,15 @@ const toggleTranslate = () => {
 }
 
 async function translateText(text: string): Promise<string> {
-  const truncated = text.slice(0, 400)
+  const truncated = text.slice(0, 300)
   try {
-    const res = await fetch('https://libretranslate.de/translate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ q: truncated, source: 'en', target: 'zh' })
-    })
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(truncated)}`
+    const res = await fetch(url)
     if (res.ok) {
       const data = await res.json()
-      if (data.translatedText) return data.translatedText
+      if (data[0]) {
+        return data[0].map((s: string[]) => s[0]).join('')
+      }
     }
   } catch {}
   try {
@@ -319,13 +318,6 @@ async function translateText(text: string): Promise<string> {
       if (data.responseData?.translatedText && !data.responseData.translatedText.includes('MYMEMORY')) {
         return data.responseData.translatedText
       }
-    }
-  } catch {}
-  try {
-    const res = await fetch(`https://api.translators.cyou/?text=${encodeURIComponent(truncated)}&from=en&to=zh`)
-    if (res.ok) {
-      const data = await res.json()
-      if (data.trans) return data.trans
     }
   } catch {}
   return '翻译失败'
