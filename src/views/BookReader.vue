@@ -210,7 +210,7 @@ const loadChapter = async () => {
   const bookId = route.params.bookId as string
   const chapterId = route.params.chapterId as string
   
-  book.value = await getBookByIdFromDB(bookId)
+  book.value = await getBookByIdFromDB(bookId) ?? null
   
   if (!book.value) {
     error.value = '书籍不存在'

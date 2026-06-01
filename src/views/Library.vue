@@ -6,7 +6,7 @@
         type="text"
         placeholder="搜索书籍或作者..."
         class="search-input"
-        @keyup.enter="searchKeyword"
+        @keyup.enter="searchKeyword = searchKeyword"
       />
       <button class="search-btn">
         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
