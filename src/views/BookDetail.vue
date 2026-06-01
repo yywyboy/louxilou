@@ -16,6 +16,11 @@
         <div class="stats">
           <span class="stat-item">📚 {{ book.chapters.length }} 卷</span>
         </div>
+        <div v-if="lastRead" class="continue-reading">
+          <button class="continue-btn" @click="continueReading">
+            📖 继续阅读：{{ lastRead.title }}
+          </button>
+        </div>
       </div>
     </div>
 
@@ -57,16 +62,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getBookById, type Book, type BookChapter } from '../data/books'
+import { getBookByIdFromDB, type Book, type BookChapter } from '../lib/books'
 
 const router = useRouter()
 const route = useRoute()
 const book = ref<Book | null>(null)
+const lastRead = ref<{ chapterId: string; title: string } | null>(null)
 
-onMounted(() => {
+onMounted(async () => {
   const bookId = route.params.id as string
-  book.value = getBookById(bookId) || null
+  book.value = await getBookByIdFromDB(bookId) || null
+  const progress = JSON.parse(localStorage.getItem('reader-progress') || '{}')
+  if (progress[bookId]) lastRead.value = progress[bookId]
 })
+
+const continueReading = () => {
+  const bookId = route.params.id as string
+  if (lastRead.value) router.push(`/library/${bookId}/read/${lastRead.value.chapterId}`)
+}
 
 const goBack = () => {
   router.push('/library')
@@ -171,6 +184,26 @@ const readChapter = (chapter: BookChapter) => {
   color: #666;
   padding: 0.5rem 1rem;
   border: 3px solid #000;
+}
+
+.continue-reading {
+  margin-top: 1rem;
+}
+
+.continue-btn {
+  background: #9F353A;
+  color: #fff;
+  border: 3px solid #9F353A;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.continue-btn:hover {
+  background: #7a2830;
+  border-color: #7a2830;
 }
 
 .chapters-section {

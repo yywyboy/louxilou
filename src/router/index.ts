@@ -1,10 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import Library from '../views/Library.vue'
-import BookDetail from '../views/BookDetail.vue'
-import BookReader from '../views/BookReader.vue'
-import PostDetail from '../views/PostDetail.vue'
-import Gallery from '../views/Gallery.vue'
 
 export const isLibraryTransition = (from: string, to: string): boolean => {
   const isFromLibrary = from === '/library' || from.startsWith('/library/')
@@ -16,32 +10,38 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: () => import('../views/Home.vue'),
+    meta: { title: '楼西楼' }
   },
   {
     path: '/library',
     name: 'Library',
-    component: Library
+    component: () => import('../views/Library.vue'),
+    meta: { title: '藏书阁 - 楼西楼' }
   },
   {
     path: '/library/:id',
     name: 'BookDetail',
-    component: BookDetail
+    component: () => import('../views/BookDetail.vue'),
+    meta: { title: '书籍详情 - 楼西楼' }
   },
   {
     path: '/library/:bookId/read/:chapterId',
     name: 'BookReader',
-    component: BookReader
+    component: () => import('../views/BookReader.vue'),
+    meta: { title: '在线阅读 - 楼西楼' }
   },
   {
     path: '/blog/:id',
     name: 'PostDetail',
-    component: PostDetail
+    component: () => import('../views/PostDetail.vue'),
+    meta: { title: '文章 - 楼西楼' }
   },
   {
     path: '/gallery',
     name: 'Gallery',
-    component: Gallery
+    component: () => import('../views/Gallery.vue'),
+    meta: { title: '图片库 - 楼西楼' }
   }
 ]
 
@@ -56,6 +56,9 @@ const router = createRouter({
 export let skipNextTransition = false
 
 router.beforeEach((to, from) => {
+  const title = to.meta.title as string
+  if (title) document.title = title
+
   if (isLibraryTransition(from.path, to.path)) {
     skipNextTransition = true
   } else {

@@ -10,6 +10,9 @@
         <p>{{ chapterTitle }}</p>
       </div>
       <div class="reader-controls">
+        <button class="control-btn" :class="{ active: translateMode }" @click="toggleTranslate" title="翻译">
+          译
+        </button>
         <button class="control-btn" @click="toggleFontSize(-1)">
           A-
         </button>
@@ -28,9 +31,16 @@
         <p>{{ error }}</p>
       </div>
       <div v-else class="content-text">
-        <p v-for="(paragraph, index) in paragraphs" :key="index" class="text-paragraph">
-          {{ paragraph }}
-        </p>
+        <div v-for="(paragraph, index) in visibleParagraphs" :key="index" class="text-paragraph-wrapper">
+          <p class="text-paragraph">{{ paragraph }}</p>
+          <p v-if="translateMode && translations[index]" class="text-translation">
+            {{ translations[index] }}
+          </p>
+          <p v-if="translateMode && translatingSet.has(index)" class="text-translating">翻译中...</p>
+        </div>
+        <div v-if="visibleCount < paragraphs.length" ref="loadMoreRef" class="load-more">
+          <span>加载中...</span>
+        </div>
       </div>
     </div>
 
@@ -77,20 +87,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { getBookById, type BookChapter } from '../data/books'
+import { getBookByIdFromDB, type Book, type BookChapter } from '../lib/books'
 
 const router = useRouter()
 const route = useRoute()
 
-const book = ref<ReturnType<typeof getBookById> | null>(null)
+const book = ref<Book | null>(null)
 const bookChapters = ref<BookChapter[]>([])
 const currentChapterIndex = ref(0)
 const content = ref('')
 const error = ref('')
 const fontSize = ref(18)
 const showQuickNav = ref(false)
+const translateMode = ref(false)
+const translations = ref<Record<number, string>>({})
+const translatingSet = ref(new Set<number>())
+
+const STORAGE_KEY = 'reader-progress'
+const FONT_KEY = 'reader-fontsize'
+
+const saveProgress = () => {
+  const bookId = route.params.bookId as string
+  const chapterId = bookChapters.value[currentChapterIndex.value]?.id
+  if (!bookId || !chapterId) return
+  const progress = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}')
+  progress[bookId] = { chapterId, title: chapterTitle.value, timestamp: Date.now() }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(progress))
+  localStorage.setItem(FONT_KEY, String(fontSize.value))
+}
+
+const loadFontSize = () => {
+  const saved = localStorage.getItem(FONT_KEY)
+  if (saved) fontSize.value = parseInt(saved) || 18
+}
 
 const bookTitle = computed(() => book.value?.title || '')
 const chapterTitle = computed(() => {
@@ -110,7 +141,35 @@ const paragraphs = computed(() => {
     .map(p => p.trim())
 })
 
+const BATCH_SIZE = 100
+const visibleCount = ref(BATCH_SIZE)
+const loadMoreRef = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
+
+const visibleParagraphs = computed(() => paragraphs.value.slice(0, visibleCount.value))
+
+watch(paragraphs, () => {
+  visibleCount.value = BATCH_SIZE
+  nextTick(setupObserver)
+})
+
+function setupObserver() {
+  if (observer) observer.disconnect()
+  if (!loadMoreRef.value) return
+  observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && visibleCount.value < paragraphs.value.length) {
+      visibleCount.value = Math.min(visibleCount.value + BATCH_SIZE, paragraphs.value.length)
+    }
+  }, { rootMargin: '200px' })
+  observer.observe(loadMoreRef.value)
+}
+
+onUnmounted(() => {
+  if (observer) observer.disconnect()
+})
+
 onMounted(() => {
+  loadFontSize()
   loadChapter()
 })
 
@@ -151,7 +210,7 @@ const loadChapter = async () => {
   const bookId = route.params.bookId as string
   const chapterId = route.params.chapterId as string
   
-  book.value = getBookById(bookId)
+  book.value = await getBookByIdFromDB(bookId)
   
   if (!book.value) {
     error.value = '书籍不存在'
@@ -180,6 +239,8 @@ const loadChapter = async () => {
     if (containsGarbledChars(content.value)) {
       console.warn('检测到可能的乱码，尝试其他编码')
     }
+    
+    saveProgress()
     
   } catch (err) {
     error.value = '无法加载章节内容'
@@ -228,6 +289,65 @@ const goToChapter = (index: number) => {
 
 const toggleQuickNav = () => {
   showQuickNav.value = !showQuickNav.value
+}
+
+const toggleTranslate = () => {
+  translateMode.value = !translateMode.value
+  if (translateMode.value) {
+    translateVisibleParagraphs()
+  }
+}
+
+async function translateText(text: string, retries = 2): Promise<string> {
+  const url = 'https://api.mymemory.translated.net/get'
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const params = new URLSearchParams({
+        q: text.slice(0, 500),
+        langpair: 'en|zh-CN'
+      })
+      const res = await fetch(`${url}?${params}`)
+      if (!res.ok) continue
+      const data = await res.json()
+      if (data.responseData?.translatedText) {
+        return data.responseData.translatedText
+      }
+    } catch {
+      if (i === retries) return '翻译失败'
+    }
+  }
+  return '翻译失败'
+}
+
+function isEnglish(text: string): boolean {
+  const englishChars = text.match(/[a-zA-Z]/g)
+  if (!englishChars) return false
+  return englishChars.length / text.length > 0.3
+}
+
+async function translateVisibleParagraphs() {
+  const paras = paragraphs.value
+  const batchSize = 3
+  for (let i = 0; i < paras.length && translateMode.value; i += batchSize) {
+    const batch = []
+    for (let j = i; j < Math.min(i + batchSize, paras.length); j++) {
+      if (!translations.value[j] && !translatingSet.value.has(j) && isEnglish(paras[j])) {
+        batch.push(j)
+      }
+    }
+    if (batch.length === 0) continue
+    for (const idx of batch) {
+      translatingSet.value.add(idx)
+    }
+    translatingSet.value = new Set(translatingSet.value)
+    const results = await Promise.all(batch.map(idx => translateText(paras[idx])))
+    for (let k = 0; k < batch.length; k++) {
+      translations.value[batch[k]] = results[k]
+      translatingSet.value.delete(batch[k])
+    }
+    translations.value = { ...translations.value }
+    translatingSet.value = new Set(translatingSet.value)
+  }
 }
 </script>
 
@@ -323,6 +443,12 @@ const toggleQuickNav = () => {
   color: #9F353A;
 }
 
+.control-btn.active {
+  background: #9F353A;
+  border-color: #9F353A;
+  color: #fff;
+}
+
 .quick-nav {
   width: 36px;
   height: 36px;
@@ -378,6 +504,42 @@ const toggleQuickNav = () => {
 .text-paragraph {
   margin: 0 0 1.5rem 0;
   text-indent: 2em;
+}
+
+.text-paragraph-wrapper {
+  margin-bottom: 1.5rem;
+}
+
+.text-paragraph-wrapper .text-paragraph {
+  margin-bottom: 0.5rem;
+}
+
+.text-translation {
+  margin: 0;
+  text-indent: 2em;
+  color: #9F353A;
+  font-size: 0.9em;
+  opacity: 0.85;
+  border-left: 3px solid #9F353A;
+  padding-left: 0.75rem;
+  margin-left: 2em;
+  line-height: 1.8;
+}
+
+.text-translating {
+  margin: 0;
+  text-indent: 2em;
+  color: #999;
+  font-size: 0.85em;
+  font-style: italic;
+  margin-left: 2em;
+}
+
+.load-more {
+  text-align: center;
+  padding: 1rem;
+  color: #999;
+  font-size: 0.9rem;
 }
 
 .reader-footer {

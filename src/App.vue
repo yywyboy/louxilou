@@ -4,11 +4,8 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import LoadingSpinner from './components/LoadingSpinner.vue'
 import { skipNextTransition } from './router'
 import { initRipple } from './composables/useRipple'
-import { useLenis } from './composables/useLenis'
 import { getActiveAnnouncement } from './lib/blog'
 import type { Announcement } from './lib/blog'
-
-useLenis()
 
 const route = useRoute()
 const loadingRef = ref()

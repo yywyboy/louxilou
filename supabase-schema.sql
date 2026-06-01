@@ -86,6 +86,35 @@ CREATE TABLE IF NOT EXISTS photos (
 CREATE INDEX IF NOT EXISTS idx_photos_categories ON photos USING GIN (categories);
 
 -- =====================================================
+-- Books Table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS books (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  author TEXT NOT NULL DEFAULT '',
+  cover TEXT,
+  description TEXT DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
+-- Book Chapters Table
+-- =====================================================
+CREATE TABLE IF NOT EXISTS book_chapters (
+  id TEXT NOT NULL,
+  book_id TEXT NOT NULL REFERENCES books(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  cover TEXT,
+  status TEXT DEFAULT '已完结',
+  txt_url TEXT,
+  sort_order INTEGER DEFAULT 0,
+  PRIMARY KEY (id, book_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_book_chapters_book_id ON book_chapters(book_id);
+CREATE INDEX IF NOT EXISTS idx_book_chapters_sort ON book_chapters(book_id, sort_order);
+
+-- =====================================================
 -- Row Level Security (RLS)
 -- =====================================================
 
@@ -95,6 +124,8 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE photos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE books ENABLE ROW LEVEL SECURITY;
+ALTER TABLE book_chapters ENABLE ROW LEVEL SECURITY;
 
 -- Posts: Everyone can read, only authenticated users can insert/update/delete
 CREATE POLICY "Posts are publicly readable" ON posts
@@ -147,6 +178,18 @@ CREATE POLICY "Photos are publicly readable" ON photos
   FOR SELECT USING (true);
 
 CREATE POLICY "Authenticated users can manage photos" ON photos
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- Books: Everyone can read, only authenticated can manage
+CREATE POLICY "Books are publicly readable" ON books
+  FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can manage books" ON books
+  FOR ALL USING (auth.role() = 'authenticated');
+
+-- Book Chapters: Everyone can read, only authenticated can manage
+CREATE POLICY "Book chapters are publicly readable" ON book_chapters
+  FOR SELECT USING (true);
+CREATE POLICY "Authenticated users can manage book chapters" ON book_chapters
   FOR ALL USING (auth.role() = 'authenticated');
 
 -- =====================================================

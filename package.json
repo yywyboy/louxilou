@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "generate-rss": "node scripts/generate-rss.js",
-    "build-with-rss": "npm run generate-rss && npm run build"
+    "build-with-rss": "npm run generate-rss && npm run build",
+    "import-books": "node scripts/import-books.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.0",

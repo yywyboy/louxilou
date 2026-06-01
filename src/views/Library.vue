@@ -17,15 +17,30 @@
       <button v-if="searchKeyword" class="clear-btn" @click="searchKeyword = ''">✕</button>
     </div>
 
+    <div class="tag-filter">
+      <button
+        class="tag-btn"
+        :class="{ active: activeTag === 'all' }"
+        @click="activeTag = 'all'"
+      >全部</button>
+      <button
+        v-for="tag in BOOK_TAGS"
+        :key="tag.id"
+        class="tag-btn"
+        :class="{ active: activeTag === tag.id }"
+        @click="activeTag = tag.id"
+      >{{ tag.name }}</button>
+    </div>
+
     <div class="book-grid">
       <div
-        v-for="book in filteredBooks"
+        v-for="book in paginatedBooks"
         :key="book.id"
         class="book-card"
         @click="navigateToBook(book.id)"
       >
         <div class="book-cover-wrapper">
-          <img :src="book.cover" :alt="book.title" class="book-cover" />
+          <img :src="book.cover" :alt="book.title" class="book-cover" loading="lazy" />
           <div class="book-overlay">
             <span class="overlay-text">查看详情</span>
           </div>
@@ -41,24 +56,70 @@
     <div v-if="filteredBooks.length === 0" class="empty-state">
       <p>没有找到匹配的书籍</p>
     </div>
+
+    <div v-if="totalPages > 1" class="pagination">
+      <button class="page-btn" :disabled="currentPage === 1" @click="currentPage--">&lt;</button>
+      <button
+        v-for="p in visiblePages"
+        :key="p"
+        class="page-btn"
+        :class="{ active: p === currentPage }"
+        @click="currentPage = p"
+      >{{ p }}</button>
+      <button class="page-btn" :disabled="currentPage === totalPages" @click="currentPage++">&gt;</button>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { books } from '../data/books'
+import { getAllBooks, type Book } from '../lib/books'
+import { BOOK_TAGS } from '../data/books'
 
 const router = useRouter()
 const searchKeyword = ref('')
+const activeTag = ref('all')
+const currentPage = ref(1)
+const pageSize = 12
+const allBooks = ref<Book[]>([])
+
+onMounted(async () => {
+  allBooks.value = await getAllBooks()
+})
 
 const filteredBooks = computed(() => {
-  if (!searchKeyword.value) return books
-  const keyword = searchKeyword.value.toLowerCase()
-  return books.filter(book =>
-    book.title.toLowerCase().includes(keyword) ||
-    book.author.toLowerCase().includes(keyword)
-  )
+  let result = allBooks.value
+  if (activeTag.value !== 'all') {
+    result = result.filter(book => book.tags?.includes(activeTag.value))
+  }
+  if (searchKeyword.value) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(book =>
+      book.title.toLowerCase().includes(keyword) ||
+      book.author.toLowerCase().includes(keyword)
+    )
+  }
+  return result
+})
+
+watch(searchKeyword, () => { currentPage.value = 1 })
+watch(activeTag, () => { currentPage.value = 1 })
+
+const totalPages = computed(() => Math.ceil(filteredBooks.value.length / pageSize))
+const paginatedBooks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredBooks.value.slice(start, start + pageSize)
+})
+const visiblePages = computed(() => {
+  const pages: number[] = []
+  const total = totalPages.value
+  const cur = currentPage.value
+  let start = Math.max(1, cur - 2)
+  let end = Math.min(total, start + 4)
+  if (end - start < 4) start = Math.max(1, end - 4)
+  for (let i = start; i <= end; i++) pages.push(i)
+  return pages
 })
 
 const navigateToBook = (bookId: string) => {
@@ -76,9 +137,38 @@ const navigateToBook = (bookId: string) => {
 
 .search-box {
   position: relative;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
   display: flex;
   gap: 0;
+}
+
+.tag-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.tag-btn {
+  padding: 0.4rem 1rem;
+  border: 2px solid #000;
+  background: #fff;
+  color: #333;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tag-btn:hover {
+  border-color: #9F353A;
+  color: #9F353A;
+}
+
+.tag-btn.active {
+  background: #9F353A;
+  border-color: #9F353A;
+  color: #fff;
 }
 
 .search-input {
@@ -236,6 +326,44 @@ const navigateToBook = (bookId: string) => {
   color: #666;
   font-size: 1.1rem;
   margin: 0;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+.page-btn {
+  min-width: 40px;
+  height: 40px;
+  border: 3px solid #000;
+  background: #fff;
+  color: #333;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-btn:hover:not(:disabled):not(.active) {
+  background: #f5f5f5;
+}
+
+.page-btn.active {
+  background: #9F353A;
+  border-color: #9F353A;
+  color: #fff;
+}
+
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 @media (max-width: 768px) {

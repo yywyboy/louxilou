@@ -17,24 +17,6 @@
   color-scheme: light;
 }
 
-[data-theme="dark"] {
-  --color-bg: #1a1a2e;
-  --color-text: #f0f0f5;
-  --color-text-secondary: #a0a0b0;
-  --color-border: rgba(255, 255, 255, 0.1);
-  --search-bg: rgba(20, 20, 30, 0.9);
-  --search-border: rgba(255, 255, 255, 0.1);
-  --search-trigger-bg: rgba(86, 182, 255, 0.9);
-  --search-trigger-shadow: 0 4px 16px rgba(86, 182, 255, 0.4);
-  --card-bg: #1a1a1a;
-  --bg-color: #0d0d0d;
-  --secondary-color: #a0a0a0;
-  --primary-color: #ffffff;
-  --image-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-  --placeholder-bg: #222222;
-  color-scheme: dark;
-}
-
 * {
   margin: 0;
   padding: 0;
