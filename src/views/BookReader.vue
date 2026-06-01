@@ -298,24 +298,36 @@ const toggleTranslate = () => {
   }
 }
 
-async function translateText(text: string, retries = 2): Promise<string> {
-  const url = 'https://api.mymemory.translated.net/get'
-  for (let i = 0; i <= retries; i++) {
-    try {
-      const params = new URLSearchParams({
-        q: text.slice(0, 500),
-        langpair: 'en|zh-CN'
-      })
-      const res = await fetch(`${url}?${params}`)
-      if (!res.ok) continue
+async function translateText(text: string): Promise<string> {
+  const truncated = text.slice(0, 400)
+  try {
+    const res = await fetch('https://libretranslate.de/translate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ q: truncated, source: 'en', target: 'zh' })
+    })
+    if (res.ok) {
       const data = await res.json()
-      if (data.responseData?.translatedText) {
+      if (data.translatedText) return data.translatedText
+    }
+  } catch {}
+  try {
+    const params = new URLSearchParams({ q: truncated, langpair: 'en|zh-CN' })
+    const res = await fetch(`https://api.mymemory.translated.net/get?${params}`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.responseData?.translatedText && !data.responseData.translatedText.includes('MYMEMORY')) {
         return data.responseData.translatedText
       }
-    } catch {
-      if (i === retries) return '翻译失败'
     }
-  }
+  } catch {}
+  try {
+    const res = await fetch(`https://api.translators.cyou/?text=${encodeURIComponent(truncated)}&from=en&to=zh`)
+    if (res.ok) {
+      const data = await res.json()
+      if (data.trans) return data.trans
+    }
+  } catch {}
   return '翻译失败'
 }
 

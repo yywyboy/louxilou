@@ -49,6 +49,7 @@ export const books: Book[] = [
     description: '反乌托邦文学的巅峰之作，描绘一个极权统治下的恐怖未来世界',
     tags: ["classic","novel","dystopia","english"],
     chapters: [
+      { id: '1', title: '1984', cover: '/books/images/1984/cover.jpg', status: '已完结', txtUrl: '/books/1984/txt/1984.txt' },
     ]
   },
   {
