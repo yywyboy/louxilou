@@ -106,6 +106,8 @@ import {
   type Comment
 } from '../lib/blog'
 
+declare const marked: any
+
 const router = useRouter()
 const route = useRoute()
 
@@ -121,60 +123,8 @@ let unsubscribeComments: (() => void) | null = null
 
 const renderedContent = computed(() => {
   if (!post.value?.content) return ''
-  return renderMarkdown(post.value.content)
+  return marked.parse(post.value.content)
 })
-
-function renderMarkdown(content: string): string {
-  let html = content
-    .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-    .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-    .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
-
-  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g
-  html = html.replace(codeBlockRegex, (_, lang, code) => {
-    const highlighted = highlightCode(code.trim(), lang)
-    return `<pre class="code-block" data-lang="${lang || ''}"><code>${highlighted}</code></pre>`
-  })
-
-  html = html.replace(/\n\n/g, '</p><p>')
-  html = '<p>' + html + '</p>'
-  html = html.replace(/<p><\/p>/g, '')
-  html = html.replace(/<p>(<h[1-3]>)/g, '$1')
-  html = html.replace(/(<\/h[1-3]>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<pre)/g, '$1')
-  html = html.replace(/(<\/pre>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<ul)/g, '$1')
-  html = html.replace(/(<\/ul>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<ol)/g, '$1')
-  html = html.replace(/(<\/ol>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<li)/g, '$1')
-  html = html.replace(/(<\/li>)<\/p>/g, '$1')
-  html = html.replace(/<p>(<blockquote)/g, '$1')
-  html = html.replace(/(<\/blockquote>)<\/p>/g, '$1')
-
-  return html
-}
-
-function highlightCode(code: string, lang: string): string {
-  if (lang === 'js' || lang === 'javascript') {
-    code = code
-      .replace(/\b(const|let|var|function|return|if|else|for|while|class|import|export|from|async|await)\b/g, '<span class="keyword">$1</span>')
-      .replace(/(['"`])([^'"`"]*)\1/g, '<span class="string">$1$2$1</span>')
-      .replace(/\b(\d+)\b/g, '<span class="number">$1</span>')
-  } else if (lang === 'css' || lang === 'html') {
-    code = code
-      .replace(/([.#]?[\w-]+)\s*\{/g, '<span class="selector">$1</span> {')
-      .replace(/([\w-]+):/g, '<span class="property">$1</span>:')
-  }
-  return code
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-}
 
 function getCategoryName(category: string): string {
   const categoryMap: Record<string, string> = {
@@ -415,6 +365,8 @@ onUnmounted(() => {
   line-height: 1.8;
   color: var(--color-text, #333);
   margin-bottom: 2rem;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .post-content :deep(h1) {
@@ -512,6 +464,24 @@ onUnmounted(() => {
 
 .post-content :deep(li) {
   margin: 0.3rem 0;
+}
+
+.post-content :deep(img) {
+  max-width: 100%;
+  height: auto;
+  border: 2px solid #000;
+}
+
+.post-content :deep(pre) {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.post-content :deep(table) {
+  width: 100%;
+  border-collapse: collapse;
+  overflow-x: auto;
+  display: block;
 }
 
 .post-actions {

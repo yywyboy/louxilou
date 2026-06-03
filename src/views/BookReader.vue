@@ -178,29 +178,18 @@ watch(() => route.params, () => {
 }, { deep: true })
 
 const decodeText = (buffer: Uint8Array): string => {
-  const encodings = ['UTF-8', 'GBK', 'GB18030', 'GB2312', 'Shift_JIS', 'Big5']
-  
-  for (const encoding of encodings) {
-    try {
-      const decoder = new TextDecoder(encoding)
-      const text = decoder.decode(buffer)
-      if (!containsGarbledChars(text)) {
-        return text
-      }
-    } catch (e) {
-      continue
-    }
-  }
-  
-  return new TextDecoder('UTF-8', { fatal: false }).decode(buffer)
-}
+  const utf8 = new TextDecoder('utf-8').decode(buffer)
+  const bad = (utf8.match(/\ufffd/g) || []).length
+  if (bad === 0) return utf8
 
-const containsGarbledChars = (text: string): boolean => {
-  const garbledPattern = /[\uFFFD\uFFFE\uFFFF]/g
-  const garbledCount = (text.match(garbledPattern) || []).length
-  const garbledRatio = garbledCount / text.length
-  
-  return garbledRatio > 0.05 || garbledCount > 3
+  const fallbacks = ['gb18030', 'gbk', 'gb2312', 'shift_jis', 'big5']
+  for (const enc of fallbacks) {
+    try {
+      const text = new TextDecoder(enc).decode(buffer)
+      if ((text.match(/\ufffd/g) || []).length < bad) return text
+    } catch {}
+  }
+  return utf8
 }
 
 const loadChapter = async () => {
@@ -235,10 +224,6 @@ const loadChapter = async () => {
     const arrayBuffer = await response.arrayBuffer()
     const uint8Array = new Uint8Array(arrayBuffer)
     content.value = decodeText(uint8Array)
-    
-    if (containsGarbledChars(content.value)) {
-      console.warn('检测到可能的乱码，尝试其他编码')
-    }
     
     saveProgress()
     

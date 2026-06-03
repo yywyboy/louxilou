@@ -42,6 +42,12 @@ const routes = [
     name: 'Gallery',
     component: () => import('../views/Gallery.vue'),
     meta: { title: '图片库 - 楼西楼' }
+  },
+  {
+    path: '/bookshelf3d',
+    name: 'BookShelf3D',
+    component: () => import('../views/BookShelf3D.vue'),
+    meta: { title: '3D 书架 - 楼西楼' }
   }
 ]
 
