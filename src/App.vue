@@ -31,8 +31,7 @@ const vRipple = {
 const navItems = [
   { path: '/', name: '主页', icon: 'home' },
   { path: '/library', name: '藏书阁', icon: 'library' },
-  { path: '/gallery', name: '图片库', icon: 'gallery' },
-  { path: '/bookshelf3d', name: '3D书架', icon: 'shelf' }
+  { path: '/gallery', name: '图片库', icon: 'gallery' }
 ]
 
 const activeNavIndex = computed(() => {
