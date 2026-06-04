@@ -1,26 +1,23 @@
 {
-  "name": "vue-framework",
-  "private": true,
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit",
-    "generate-rss": "node scripts/generate-rss.js",
-    "build-with-rss": "npm run generate-rss && npm run build",
-    "import-books": "node scripts/import-books.mjs"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
-    "vue": "^3.4.21",
-    "vue-router": "^4.3.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.4",
-    "typescript": "^5.9.3",
-    "vite": "^6.0.0",
-    "vue-tsc": "^2.2.12"
-  }
+    "version":  "3.0.0",
+    "name":  "louxiou",
+    "scripts":  {
+                    "preview":  "vite preview",
+                    "build":  "vite build",
+                    "dev":  "vite"
+                },
+    "devDependencies":  {
+                            "typescript":  "^5.9.3",
+                            "@vitejs/plugin-vue":  "^5.2.4",
+                            "vite":  "^6.0.0",
+                            "vue-tsc":  "^2.2.12"
+                        },
+    "type":  "module",
+    "dependencies":  {
+                         "@supabase/supabase-js":  "^2.45.0",
+                         "vue-router":  "^4.3.0",
+                         "gsap":  "^3.12.0",
+                         "vue":  "^3.4.21"
+                     },
+    "private":  true
 }

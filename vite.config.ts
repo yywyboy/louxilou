@@ -15,11 +15,10 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: ['**/vue-framework/**', '**/node_modules/**', '**/.git/**', '**/node-v24*/**']
+      ignored: ['**/node_modules/**', '**/.git/**', '**/node-v24*/**', '**/.env', '**/vite.config.ts']
     },
     fs: {
-      allow: [__dirname, resolve(__dirname, 'public')],
-      deny: ['$RECYCLE.BIN', 'System Volume Information', 'node-v24.15.0-win-x64']
+      allow: [__dirname, resolve(__dirname, 'public')]
     }
   }
 })

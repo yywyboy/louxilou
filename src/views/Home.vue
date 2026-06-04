@@ -1,1055 +1,270 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-import { getPosts, getActiveAnnouncement } from '../lib/blog'
-import { initRipple } from '../composables/useRipple'
+import { getPosts } from '../lib/blog'
+import { getAllBooks } from '../lib/books'
+import { getPhotos } from '../lib/gallery'
+import type { Post } from '../lib/blog'
+import type { Book } from '../lib/books'
+import type { Photo } from '../lib/gallery'
+import { gsap, ScrollTrigger } from '../composables/useGsap'
 
-const vRipple = {
-  mounted(el: HTMLElement) {
-    initRipple(el)
-  }
-}
-import type { Post } from '../lib/types'
-import type { Announcement } from '../lib/blog'
-
+gsap.registerPlugin(ScrollTrigger)
 const router = useRouter()
 const posts = ref<Post[]>([])
-const loading = ref(false)
-const searchKeyword = ref('')
-const filteredPosts = ref<Post[]>([])
-const announcement = ref<Announcement | null>(null)
-const musicLoaded = ref(false)
-const musicError = ref(false)
+const books = ref<Book[]>([])
+const photos = ref<Photo[]>([])
+const loading = ref(true)
 
-interface RSSItem {
-  title: string
-  link: string
-  pubDate: string
-  description: string
-}
+function goBlog(id: string) { router.push(`/blog/${id}`) }
+function goBook(id: string) { router.push(`/library/${id}`) }
+function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
 
-interface RSSFeed {
-  title: string
-  url: string
-  items: RSSItem[]
-}
+const recentPosts = ref<Post[]>([])
+const recentBooks = ref<Book[]>([])
+const recentPhotos = ref<string[]>([])
 
-const rssFeeds = ref<RSSFeed[]>([])
-const rssLoading = ref(false)
-const rssError = ref(false)
-const activeTab = ref<'posts' | 'rss'>('posts')
-const tabSliderLeft = ref(0)
-const tabSliderWidth = ref(0)
-const tabButtonsRef = ref<HTMLElement | null>(null)
-
-function updateTabSlider() {
-  if (!tabButtonsRef.value) return
-  const idx = activeTab.value === 'posts' ? 0 : 1
-  const btns = tabButtonsRef.value.querySelectorAll('.tab-btn')
-  const btn = btns[idx] as HTMLElement
-  if (!btn) return
-  tabSliderLeft.value = btn.offsetLeft
-  tabSliderWidth.value = btn.offsetWidth
-}
-
-watch(activeTab, () => nextTick(updateTabSlider))
-
-const presetFeeds = [
-  { title: '阮一峰', url: 'https://www.ruanyifeng.com/blog/atom.xml' },
-  { title: 'Hacker News', url: 'https://news.ycombinator.com/rss' },
-  { title: '少数派', url: 'https://sspai.com/feed' },
-  { title: 'V2EX', url: 'https://www.v2ex.com/feed/tab/tech.xml' },
-  { title: '36氪', url: 'https://36kr.com/feed' },
-  { title: '掘金', url: 'https://juejin.cn/rss' },
-  { title: 'InfoQ', url: 'https://www.infoq.cn/feed' }
-]
-
-async function loadPosts() {
-  loading.value = true
+onMounted(async () => {
+  document.title = 'LOUXILOU — 楼西楼'
   try {
-    posts.value = await getPosts()
-    filteredPosts.value = posts.value
-  } catch (error) {
-    console.error('Failed to load posts:', error)
-    posts.value = []
-    filteredPosts.value = []
-  }
+    const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
+    posts.value = p; books.value = b; photos.value = ph
+    recentPosts.value = p.slice(0, 4)
+    recentBooks.value = b.slice(0, 8)
+    recentPhotos.value = ph.slice(0, 6).map(x => `/photos/${x.filename}`)
+  } catch (e) { console.error(e) }
   loading.value = false
-}
+  await nextTick()
 
-async function loadAnnouncement() {
-  try {
-    announcement.value = await getActiveAnnouncement()
-  } catch (error) {
-    console.error('Failed to load announcement:', error)
-  }
-}
+  // HERO
+  const tl = gsap.timeline({ delay: 0.15 })
+  tl.fromTo('.hero-line', { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power3.inOut' })
+    .fromTo('.hero-title', { opacity: 0, y: 50, clipPath: 'inset(100% 0% 0% 0%)' }, { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'power3.out' }, '-=0.5')
+    .fromTo('.hero-sub', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
+    .fromTo('.hero-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
+    .fromTo('.hero-nav a', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power3.out' }, '-=0.2')
 
-async function fetchRSSFeed(feedUrl: string): Promise<RSSFeed> {
-  const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}`
-  const response = await fetch(apiUrl)
-  if (!response.ok) {
-    throw new Error(`Failed to fetch RSS feed: ${response.statusText}`)
-  }
-  const data = await response.json()
-  
-  if (data.status !== 'ok') {
-    throw new Error('RSS feed returned error')
-  }
+  gsap.to('.hero-glow', { yPercent: 40, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
 
-  return {
-    title: data.feed?.title || 'Unknown Feed',
-    url: feedUrl,
-    items: (data.items || []).slice(0, 3).map((item: any) => ({
-      title: item.title || '',
-      link: item.link || '',
-      pubDate: item.pubDate || '',
-      description: item.description || item.content || ''
-    }))
-  }
-}
+  // REVEAL
+  document.querySelectorAll('.reveal').forEach(el => {
+    gsap.fromTo(el, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } })
+  })
 
-async function loadAllFeeds() {
-  rssLoading.value = true
-  rssError.value = false
-  rssFeeds.value = []
+  // POST ROWS
+  gsap.fromTo('.post-row', { opacity: 0, x: -25 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.posts-sec', start: 'top 80%' } })
 
-  try {
-    const results = await Promise.allSettled(
-      presetFeeds.map(feed => fetchRSSFeed(feed.url))
-    )
+  // BOOK CARDS
+  gsap.fromTo('.book-card', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06, ease: 'power3.out', scrollTrigger: { trigger: '.books-sec', start: 'top 80%' } })
 
-    results.forEach((result, index) => {
-      if (result.status === 'fulfilled') {
-        rssFeeds.value.push(result.value)
-      } else {
-        console.error(`Failed to load ${presetFeeds[index].title}:`, result.reason)
-      }
-    })
-  } catch (err) {
-    rssError.value = true
-  } finally {
-    rssLoading.value = false
-  }
-}
+  // PHOTO CARDS
+  gsap.fromTo('.photo-card', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.photos-sec', start: 'top 80%' } })
 
-function formatDate(dateString: string): string {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  // MARQUEE
+  gsap.to('.marquee-inner', { x: '-50%', ease: 'none', scrollTrigger: { trigger: '.marquee', start: 'top bottom', end: 'bottom top', scrub: 1 } })
+})
 
-  if (diffDays === 0) return '今天'
-  if (diffDays === 1) return '昨天'
-  if (diffDays < 7) return `${diffDays}天前`
-  
-  return date.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-}
-
-function stripHtml(html: string): string {
-  const div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent || div.innerText || ''
-}
-
-function handleSearch() {
-  if (!searchKeyword.value.trim()) {
-    filteredPosts.value = posts.value
-    return
-  }
-  filteredPosts.value = posts.value.filter(post =>
-    post.title.toLowerCase().includes(searchKeyword.value.toLowerCase()) ||
-    (post.content && post.content.toLowerCase().includes(searchKeyword.value.toLowerCase()))
-  )
-}
-
-function navigateToPost(postId: string) {
-  router.push(`/blog/${postId}`)
-}
-
-onMounted(() => {
-  document.title = '楼西楼的博客 - 技术、生活与阅读'
-  loadPosts()
-  loadAnnouncement()
-  loadAllFeeds()
-  nextTick(updateTabSlider)
+onUnmounted(() => {
+  ScrollTrigger.getAll().forEach(t => t.kill())
+  gsap.killTweensOf('*')
 })
 </script>
 
 <template>
-  <div class="home-container">
-    <aside class="left-sidebar">
-      <div class="sidebar-section announcement-desktop">
-        <h3 class="sidebar-title">网站公告</h3>
-        <p v-if="announcement" class="sidebar-text">{{ announcement.content }}</p>
-        <p v-else class="sidebar-text">欢迎访问我的博客！这里会发布最新的更新公告和功能介绍。</p>
-      </div>
+  <div class="home">
 
-      <div class="sidebar-section music-section">
-        <h3 class="sidebar-title">音乐</h3>
-        <iframe 
-          frameborder="no" 
-          border="0" 
-          marginwidth="0" 
-          marginheight="0" 
-          width="100%"
-          height="450" 
-          src="//music.163.com/outchain/player?type=0&id=17982886763&auto=0&height=430"
-          class="music-player"
-          @load="musicLoaded = true"
-          @error="musicError = true"
-        ></iframe>
-        <div v-if="!musicLoaded && !musicError" class="music-loading">
-          <div class="loading-spinner"></div>
-          <p>音乐加载中...</p>
-        </div>
-        <div v-if="musicError" class="music-error">
-          <p>音乐加载失败，请刷新页面重试</p>
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-bg"><div class="hero-glow"></div></div>
+      <div class="hero-content">
+        <div class="hero-line"></div>
+        <h1 class="hero-title">LOUXILOU</h1>
+        <p class="hero-sub">藏书 · 写作 · 影像</p>
+        <p class="hero-desc">在文字与图像之间，记录阅读的深度、生活的温度、思考的刻度。</p>
+        <div class="hero-nav">
+          <router-link to="/blog" class="hero-link interactive"><span class="hl-num">01</span><span class="hl-name">博客</span><span class="hl-arrow">→</span></router-link>
+          <router-link to="/library" class="hero-link interactive"><span class="hl-num">02</span><span class="hl-name">藏书阁</span><span class="hl-arrow">→</span></router-link>
+          <router-link to="/gallery" class="hero-link interactive"><span class="hl-num">03</span><span class="hl-name">图库</span><span class="hl-arrow">→</span></router-link>
         </div>
       </div>
-    </aside>
+    </section>
 
-    <aside class="right-sidebar">
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">快速链接</h3>
-        <div class="quick-links">
-          <a
-            href="https://github.com/yywyboy"
-            target="_blank"
-            class="quick-link btn-ripple"
-            v-ripple
->
-            <span class="link-text">GitHub</span>
-          </a>
-          <a
-            href="https://space.bilibili.com/603244446"
-            target="_blank"
-            class="quick-link btn-ripple"
-            v-ripple
->
-            <span class="link-text">Bilibili</span>
-          </a>
-          <a
-            href="mailto:17766710131@163.com"
-            class="quick-link btn-ripple"
-            v-ripple
->
-            <span class="link-text">邮件联系</span>
-          </a>
-        </div>
+    <!-- MARQUEE -->
+    <div class="marquee">
+      <div class="marquee-inner">
+        <span v-for="n in 10" :key="n" class="mq-text">LOUXILOU — 藏书 · 写作 · 影像 —&nbsp;</span>
       </div>
+    </div>
 
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">友情链接</h3>
-        <div class="friend-links">
-          <a
-            href="https://louxilou.com.cn"
-            target="_blank"
-            class="friend-link btn-ripple"
-            v-ripple
->
-            <span class="link-text">楼西楼</span>
-          </a>
+    <!-- LATEST POSTS -->
+    <section class="posts-sec">
+      <div class="ctr">
+        <div class="sec-head reveal">
+          <div class="sec-head-row"><span class="sec-num">01</span><h2 class="sec-title">最新文章</h2></div>
+          <router-link to="/blog" class="sec-more interactive">查看全部 →</router-link>
+          <div class="rule"></div>
         </div>
-      </div>
-
-      <div class="sidebar-section">
-        <h3 class="sidebar-title">RSS订阅</h3>
-        <a
-          href="/feed.xml"
-          target="_blank"
-          class="rss-link"
-          v-ripple
-        >
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="rss-icon">
-            <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19.01 7.37 20 6.18 20C5 20 4 19.01 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z"/>
-          </svg>
-          <span>订阅 RSS</span>
-        </a>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <div class="content-header">
-        <div class="tab-buttons" ref="tabButtonsRef">
-          <div
-            class="tab-slider"
-            :style="{ left: tabSliderLeft + 'px', width: tabSliderWidth + 'px' }"
-          ></div>
-          <button 
-            class="tab-btn" 
-            :style="{ color: activeTab === 'posts' ? 'white' : '#000' }"
-            @click="activeTab = 'posts'"
-          >
-            <span class="btn-text">文章</span>
-          </button>
-          <button 
-            class="tab-btn" 
-            :style="{ color: activeTab === 'rss' ? 'white' : '#000' }"
-            @click="activeTab = 'rss'"
-          >
-            <span class="btn-text">RSS</span>
-          </button>
-        </div>
-        <div v-if="activeTab === 'posts'" class="search-box">
-          <input
-            v-model="searchKeyword"
-            type="text"
-            placeholder="搜索文章..."
-            class="search-input"
-            @input="handleSearch"
-          />
-          <button class="search-btn" @click="handleSearch">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none">
-              <circle cx="11" cy="11" r="8"/>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <div v-if="activeTab === 'posts'">
-        <div v-if="loading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>加载中...</p>
-        </div>
-
-        <div v-else-if="filteredPosts.length === 0" class="empty-state">
-          <p>还没有文章，敬请期待</p>
-        </div>
-
-        <div v-else class="post-list">
-          <article
-            v-for="post in filteredPosts"
-            :key="post.id"
-            class="post-card btn-ripple"
-            @click="navigateToPost(post.id)"
-            v-ripple
->
+        <div v-if="loading" style="display:flex;justify-content:center;padding:3rem"><div class="loader"></div></div>
+        <div v-else class="posts-list">
+          <article v-for="(post, i) in recentPosts" :key="post.id" class="post-row interactive" @click="goBlog(post.id)">
+            <span class="post-idx">{{ String(i + 1).padStart(2, '0') }}</span>
             <div class="post-body">
-              <span class="post-category">{{ post.category }}</span>
-              <h2 class="post-title">{{ post.title }}</h2>
-              <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}...</p>
-              <div class="post-meta">
-                <span class="post-date">{{ new Date(post.created_at).toLocaleDateString() }}</span>
-              </div>
+              <div class="post-meta"><span class="post-cat">{{ post.category || '随笔' }}</span><span class="post-date">{{ fmt(post.created_at) }}</span></div>
+              <h3 class="post-title">{{ post.title }}</h3>
+              <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}…</p>
             </div>
+            <span class="post-arrow">→</span>
           </article>
         </div>
       </div>
+    </section>
 
-      <div v-else class="rss-content">
-        <div v-if="rssLoading" class="loading-state">
-          <div class="loading-spinner"></div>
-          <p>加载 RSS 订阅中...</p>
+    <!-- BOOKS PREVIEW -->
+    <section class="books-sec">
+      <div class="ctr">
+        <div class="sec-head reveal">
+          <div class="sec-head-row"><span class="sec-num">02</span><h2 class="sec-title">藏书阁</h2></div>
+          <router-link to="/library" class="sec-more interactive">查看全部 →</router-link>
+          <div class="rule"></div>
         </div>
-
-        <div v-else-if="rssError" class="empty-state">
-          <p>RSS 加载失败，请稍后重试</p>
+        <div class="books-scroll">
+          <div v-for="book in recentBooks" :key="book.id" class="book-card interactive" @click="goBook(book.id)">
+            <div class="bk-cover"><img :src="book.cover" :alt="book.title" loading="lazy" /></div>
+            <h4 class="bk-title">{{ book.title }}</h4>
+            <p class="bk-author">{{ book.author }}</p>
+          </div>
         </div>
+      </div>
+    </section>
 
-        <div v-else class="rss-feeds">
-          <div v-for="feed in rssFeeds" :key="feed.url" class="rss-feed-section">
-            <h3 class="rss-feed-title">{{ feed.title }}</h3>
-            <div class="rss-feed-items">
-              <a
-                v-for="item in feed.items"
-                :key="item.link"
-                :href="item.link"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="rss-feed-item btn-ripple"
-                v-ripple
->
-                <div class="rss-item-content">
-                  <h4 class="rss-item-title">{{ item.title }}</h4>
-                  <p class="rss-item-desc">{{ stripHtml(item.description).substring(0, 80) }}...</p>
-                  <span class="rss-item-date">{{ formatDate(item.pubDate) }}</span>
-                </div>
-              </a>
+    <!-- PHOTOS PREVIEW -->
+    <section class="photos-sec">
+      <div class="ctr">
+        <div class="sec-head reveal">
+          <div class="sec-head-row"><span class="sec-num">03</span><h2 class="sec-title">图库</h2></div>
+          <router-link to="/gallery" class="sec-more interactive">查看全部 →</router-link>
+          <div class="rule"></div>
+        </div>
+        <div class="photos-grid">
+          <div v-for="(src, i) in recentPhotos" :key="i" class="photo-card">
+            <img :src="src" :alt="`Photo ${i+1}`" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section class="about-sec">
+      <div class="ctr">
+        <div class="about-grid">
+          <div class="about-left reveal">
+            <span class="sec-num">04</span>
+            <h2 class="sec-title">关于</h2>
+            <div class="rule"></div>
+          </div>
+          <div class="about-right reveal">
+            <p class="about-text">一个热爱阅读与写作的人。在这里记录经典文学的阅读笔记、技术思考与生活感悟。每一本书都是一次远行，每一篇文章都是一段回响。</p>
+            <div class="about-stats">
+              <div class="stat"><span class="stat-val">{{ posts.length }}</span><span class="stat-lbl">篇文章</span></div>
+              <div class="stat"><span class="stat-val">{{ books.length }}</span><span class="stat-lbl">本藏书</span></div>
+              <div class="stat"><span class="stat-val">{{ photos.length }}</span><span class="stat-lbl">张照片</span></div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </section>
+
   </div>
 </template>
 
 <style scoped>
-.home-container {
-  min-height: 100vh;
-  padding: 2rem;
-  background-color: #BDC0BA;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: block;
-}
-
-.left-sidebar {
-  width: 250px;
-  float: left;
-  position: sticky;
-  top: 80px;
-  height: fit-content;
-}
-
-.main-content {
-  margin-left: 270px;
-  margin-right: 270px;
-  border: 3px solid #000;
-  background: #fff;
-  padding: 1.5rem;
-}
-
-.right-sidebar {
-  width: 250px;
-  float: right;
-  position: sticky;
-  top: 80px;
-  height: fit-content;
-}
-
-.sidebar-section {
-  background: #fff;
-  border-radius: 0;
-  padding: 1.5rem;
-  border: 3px solid #000;
-  margin-bottom: 1.5rem;
-}
-
-.sidebar-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.sidebar-text {
-  color: #666;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.music-section {
-  padding: 1.5rem;
-  position: relative;
-}
-
-.music-player {
-  border: none;
-  width: calc(100% + 3rem);
-  height: 450px;
-  display: block;
-  margin-left: -1.5rem;
-  margin-right: -1.5rem;
-  margin-bottom: -1.5rem;
-}
-
-.music-loading,
-.music-error {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #fff;
-  z-index: 1;
-}
-
-.music-loading p,
-.music-error p {
-  margin-top: 1rem;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 1rem;
-}
-
-.modal-content {
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 0;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 100%;
-  position: relative;
-}
-
-.modal-close {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.75rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  line-height: 1;
-}
-
-.modal-close:hover {
-  color: #9F353A;
-}
-
-.modal-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.modal-body {
-  margin: 0 0 1.5rem 0;
-  color: #666;
-  line-height: 1.6;
-}
-
-.modal-btn {
-  position: relative;
-  display: block;
-  width: 100%;
-  padding: 0.75rem 1rem;
-  background: #9F353A;
-  color: white;
-  border: 3px solid #000;
-  border-radius: 0;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  overflow: hidden;
-}
-
-.modal-btn:hover {
-  background: #000;
-  color: #000;
-  border-color: #9F353A;
-}
-
-.quick-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.quick-link {
-  position: relative;
-  display: block;
-  padding: 0.5rem 0.75rem;
-  background: transparent;
-  border-radius: 0;
-  border: 3px solid #000;
-  border-top: none;
-  text-decoration: none;
-  color: #000;
-  font-size: 0.9rem;
-  overflow: hidden;
-  transition: color 0.3s ease;
-  z-index: 1;
-}
-
-.quick-link:first-child {
-  border-top: 3px solid #000;
-}
-
-.quick-link .link-text {
-  position: relative;
-  z-index: 2;
-}
-
-.quick-link:hover {
-  color: white;
-}
-
-.friend-links {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.friend-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  background: transparent;
-  border-radius: 0;
-  border: 3px solid #000;
-  border-top: none;
-  text-decoration: none;
-  color: #000;
-  font-size: 0.9rem;
-  overflow: hidden;
-  transition: color 0.3s ease;
-  z-index: 1;
-}
-
-.friend-link:first-child {
-  border-top: 3px solid #000;
-}
-
-.friend-link .link-icon,
-.friend-link .link-text {
-  position: relative;
-  z-index: 2;
-}
-
-.friend-link:hover {
-  color: white;
-}
-
-.rss-link {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: transparent;
-  color: #000;
-  border: 3px solid #000;
-  text-decoration: none;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: color 0.3s ease;
-  overflow: hidden;
-  position: relative;
-  z-index: 1;
-}
-
-.rss-link span,
-.rss-link svg {
-  position: relative;
-  z-index: 2;
-}
-
-.rss-link:hover {
-  color: white;
-}
-
-.rss-icon {
-  flex-shrink: 0;
-  position: relative;
-  z-index: 2;
-}
-
-.content-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  gap: 0.75rem;
-}
-
-.tab-buttons {
-  display: flex;
-  gap: 0;
-  position: relative;
-  border: 3px solid #000;
-}
-
-.tab-slider {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  background: #9F353A;
-  z-index: 0;
-  transition: left 0.35s cubic-bezier(0.32, 0.72, 0, 1),
-              width 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-  pointer-events: none;
-}
-
-.tab-btn {
-  position: relative;
-  padding: 0.5rem 1rem;
-  background: transparent;
-  color: #000;
-  border: none;
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: color 0.3s ease;
-  overflow: hidden;
-  height: 38px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-}
-
-.tab-btn .btn-text {
-  position: relative;
-  z-index: 2;
-}
-
-.tab-btn:last-child {
-}
-
-.search-box {
-  flex: 1;
-  max-width: 300px;
-  display: flex;
-  gap: 0;
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.5rem 0.75rem;
-  border: 3px solid #000;
-  border-right: none;
-  border-radius: 0;
-  font-size: 0.9rem;
-  background: #fff;
-  transition: border-color 0.3s ease;
-  height: 38px;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #9F353A;
-}
-
-.search-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  background: #fff;
-  border: 3px solid #000;
-  border-radius: 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: #333;
-}
-
-.search-btn:hover {
-  background: #9F353A;
-  color: white;
-  border-color: #9F353A;
-}
-
-.rss-content {
-  min-height: 300px;
-}
-
-.rss-feeds {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.rss-feed-section {
-  background: #fff;
-  padding: 1.25rem;
-}
-
-.rss-feed-title {
-  margin: 0 0 1rem 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-  padding-bottom: 0.75rem;
-  padding-left: 1.5rem;
-  border-bottom: 2px solid #000;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.rss-feed-title::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55rem;
-  width: 10px;
-  height: 10px;
-  border: 3px solid #9F353A;
-  border-radius: 50%;
-  background: transparent;
-}
-
-.rss-feed-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.rss-feed-item {
-  display: block;
-  text-decoration: none;
-  border: 2px solid #000;
-  padding: 0.75rem;
-  transition: color 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.rss-feed-item:hover {
-  color: white;
-}
-
-.rss-feed-item:hover .rss-item-title,
-.rss-feed-item:hover .rss-item-desc,
-.rss-feed-item:hover .rss-item-date {
-  color: white;
-}
-
-.rss-item-content {
-  position: relative;
-  z-index: 2;
-}
-
-.rss-item-title {
-  margin: 0 0 0.4rem 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #333;
-  transition: color 0.3s ease;
-}
-
-.rss-item-desc {
-  margin: 0 0 0.4rem 0;
-  font-size: 0.85rem;
-  color: #666;
-  line-height: 1.4;
-  transition: color 0.3s ease;
-}
-
-.rss-item-date {
-  font-size: 0.75rem;
-  color: #999;
-  transition: color 0.3s ease;
-}
-
-.loading-state,
-.empty-state {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-}
-
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(0, 0, 0, 0.2);
-  border-top-color: #9F353A;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.post-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.post-card {
-  position: relative;
-  background: transparent;
-  border-radius: 0;
-  overflow: hidden;
-  cursor: pointer;
-  border: 3px solid #000;
-  transition: color 0.3s ease;
-}
-
-.post-card:hover {
-  color: white;
-}
-
-.post-card .post-body {
-  position: relative;
-  z-index: 2;
-  padding: 1.5rem;
-}
-
-.post-card:hover .post-title,
-.post-card:hover .post-excerpt,
-.post-card:hover .post-category,
-.post-card:hover .post-date {
-  color: white;
-}
-
-.post-category {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  background: #9F353A;
-  color: white;
-  font-size: 0.75rem;
-  font-weight: 500;
-  margin-bottom: 0.75rem;
-  border-radius: 0;
-}
-
-.post-title {
-  margin: 0 0 0.75rem 0;
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #333;
-  transition: color 0.3s ease;
-}
-
-.post-excerpt {
-  margin: 0 0 1rem 0;
-  color: #666;
-  line-height: 1.6;
-  transition: color 0.3s ease;
-}
-
-.post-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.post-date {
-  font-size: 0.85rem;
-  color: #888;
-  transition: color 0.3s ease;
-}
-
-.btn-ripple {
-  position: relative;
-  overflow: hidden;
-  z-index: 1;
-}
-
-.btn-ripple > *:not(.ripple-effect) {
-  position: relative;
-  z-index: 1;
-}
-
-.ripple-effect {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 0;
-}
-
-.ripple-effect span {
-  position: absolute;
-  z-index: 0;
-}
+.home { position: relative; z-index: 1; }
+
+/* HERO */
+.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; }
+.hero-glow { position: absolute; inset: -30%; background: radial-gradient(ellipse at 30% 40%, rgba(159,53,58,0.1) 0%, transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(159,53,58,0.05) 0%, transparent 50%); }
+.hero-content { position: relative; z-index: 1; text-align: center; padding: 2rem; max-width: 700px; }
+.hero-line { width: 60px; height: 1px; background: var(--gold); margin: 0 auto 2.5rem; transform-origin: center; }
+.hero-title { font-family: var(--font-display); font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 900; letter-spacing: 0.1em; color: var(--ink); margin-bottom: 1rem; line-height: 1; opacity: 0; }
+.hero-sub { font-family: var(--font-body); font-size: 0.85rem; color: var(--gold); letter-spacing: 0.5em; margin-bottom: 1.5rem; opacity: 0; }
+.hero-desc { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink-dim); line-height: 2; max-width: 420px; margin: 0 auto 3rem; opacity: 0; }
+.hero-nav { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; opacity: 0; }
+.hero-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.25rem; border: 1px solid var(--border); border-radius: 4px; text-decoration: none; transition: all 0.35s var(--ease); }
+.hero-link:hover { border-color: var(--gold); background: var(--gold-dim); }
+.hl-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gold); }
+.hl-name { font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; color: var(--ink); letter-spacing: 0.05em; }
+.hl-arrow { font-size: 0.8rem; color: var(--ink-ghost); transition: transform 0.3s var(--ease); }
+.hero-link:hover .hl-arrow { transform: translateX(4px); color: var(--gold); }
+
+/* MARQUEE */
+.marquee { overflow: hidden; padding: 1.25rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.marquee-inner { display: flex; width: max-content; }
+.mq-text { font-family: var(--font-display); font-size: clamp(0.9rem, 2vw, 1.4rem); font-weight: 300; font-style: italic; color: var(--ink-vanish); white-space: nowrap; letter-spacing: 0.05em; }
+
+/* SECTION HEAD */
+.sec-head { margin-bottom: 2.5rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 1.5rem; }
+.sec-head-row { display: flex; align-items: baseline; gap: 0.75rem; }
+.sec-num { font-family: var(--font-mono); font-size: 0.6rem; font-weight: 300; color: var(--gold); letter-spacing: 0.1em; }
+.sec-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; letter-spacing: 0.04em; }
+.sec-more { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; margin-left: auto; }
+.sec-more:hover { color: var(--gold); }
+.rule { width: 100%; height: 1px; background: var(--border); margin-top: 1rem; }
+
+/* POSTS */
+.posts-sec { padding: 5rem 0; }
+.posts-list { display: flex; flex-direction: column; }
+.post-row { display: flex; align-items: flex-start; gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.3s var(--ease); }
+.post-row:first-child { border-top: 1px solid var(--border); }
+.post-row:hover { padding-left: 0.75rem; }
+.post-row:hover .post-title { color: var(--gold); }
+.post-row:hover .post-arrow { transform: translateX(4px); color: var(--gold); }
+.post-idx { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 300; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.25rem; min-width: 1.8rem; }
+.post-body { flex: 1; min-width: 0; }
+.post-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
+.post-cat { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
+.post-date { font-size: 0.65rem; color: var(--ink-ghost); }
+.post-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; line-height: 1.45; margin-bottom: 0.35rem; transition: color 0.3s; }
+.post-excerpt { font-size: 0.8rem; color: var(--ink-ghost); line-height: 1.7; }
+.post-arrow { font-size: 1rem; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.15rem; transition: all 0.3s var(--ease); }
+
+/* BOOKS */
+.books-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
+.books-scroll { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
+.book-card { cursor: pointer; transition: all 0.35s var(--ease); }
+.book-card:hover { transform: translateY(-6px); }
+.bk-cover { aspect-ratio: 3/4; overflow: hidden; border-radius: 3px; border: 1px solid var(--border); margin-bottom: 0.6rem; }
+.bk-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease); }
+.book-card:hover .bk-cover img { transform: scale(1.05); }
+.bk-title { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; line-height: 1.3; }
+.bk-author { font-family: var(--font-sans); font-size: 0.68rem; color: var(--ink-ghost); }
+
+/* PHOTOS */
+.photos-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
+.photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
+.photo-card { border-radius: 3px; overflow: hidden; transition: all 0.35s var(--ease); }
+.photo-card:hover { transform: scale(1.02); }
+.photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+
+/* ABOUT */
+.about-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
+.about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; align-items: start; }
+.about-text { font-size: 0.95rem; color: var(--ink-dim); line-height: 2.2; margin-bottom: 2rem; }
+.about-stats { display: flex; gap: 2.5rem; }
+.stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.stat-val { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; }
+.stat-lbl { font-family: var(--font-sans); font-size: 0.65rem; color: var(--ink-ghost); letter-spacing: 0.06em; }
 
 @media (max-width: 768px) {
-  .home-container {
-    padding: 1rem;
-    max-width: 100%;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .announcement-desktop {
-    display: none;
-  }
-
-  .left-sidebar {
-    width: 100%;
-    float: none;
-    position: static;
-    margin-bottom: 1.5rem;
-    order: 4;
-  }
-
-  .right-sidebar {
-    width: 100%;
-    float: none;
-    position: static;
-    margin-bottom: 1.5rem;
-    order: 3;
-  }
-
-  .main-content {
-    margin-left: 0;
-    margin-right: 0;
-    margin-bottom: 1.5rem;
-    order: 2;
-  }
-
-  .sidebar-section {
-    width: 100%;
-  }
-
-  .music-player {
-    height: 350px;
-  }
-
-  .music-loading,
-  .music-error {
-    height: 350px;
-  }
-
-  .content-header {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .tab-buttons {
-    flex: 1;
-  }
-
-  .tab-btn {
-    flex: 1;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.85rem;
-  }
-
-  .search-box {
-    flex: 1;
-    max-width: none;
-    width: 100%;
-  }
-
-  .search-input {
-    font-size: 0.85rem;
-  }
-
-  .rss-feed-section {
-    padding: 1rem;
-  }
-
-  .rss-feed-title {
-    font-size: 1rem;
-  }
-
-  .rss-feed-item {
-    padding: 0.6rem;
-  }
-
-  .rss-item-title {
-    font-size: 0.9rem;
-  }
-
-  .rss-item-desc {
-    font-size: 0.8rem;
-  }
+  .hero-content { padding: 1rem; }
+  .hero-nav { flex-direction: column; align-items: center; }
+  .hero-link { width: 100%; justify-content: center; }
+  .sec-head { flex-direction: column; gap: 0.5rem; }
+  .sec-more { margin-left: 0; }
+  .post-row { gap: 1rem; }
+  .post-idx, .post-arrow { display: none; }
+  .books-scroll { grid-template-columns: repeat(2, 1fr); }
+  .photos-grid { grid-template-columns: repeat(2, 1fr); }
+  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
 }
 </style>
