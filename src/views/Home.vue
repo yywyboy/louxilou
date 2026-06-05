@@ -6,265 +6,730 @@ import { getAllBooks } from '../lib/books'
 import { getPhotos } from '../lib/gallery'
 import type { Post } from '../lib/blog'
 import type { Book } from '../lib/books'
-import type { Photo } from '../lib/gallery'
-import { gsap, ScrollTrigger } from '../composables/useGsap'
+import { gsap, ScrollTrigger, scrambleText } from '../composables/useGsap'
 
 gsap.registerPlugin(ScrollTrigger)
 const router = useRouter()
 const posts = ref<Post[]>([])
 const books = ref<Book[]>([])
-const photos = ref<Photo[]>([])
+const photos = ref<string[]>([])
 const loading = ref(true)
+const hoveredBook = ref<Book | null>(null)
+
+// Post hover preview
+const previewEl = ref<HTMLElement | null>(null)
+const previewSrc = ref('')
+const previewVisible = ref(false)
+
+function onPostEnter(post: Post, e: MouseEvent) {
+  if (post.cover) {
+    previewSrc.value = post.cover
+    previewVisible.value = true
+    nextTick(() => {
+      if (previewEl.value) {
+        const img = previewEl.value.querySelector('img') as HTMLImageElement
+        gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
+        if (img) gsap.fromTo(img, { filter: 'blur(10px)' }, { filter: 'blur(0px)', duration: 0.5, ease: 'power2.out' })
+      }
+    })
+  }
+}
+
+function onPostMove(e: MouseEvent) {
+  if (previewEl.value) {
+    previewEl.value.style.left = (e.clientX + 20) + 'px'
+    previewEl.value.style.top = (e.clientY - 100) + 'px'
+  }
+}
+
+function onPostLeave() {
+  if (previewEl.value) {
+    gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
+  } else {
+    previewVisible.value = false
+  }
+}
+
+// Hero title mouse follow
+function onTitleMove(e: MouseEvent) {
+  const chars = document.querySelectorAll('.ht-char')
+  const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+  const mx = (e.clientX - rect.left) / rect.width - 0.5
+  const my = (e.clientY - rect.top) / rect.height - 0.5
+  chars.forEach((ch, i) => {
+    const factor = 1 + (i - 3.5) * 0.15
+    gsap.to(ch, { x: mx * 20 * factor, y: my * 15 * factor, rotateY: mx * 8, rotateX: -my * 5, duration: 0.6, ease: 'power2.out' })
+  })
+}
+function onTitleLeave() {
+  document.querySelectorAll('.ht-char').forEach(ch => {
+    gsap.to(ch, { x: 0, y: 0, rotateY: 0, rotateX: 0, duration: 0.8, ease: 'elastic.out(1, 0.5)' })
+  })
+}
 
 function goBlog(id: string) { router.push(`/blog/${id}`) }
-function goBook(id: string) { router.push(`/library/${id}`) }
+function onBookEnter(book: Book, e: MouseEvent) {
+  hoveredBook.value = book
+  const cover = e.currentTarget as HTMLElement
+  const hover = cover.closest('.showcase-hover') as HTMLElement
+  if (hover) gsap.to(hover, { y: -15, duration: 0.4, ease: 'power2.out' })
+}
+function onBookLeave(e: MouseEvent) {
+  hoveredBook.value = null
+  const cover = e.currentTarget as HTMLElement
+  const hover = cover.closest('.showcase-hover') as HTMLElement
+  if (hover) gsap.to(hover, { y: 0, duration: 0.5, ease: 'power2.out' })
+}
 function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
-
-const recentPosts = ref<Post[]>([])
-const recentBooks = ref<Book[]>([])
-const recentPhotos = ref<string[]>([])
 
 onMounted(async () => {
   document.title = 'LOUXILOU — 楼西楼'
   try {
     const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
-    posts.value = p; books.value = b; photos.value = ph
-    recentPosts.value = p.slice(0, 4)
-    recentBooks.value = b.slice(0, 8)
-    recentPhotos.value = ph.slice(0, 6).map(x => `/photos/${x.filename}`)
+    posts.value = p; books.value = b
+    photos.value = ph.slice(0, 12).map(x => `/photos/${x.filename}`)
   } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
 
-  // HERO
-  const tl = gsap.timeline({ delay: 0.15 })
-  tl.fromTo('.hero-line', { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power3.inOut' })
-    .fromTo('.hero-title', { opacity: 0, y: 50, clipPath: 'inset(100% 0% 0% 0%)' }, { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)', duration: 0.9, ease: 'power3.out' }, '-=0.5')
-    .fromTo('.hero-sub', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, '-=0.4')
-    .fromTo('.hero-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, '-=0.3')
-    .fromTo('.hero-nav a', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: 'power3.out' }, '-=0.2')
+  // ===== HERO =====
+  const heroEl = document.querySelector('.hero-pin') as HTMLElement
+  if (heroEl) {
+    const heroTl = gsap.timeline({
+      scrollTrigger: { trigger: heroEl, start: 'top top', end: '+=2000', scrub: 1, pin: true }
+    })
+    heroTl
+      .fromTo('.hero-img-0', { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0)
+      .fromTo('.hero-img-1', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.1)
+      .fromTo('.hero-img-2', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.2)
+      .fromTo('.hero-img-3', { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.3)
+      .fromTo('.hero-img-4', { clipPath: 'inset(50% 50% 50% 50%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power2.inOut' }, 0.4)
+      .to('.hero-images', { scale: 0.6, opacity: 0.3, filter: 'blur(8px)', duration: 1, ease: 'power2.inOut' }, 0.8)
+      .to('.hero-content', { scale: 0.5, opacity: 0, y: -100, filter: 'blur(10px)', duration: 1, ease: 'power2.inOut' }, 0.8)
+      .to('.hero-overlay', { opacity: 1, duration: 0.8 }, 0.8)
+      .fromTo('.hero-statement', { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' }, 1.5)
 
-  gsap.to('.hero-glow', { yPercent: 40, ease: 'none', scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: true } })
+    // Title + subtitle letter-spacing: loose → tight as you scroll
+    gsap.to('.hero-title', {
+      letterSpacing: '0.05em',
+      ease: 'none',
+      scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
+    })
+    gsap.to('.hero-sub', {
+      letterSpacing: '0.15em',
+      ease: 'none',
+      scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
+    })
+  }
 
-  // REVEAL
-  document.querySelectorAll('.reveal').forEach(el => {
-    gsap.fromTo(el, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%' } })
+  // ===== TEXT SCRAMBLE — hero title =====
+  const heroTitle = document.querySelector('.hero-title')
+  if (heroTitle) {
+    scrambleText(heroTitle, 'LOUXILOU', { duration: 1.5, delay: 0.3 })
+  }
+
+  // ===== TEXT SCRAMBLE — section titles on scroll =====
+  document.querySelectorAll('.scramble-title').forEach(el => {
+    const text = el.textContent || ''
+    ScrollTrigger.create({
+      trigger: el,
+      start: 'top 85%',
+      onEnter: () => scrambleText(el as HTMLElement, text, { duration: 1 }),
+      once: true,
+    })
   })
 
-  // POST ROWS
-  gsap.fromTo('.post-row', { opacity: 0, x: -25 }, { opacity: 1, x: 0, duration: 0.5, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.posts-sec', start: 'top 80%' } })
+  // ===== POSTS =====
+  document.querySelectorAll('.post-item').forEach((el, i) => {
+    gsap.fromTo(el, { opacity: 0, x: i % 2 === 0 ? -40 : 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 60%', scrub: 1 } })
+  })
 
-  // BOOK CARDS
-  gsap.fromTo('.book-card', { opacity: 0, y: 30, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.06, ease: 'power3.out', scrollTrigger: { trigger: '.books-sec', start: 'top 80%' } })
+  // ===== TEXT DRIFT — characters scatter on scroll =====
+  const driftChars = document.querySelectorAll('.drift-char')
+  if (driftChars.length) {
+    driftChars.forEach((el, i) => {
+      const dir = i < 4 ? -1 : 1
+      const spread = 60 + (i - 3.5) * 20
+      gsap.to(el, {
+        x: dir * spread * (1 + Math.abs(i - 3.5) * 0.3),
+        y: (Math.random() - 0.5) * 80,
+        rotation: (Math.random() - 0.5) * 30,
+        opacity: 0.15,
+        ease: 'none',
+        scrollTrigger: { trigger: '.drift-section', start: 'top 40%', end: 'bottom 20%', scrub: 1 }
+      })
+    })
+    gsap.fromTo('.drift-sub', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', scrollTrigger: { trigger: '.drift-section', start: 'top 60%' } })
+  }
 
-  // PHOTO CARDS
-  gsap.fromTo('.photo-card', { opacity: 0, scale: 0.9 }, { opacity: 1, scale: 1, duration: 0.5, stagger: 0.08, ease: 'power3.out', scrollTrigger: { trigger: '.photos-sec', start: 'top 80%' } })
+  // ===== BOOK SHOWCASE =====
+  const showcaseEl = document.querySelector('.showcase-pin') as HTMLElement
+  if (showcaseEl) {
+    const wraps = showcaseEl.querySelectorAll('.showcase-book')
+    const cards = showcaseEl.querySelectorAll('.showcase-card')
+    const spines = showcaseEl.querySelectorAll('.showcase-spine')
+    const infos = showcaseEl.querySelectorAll('.showcase-info')
+    const photoEls = showcaseEl.querySelectorAll('.showcase-photo')
+    const scene = showcaseEl.querySelector('.showcase-scene') as HTMLElement
+    const brandEcho = showcaseEl.querySelector('.brand-echo') as HTMLElement
+    const brandEcho2 = showcaseEl.querySelector('.brand-echo-2') as HTMLElement
+    const labelBooks = showcaseEl.querySelector('.showcase-label-books') as HTMLElement
+    const labelPhotos = showcaseEl.querySelector('.showcase-label-photos') as HTMLElement
 
-  // MARQUEE
-  gsap.to('.marquee-inner', { x: '-50%', ease: 'none', scrollTrigger: { trigger: '.marquee', start: 'top bottom', end: 'bottom top', scrub: 1 } })
+    const tl = gsap.timeline({
+      scrollTrigger: { trigger: showcaseEl, start: 'top top', end: '+=5000', scrub: 1, pin: true }
+    })
+
+    // Side labels
+    tl.to(labelBooks, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.5)
+    tl.to(labelBooks, { opacity: 0, duration: 0.4, ease: 'power2.in' }, 3.3)
+    tl.to(labelPhotos, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 4.2)
+
+    // Stage 1: Books slide in
+    wraps.forEach((el, i) => {
+      tl.fromTo(el, { opacity: 0, x: 300 + i * 60 }, { opacity: 1, x: 0, duration: 0.8, ease: 'power3.out' }, i * 0.08)
+    })
+
+    // Stage 2: Info fades, gather
+    infos.forEach((el, i) => { tl.to(el, { opacity: 0, x: -20, duration: 0.4, ease: 'power2.in' }, 1.2 + i * 0.04) })
+    wraps.forEach((el, i) => {
+      tl.to(el, { x: (i - 3.5) * 80, y: 0, duration: 0.8, ease: 'power3.inOut' }, 1.5)
+    })
+
+    // Stage 3: 3D — disable hover on covers
+    const covers = showcaseEl.querySelectorAll('.showcase-cover')
+    tl.call(() => { covers.forEach(c => (c as HTMLElement).style.pointerEvents = 'none') }, [], 2.1)
+    tl.to(scene, { rotateX: 25, rotateY: -5, duration: 1.5, ease: 'power2.inOut' }, 2.2)
+    cards.forEach((el, i) => {
+      tl.to(el, { rotateY: -15 + i * 4, rotateX: 8, z: 30 + i * 10, duration: 1, ease: 'power2.inOut' }, 2.2)
+    })
+    spines.forEach((el, i) => { tl.to(el, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 2.8 + i * 0.04) })
+
+    // Brand echo during scatter
+    tl.to(brandEcho, { opacity: 0.06, duration: 0.5, ease: 'power2.out' }, 3.4)
+    tl.to(brandEcho, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 4.5)
+
+    // Stage 4: Books scatter — keep covers disabled (they're disappearing anyway)
+    tl.call(() => { hoveredBook.value = null }, [], 3.5)
+    const scatter = [
+      { x: -500, y: -250 }, { x: 500, y: -200 }, { x: -400, y: 300 }, { x: 450, y: 150 },
+      { x: -300, y: -350 }, { x: 350, y: 300 }, { x: -450, y: 80 }, { x: 400, y: -300 }
+    ]
+    wraps.forEach((el, i) => {
+      const s = scatter[i % scatter.length]
+      tl.to(el, { x: s.x, y: s.y, opacity: 0, duration: 0.8, ease: 'power2.in' }, 3.5 + i * 0.04)
+    })
+
+    // Breath moment — brand flash between scatter and photos
+    const breath = showcaseEl.querySelector('.showcase-breath') as HTMLElement
+    tl.to(breath, { opacity: 1, duration: 0.4, ease: 'power2.out' }, 4.0)
+    tl.to(breath, { opacity: 0, duration: 0.6, ease: 'power2.in' }, 4.8)
+
+    const entries = [
+      { x: -600, y: -350, r: -20 }, { x: 600, y: -250, r: 15 }, { x: -500, y: 350, r: 25 },
+      { x: 550, y: 250, r: -15 }, { x: -400, y: -450, r: 10 }, { x: 450, y: 400, r: -20 },
+      { x: -600, y: 120, r: 30 }, { x: 600, y: -120, r: -25 }, { x: -300, y: 500, r: 15 },
+      { x: 300, y: -500, r: -10 }, { x: -550, y: -60, r: 20 }, { x: 500, y: 60, r: -30 }
+    ]
+    photoEls.forEach((el, i) => {
+      const e = entries[i % entries.length]
+      tl.fromTo(el,
+        { opacity: 0, x: e.x, y: e.y, rotation: e.r, scale: 0.3 },
+        { opacity: 1, x: 0, y: 0, rotation: 0, scale: 1, duration: 1, ease: 'power3.out' },
+        4.8 + i * 0.07
+      )
+    })
+
+    // Brand echo 2 during photo wall
+    tl.to(brandEcho2, { opacity: 0.06, duration: 0.5, ease: 'power2.out' }, 4.5)
+    tl.to(brandEcho2, { opacity: 0, duration: 0.8, ease: 'power2.in' }, 5.8)
+
+    tl.to(scene, { rotateX: 0, rotateY: 0, duration: 1, ease: 'power2.inOut' }, 4.5)
+  }
+
+  // ===== FLIP COUNTERS =====
+  document.querySelectorAll('.flip-counter').forEach(counter => {
+    const digits = counter.querySelectorAll('.flip-digit')
+    digits.forEach((digit, i) => {
+      const finalVal = digit.textContent || '0'
+      const delay = i * 0.15
+      // Set initial state
+      gsap.set(digit, { rotateX: -90, opacity: 0 })
+      // Flip in on scroll
+      gsap.to(digit, {
+        rotateX: 0, opacity: 1,
+        duration: 0.6, delay,
+        ease: 'back.out(1.5)',
+        scrollTrigger: { trigger: counter as HTMLElement, start: 'top 85%' }
+      })
+    })
+  })
+
+  // ===== QUOTE — scroll typewriter =====
+  const quoteEl = document.querySelector('.quote-text') as HTMLElement
+  if (quoteEl) {
+    const fullText = quoteEl.textContent || ''
+    quoteEl.textContent = ''
+    quoteEl.style.opacity = '1'
+    let charIdx = 0
+
+    ScrollTrigger.create({
+      trigger: '.quote-block',
+      start: 'top 70%',
+      onEnter: () => {
+        const typeInterval = setInterval(() => {
+          if (charIdx < fullText.length) {
+            quoteEl.textContent = fullText.slice(0, charIdx + 1)
+            charIdx++
+          } else {
+            clearInterval(typeInterval)
+          }
+        }, 35)
+      },
+      once: true,
+    })
+  }
+
+  gsap.fromTo('.quote-block cite', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', scrollTrigger: { trigger: '.quote-block', start: 'top 60%' } })
+
+  // ===== ENDING =====
+  gsap.fromTo('.ending-line', { scaleX: 0 }, { scaleX: 1, duration: 1, ease: 'power3.inOut', scrollTrigger: { trigger: '.ending', start: 'top 75%' } })
+
+  // SVG signature stroke draw — each letter sequentially
+  const sigPaths = document.querySelectorAll('.sig-path')
+  if (sigPaths.length) {
+    let delay = 0
+    sigPaths.forEach((p) => {
+      const path = p as SVGPathElement
+      const len = path.getTotalLength()
+      gsap.set(path, { strokeDasharray: len, strokeDashoffset: len })
+      gsap.to(path, {
+        strokeDashoffset: 0,
+        duration: 0.4 + len * 0.003,
+        delay,
+        ease: 'power2.inOut',
+        scrollTrigger: { trigger: '.ending', start: 'top 65%' }
+      })
+      delay += 0.15
+    })
+  }
+  gsap.fromTo('.ending-title', { opacity: 0, scale: 0.85, y: 40 }, { opacity: 1, scale: 1, y: 0, duration: 1.5, ease: 'power3.out', scrollTrigger: { trigger: '.ending', start: 'top 70%', end: 'top 30%', scrub: 1 } })
 })
 
-onUnmounted(() => {
-  ScrollTrigger.getAll().forEach(t => t.kill())
-  gsap.killTweensOf('*')
-})
+onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
 </script>
 
 <template>
-  <div class="home">
+  <div class="page">
 
-    <!-- HERO -->
-    <section class="hero">
-      <div class="hero-bg"><div class="hero-glow"></div></div>
-      <div class="hero-content">
-        <div class="hero-line"></div>
-        <h1 class="hero-title">LOUXILOU</h1>
-        <p class="hero-sub">藏书 · 写作 · 影像</p>
-        <p class="hero-desc">在文字与图像之间，记录阅读的深度、生活的温度、思考的刻度。</p>
-        <div class="hero-nav">
-          <router-link to="/blog" class="hero-link interactive"><span class="hl-num">01</span><span class="hl-name">博客</span><span class="hl-arrow">→</span></router-link>
-          <router-link to="/library" class="hero-link interactive"><span class="hl-num">02</span><span class="hl-name">藏书阁</span><span class="hl-arrow">→</span></router-link>
-          <router-link to="/gallery" class="hero-link interactive"><span class="hl-num">03</span><span class="hl-name">图库</span><span class="hl-arrow">→</span></router-link>
-        </div>
-      </div>
-    </section>
-
-    <!-- MARQUEE -->
-    <div class="marquee">
-      <div class="marquee-inner">
-        <span v-for="n in 10" :key="n" class="mq-text">LOUXILOU — 藏书 · 写作 · 影像 —&nbsp;</span>
-      </div>
+    <!-- Post hover preview -->
+    <div v-if="previewVisible" ref="previewEl" class="post-preview">
+      <img :src="previewSrc" alt="" />
     </div>
 
-    <!-- LATEST POSTS -->
-    <section class="posts-sec">
-      <div class="ctr">
-        <div class="sec-head reveal">
-          <div class="sec-head-row"><span class="sec-num">01</span><h2 class="sec-title">最新文章</h2></div>
-          <router-link to="/blog" class="sec-more interactive">查看全部 →</router-link>
-          <div class="rule"></div>
+    <!-- HERO -->
+    <section class="hero-pin">
+      <div class="hero-images">
+        <div class="hero-img hero-img-0"><img src="/photos/photo (1).jpg" alt="" /></div>
+        <div class="hero-img hero-img-1"><img src="/photos/photo (2).jpg" alt="" /></div>
+        <div class="hero-img hero-img-2"><img src="/photos/photo (3).jpg" alt="" /></div>
+        <div class="hero-img hero-img-3"><img src="/photos/photo (4).jpg" alt="" /></div>
+        <div class="hero-img hero-img-4"><img src="/photos/photo (5).jpg" alt="" /></div>
+      </div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <span class="hero-year">二〇二六</span>
+        <h1 class="hero-title" @mousemove="onTitleMove" @mouseleave="onTitleLeave">
+          <span v-for="(ch, i) in 'LOUXILOU'.split('')" :key="i" class="ht-char" :data-i="i">{{ ch }}</span>
+        </h1>
+        <p class="hero-sub">文章 · 阅读 · 摄影</p>
+      </div>
+      <div class="hero-statement">
+        <p>阅读的深度、<br>生活的温度、<br>思考的刻度，<br>都被楼西楼在文字与图像之间一一记录。</p>
+      </div>
+    </section>
+
+    <!-- POSTS -->
+    <section class="posts-section">
+      <div class="section-label">
+        <span class="label-num">01</span>
+        <span class="label-text scramble-title">写作</span>
+        <router-link to="/blog" class="label-link">查看全部 →</router-link>
+      </div>
+      <div class="posts-list">
+        <article v-for="(post, i) in posts.slice(0, 5)" :key="post.id" class="post-item" @click="goBlog(post.id)" @mouseenter="onPostEnter(post, $event)" @mousemove="onPostMove" @mouseleave="onPostLeave()">
+          <span class="pi-num">{{ String(i + 1).padStart(2, '0') }}</span>
+          <div class="pi-body">
+            <span class="pi-cat">{{ post.category || '随笔' }}</span>
+            <h2 class="pi-title">{{ post.title }}</h2>
+            <p class="pi-excerpt">{{ post.summary || (post.content || '').substring(0, 80) }}…</p>
+          </div>
+          <span class="pi-date">{{ fmt(post.created_at) }}</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- STATS — flip counter -->
+    <section class="stats-section">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="flip-counter" :data-target="posts.length">
+            <span class="flip-digit" v-for="(d, i) in String(posts.length).split('')" :key="'p'+i">{{ d }}</span>
+          </div>
+          <span class="stat-label">篇文章</span>
         </div>
-        <div v-if="loading" style="display:flex;justify-content:center;padding:3rem"><div class="loader"></div></div>
-        <div v-else class="posts-list">
-          <article v-for="(post, i) in recentPosts" :key="post.id" class="post-row interactive" @click="goBlog(post.id)">
-            <span class="post-idx">{{ String(i + 1).padStart(2, '0') }}</span>
-            <div class="post-body">
-              <div class="post-meta"><span class="post-cat">{{ post.category || '随笔' }}</span><span class="post-date">{{ fmt(post.created_at) }}</span></div>
-              <h3 class="post-title">{{ post.title }}</h3>
-              <p class="post-excerpt">{{ post.summary || (post.content || '').substring(0, 100) }}…</p>
-            </div>
-            <span class="post-arrow">→</span>
-          </article>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <div class="flip-counter" :data-target="books.length">
+            <span class="flip-digit" v-for="(d, i) in String(books.length).split('')" :key="'b'+i">{{ d }}</span>
+          </div>
+          <span class="stat-label">本藏书</span>
+        </div>
+        <div class="stat-sep"></div>
+        <div class="stat-item">
+          <div class="flip-counter" :data-target="photos.length">
+            <span class="flip-digit" v-for="(d, i) in String(photos.length).split('')" :key="'ph'+i">{{ d }}</span>
+          </div>
+          <span class="stat-label">张照片</span>
         </div>
       </div>
     </section>
 
-    <!-- BOOKS PREVIEW -->
-    <section class="books-sec">
-      <div class="ctr">
-        <div class="sec-head reveal">
-          <div class="sec-head-row"><span class="sec-num">02</span><h2 class="sec-title">藏书阁</h2></div>
-          <router-link to="/library" class="sec-more interactive">查看全部 →</router-link>
-          <div class="rule"></div>
+    <!-- TEXT DRIFT — signature effect -->
+    <section class="drift-section">
+      <div class="drift-container">
+        <span v-for="(ch, i) in 'LOUXILOU'.split('')" :key="i" class="drift-char" :data-i="i">{{ ch }}</span>
+      </div>
+      <p class="drift-sub">文章 · 阅读 · 摄影</p>
+    </section>
+
+    <!-- BOOK SHOWCASE -->
+    <section class="showcase-pin">
+      <div class="showcase-scene">
+        <div class="showcase-label showcase-label-books">
+          <span class="sl-num">02</span>
+          <span class="sl-text">藏书阁</span>
+          <router-link to="/library" class="sl-link">查看全部 →</router-link>
         </div>
-        <div class="books-scroll">
-          <div v-for="book in recentBooks" :key="book.id" class="book-card interactive" @click="goBook(book.id)">
-            <div class="bk-cover"><img :src="book.cover" :alt="book.title" loading="lazy" /></div>
-            <h4 class="bk-title">{{ book.title }}</h4>
-            <p class="bk-author">{{ book.author }}</p>
+        <div class="showcase-label showcase-label-photos">
+          <span class="sl-num">03</span>
+          <span class="sl-text">图库</span>
+          <router-link to="/gallery" class="sl-link">查看全部 →</router-link>
+        </div>
+
+        <!-- Brand echoes -->
+        <div class="brand-echo">LOUXILOU</div>
+        <div class="brand-echo-2">LOUXILOU</div>
+        <!-- Breath moment -->
+        <div class="showcase-breath">
+          <span class="breath-text">LOUXILOU</span>
+        </div>
+
+        <div v-for="(book, i) in books.slice(0, 8)" :key="book.id" class="showcase-book">
+          <div class="showcase-hover">
+            <div class="showcase-card">
+              <div class="showcase-cover" @mouseenter="onBookEnter(book, $event)" @mouseleave="onBookLeave($event)">
+                <img :src="book.cover" :alt="book.title" loading="lazy" />
+              </div>
+              <div class="showcase-spine"></div>
+            </div>
+          </div>
+          <div class="showcase-info">
+            <h3>{{ book.title }}</h3>
+            <p>{{ book.author }}</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- PHOTOS PREVIEW -->
-    <section class="photos-sec">
-      <div class="ctr">
-        <div class="sec-head reveal">
-          <div class="sec-head-row"><span class="sec-num">03</span><h2 class="sec-title">图库</h2></div>
-          <router-link to="/gallery" class="sec-more interactive">查看全部 →</router-link>
-          <div class="rule"></div>
-        </div>
-        <div class="photos-grid">
-          <div v-for="(src, i) in recentPhotos" :key="i" class="photo-card">
+        <div class="showcase-wall">
+          <div v-for="(src, i) in photos" :key="i" class="showcase-photo">
             <img :src="src" :alt="`Photo ${i+1}`" loading="lazy" />
           </div>
         </div>
       </div>
-    </section>
 
-    <!-- ABOUT -->
-    <section class="about-sec">
-      <div class="ctr">
-        <div class="about-grid">
-          <div class="about-left reveal">
-            <span class="sec-num">04</span>
-            <h2 class="sec-title">关于</h2>
-            <div class="rule"></div>
-          </div>
-          <div class="about-right reveal">
-            <p class="about-text">一个热爱阅读与写作的人。在这里记录经典文学的阅读笔记、技术思考与生活感悟。每一本书都是一次远行，每一篇文章都是一段回响。</p>
-            <div class="about-stats">
-              <div class="stat"><span class="stat-val">{{ posts.length }}</span><span class="stat-lbl">篇文章</span></div>
-              <div class="stat"><span class="stat-val">{{ books.length }}</span><span class="stat-lbl">本藏书</span></div>
-              <div class="stat"><span class="stat-val">{{ photos.length }}</span><span class="stat-lbl">张照片</span></div>
-            </div>
+      <!-- Book info panel -->
+      <Transition name="info-panel">
+        <div v-if="hoveredBook" class="book-info-panel">
+          <div class="bip-content">
+            <h3 class="bip-title">{{ hoveredBook.title }}</h3>
+            <p class="bip-author">{{ hoveredBook.author }}</p>
+            <p class="bip-desc">{{ hoveredBook.description }}</p>
           </div>
         </div>
-      </div>
+      </Transition>
+    </section>
+
+    <!-- QUOTE — scroll typewriter -->
+    <section class="quote-block">
+      <blockquote class="quote-text">"多年以后，面对行刑队，奥雷里亚诺·布恩迪亚上校将会回想起父亲带他去见识冰块的那个遥远的下午。"</blockquote>
+      <cite>— 百年孤独 · 加西亚·马尔克斯</cite>
+    </section>
+
+    <!-- ENDING — strong brand close with SVG handwriting -->
+    <section class="ending">
+      <div class="ending-line"></div>
+      <h2 class="ending-title">楼西楼</h2>
+      <!-- SVG calligraphic LOUXILOU — refined -->
+      <svg class="ending-svg" viewBox="0 0 380 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- L -->
+        <path class="sig-path" d="M 30 18 C 30 18, 30 62, 30 62 C 30 62, 52 62, 52 62" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <!-- O -->
+        <path class="sig-path" d="M 72 40 C 72 22, 96 16, 96 40 C 96 60, 72 64, 72 40 Z" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- U -->
+        <path class="sig-path" d="M 112 18 C 112 18, 112 50, 118 56 C 124 62, 136 62, 140 56 C 144 50, 144 18, 144 18" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- X -->
+        <path class="sig-path" d="M 158 18 C 158 18, 188 62, 188 62" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <path class="sig-path" d="M 188 18 C 188 18, 158 62, 158 62" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- I -->
+        <path class="sig-path" d="M 215 18 L 215 62" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- L -->
+        <path class="sig-path" d="M 238 18 C 238 18, 238 62, 238 62 C 238 62, 260 62, 260 62" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        <!-- O -->
+        <path class="sig-path" d="M 280 40 C 280 22, 304 16, 304 40 C 304 60, 280 64, 280 40 Z" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- U -->
+        <path class="sig-path" d="M 320 18 C 320 18, 320 50, 326 56 C 332 62, 344 62, 348 56 C 352 50, 352 18, 352 18" stroke="#9F353A" stroke-width="2.5" stroke-linecap="round" fill="none" />
+        <!-- flourish underline -->
+        <path class="sig-path" d="M 25 72 C 100 80, 280 80, 355 72" stroke="#9F353A" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.35" />
+      </svg>
     </section>
 
   </div>
 </template>
 
 <style scoped>
-.home { position: relative; z-index: 1; }
+.page { position: relative; z-index: 1; }
 
 /* HERO */
-.hero { position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.hero-bg { position: absolute; inset: 0; z-index: 0; }
-.hero-glow { position: absolute; inset: -30%; background: radial-gradient(ellipse at 30% 40%, rgba(159,53,58,0.1) 0%, transparent 55%), radial-gradient(ellipse at 70% 60%, rgba(159,53,58,0.05) 0%, transparent 50%); }
-.hero-content { position: relative; z-index: 1; text-align: center; padding: 2rem; max-width: 700px; }
-.hero-line { width: 60px; height: 1px; background: var(--gold); margin: 0 auto 2.5rem; transform-origin: center; }
-.hero-title { font-family: var(--font-display); font-size: clamp(3rem, 8vw, 5.5rem); font-weight: 900; letter-spacing: 0.1em; color: var(--ink); margin-bottom: 1rem; line-height: 1; opacity: 0; }
-.hero-sub { font-family: var(--font-body); font-size: 0.85rem; color: var(--gold); letter-spacing: 0.5em; margin-bottom: 1.5rem; opacity: 0; }
-.hero-desc { font-family: var(--font-body); font-size: 0.95rem; color: var(--ink-dim); line-height: 2; max-width: 420px; margin: 0 auto 3rem; opacity: 0; }
-.hero-nav { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; opacity: 0; }
-.hero-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.25rem; border: 1px solid var(--border); border-radius: 4px; text-decoration: none; transition: all 0.35s var(--ease); }
-.hero-link:hover { border-color: var(--gold); background: var(--gold-dim); }
-.hl-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gold); }
-.hl-name { font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; color: var(--ink); letter-spacing: 0.05em; }
-.hl-arrow { font-size: 0.8rem; color: var(--ink-ghost); transition: transform 0.3s var(--ease); }
-.hero-link:hover .hl-arrow { transform: translateX(4px); color: var(--gold); }
+.hero-pin { position: relative; height: 100vh; overflow: hidden; }
+.hero-images { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 0; }
+.hero-img { overflow: hidden; }
+.hero-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.hero-img-0 { grid-column: 1; grid-row: 1; }
+.hero-img-1 { grid-column: 2; grid-row: 1; }
+.hero-img-2 { grid-column: 3; grid-row: 1; }
+.hero-img-3 { grid-column: 1 / 3; grid-row: 2; }
+.hero-img-4 { grid-column: 3; grid-row: 2; }
+.hero-overlay { position: absolute; inset: 0; background: rgba(8, 7, 6, 0.65); opacity: 0.6; z-index: 1; }
+.hero-content { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.hero-year { font-family: var(--font-body); font-size: 0.75rem; color: var(--gold); letter-spacing: 0.6em; margin-bottom: 2rem; }
+.hero-title { font-family: var(--font-display); font-size: clamp(4rem, 14vw, 10rem); font-weight: 900; letter-spacing: 0.3em; color: var(--ink); line-height: 0.85; margin-bottom: 1.5rem; perspective: 800px; }
+.ht-char { display: inline-block; will-change: transform; }
+.hero-sub { font-family: var(--font-body); font-size: 0.85rem; color: var(--ink-dim); letter-spacing: 0.8em; }
+.hero-statement { position: absolute; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; text-align: center; opacity: 0; }
+.hero-statement p { font-family: var(--font-display); font-size: clamp(1.5rem, 3.5vw, 2.8rem); font-weight: 300; font-style: italic; color: var(--ink); line-height: 2; letter-spacing: 0.08em; max-width: 500px; }
 
-/* MARQUEE */
-.marquee { overflow: hidden; padding: 1.25rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.marquee-inner { display: flex; width: max-content; }
-.mq-text { font-family: var(--font-display); font-size: clamp(0.9rem, 2vw, 1.4rem); font-weight: 300; font-style: italic; color: var(--ink-vanish); white-space: nowrap; letter-spacing: 0.05em; }
+/* SECTION LABEL */
+.section-label { display: flex; align-items: baseline; gap: 1rem; padding: 0 2.5rem; margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+.label-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--gold); letter-spacing: 0.1em; }
+.label-text { font-family: var(--font-display); font-size: 1.3rem; font-weight: 600; letter-spacing: 0.05em; }
+.label-link { margin-left: auto; font-family: var(--font-sans); font-size: 0.7rem; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; }
+.label-link:hover { color: var(--gold); }
 
-/* SECTION HEAD */
-.sec-head { margin-bottom: 2.5rem; display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 1.5rem; }
-.sec-head-row { display: flex; align-items: baseline; gap: 0.75rem; }
-.sec-num { font-family: var(--font-mono); font-size: 0.6rem; font-weight: 300; color: var(--gold); letter-spacing: 0.1em; }
-.sec-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; letter-spacing: 0.04em; }
-.sec-more { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; margin-left: auto; }
-.sec-more:hover { color: var(--gold); }
-.rule { width: 100%; height: 1px; background: var(--border); margin-top: 1rem; }
+/* POST HOVER PREVIEW */
+.post-preview {
+  position: fixed;
+  z-index: 10000;
+  width: 200px;
+  height: 140px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.post-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
 /* POSTS */
-.posts-sec { padding: 5rem 0; }
+.posts-section { padding: 6rem 0; }
 .posts-list { display: flex; flex-direction: column; }
-.post-row { display: flex; align-items: flex-start; gap: 1.5rem; padding: 1.5rem 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: all 0.3s var(--ease); }
-.post-row:first-child { border-top: 1px solid var(--border); }
-.post-row:hover { padding-left: 0.75rem; }
-.post-row:hover .post-title { color: var(--gold); }
-.post-row:hover .post-arrow { transform: translateX(4px); color: var(--gold); }
-.post-idx { font-family: var(--font-mono); font-size: 0.65rem; font-weight: 300; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.25rem; min-width: 1.8rem; }
-.post-body { flex: 1; min-width: 0; }
-.post-meta { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
-.post-cat { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.08em; text-transform: uppercase; }
-.post-date { font-size: 0.65rem; color: var(--ink-ghost); }
-.post-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; line-height: 1.45; margin-bottom: 0.35rem; transition: color 0.3s; }
-.post-excerpt { font-size: 0.8rem; color: var(--ink-ghost); line-height: 1.7; }
-.post-arrow { font-size: 1rem; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.15rem; transition: all 0.3s var(--ease); }
+.post-item { display: flex; align-items: flex-start; gap: 2rem; padding: 2rem 2.5rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.3s; }
+.post-item:first-child { border-top: 1px solid var(--border); }
+.post-item:hover { background: rgba(255,255,255,0.02); }
+.pi-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.3rem; min-width: 2rem; }
+.pi-body { flex: 1; min-width: 0; }
+.pi-cat { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.5rem; }
+.pi-title { font-family: var(--font-display); font-size: 1.4rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.4rem; transition: color 0.3s; }
+.post-item:hover .pi-title { color: var(--gold); }
+.pi-excerpt { font-size: 0.82rem; color: var(--ink-ghost); line-height: 1.7; }
+.pi-date { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.3rem; }
 
-/* BOOKS */
-.books-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
-.books-scroll { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; }
-.book-card { cursor: pointer; transition: all 0.35s var(--ease); }
-.book-card:hover { transform: translateY(-6px); }
-.bk-cover { aspect-ratio: 3/4; overflow: hidden; border-radius: 3px; border: 1px solid var(--border); margin-bottom: 0.6rem; }
-.bk-cover img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s var(--ease); }
-.book-card:hover .bk-cover img { transform: scale(1.05); }
-.bk-title { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.15rem; line-height: 1.3; }
-.bk-author { font-family: var(--font-sans); font-size: 0.68rem; color: var(--ink-ghost); }
+/* STATS */
+.stats-section { padding: 6rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.stats-grid { display: flex; justify-content: center; align-items: center; gap: 3rem; }
+.stat-item { text-align: center; }
+.stat-sep { width: 1px; height: 50px; background: var(--border); }
+.flip-counter { display: flex; justify-content: center; gap: 0.1em; margin-bottom: 0.5rem; perspective: 600px; }
+.flip-digit { font-family: var(--font-display); font-size: 3.5rem; font-weight: 900; color: var(--gold); line-height: 1; display: inline-block; transform-origin: center bottom; }
+.stat-label { font-family: var(--font-sans); font-size: 0.7rem; color: var(--ink-ghost); letter-spacing: 0.08em; }
 
-/* PHOTOS */
-.photos-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
-.photos-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; }
-.photo-card { border-radius: 3px; overflow: hidden; transition: all 0.35s var(--ease); }
-.photo-card:hover { transform: scale(1.02); }
-.photo-card img { width: 100%; height: 200px; object-fit: cover; display: block; }
+/* TEXT DRIFT */
+.drift-section {
+  padding: 10rem 0;
+  text-align: center;
+  overflow: hidden;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+.drift-container {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  perspective: 800px;
+}
+.drift-char {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 8rem);
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  color: var(--ink);
+  display: inline-block;
+  transition: color 0.3s;
+}
+.drift-sub {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--gold);
+  letter-spacing: 0.4em;
+  margin-top: 2rem;
+  opacity: 0;
+}
 
-/* ABOUT */
-.about-sec { padding: 5rem 0; border-top: 1px solid var(--border); }
-.about-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 3rem; align-items: start; }
-.about-text { font-size: 0.95rem; color: var(--ink-dim); line-height: 2.2; margin-bottom: 2rem; }
-.about-stats { display: flex; gap: 2.5rem; }
-.stat { display: flex; flex-direction: column; gap: 0.15rem; }
-.stat-val { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--gold); line-height: 1; }
-.stat-lbl { font-family: var(--font-sans); font-size: 0.65rem; color: var(--ink-ghost); letter-spacing: 0.06em; }
+/* SHOWCASE */
+.showcase-pin { height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 1200px; }
+.showcase-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
+.showcase-label { position: absolute; left: 2.5rem; z-index: 10; display: flex; flex-direction: column; gap: 0.3rem; opacity: 0; }
+.showcase-label-books { top: 50%; transform: translateY(-50%); }
+.showcase-label-photos { top: 50%; transform: translateY(-50%); }
+.sl-num { font-family: var(--font-mono); font-size: 0.55rem; color: var(--gold); letter-spacing: 0.1em; }
+.sl-text { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.04em; }
+.sl-link { font-family: var(--font-sans); font-size: 0.65rem; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; margin-top: 0.3rem; }
+.sl-link:hover { color: var(--gold); }
+
+/* Brand echoes */
+.brand-echo, .brand-echo-2 {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 8rem);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.showcase-book { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; pointer-events: none; user-select: none; }
+.showcase-hover { pointer-events: none; }
+.showcase-card { position: relative; transform-style: preserve-3d; }
+.showcase-cover { width: 160px; aspect-ratio: 3/4; overflow: hidden; border-radius: 2px; border: 1px solid var(--border); backface-visibility: hidden; pointer-events: auto; cursor: default; }
+.showcase-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.showcase-spine { position: absolute; right: -8px; top: 0; width: 8px; height: 100%; background: linear-gradient(to right, rgba(60,50,40,0.8), rgba(40,35,28,0.95)); transform: rotateY(90deg); transform-origin: left center; opacity: 0; border-radius: 0 2px 2px 0; }
+.showcase-info { text-align: center; opacity: 0; }
+.showcase-info h3 { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; margin-bottom: 0.15rem; white-space: nowrap; }
+.showcase-info p { font-family: var(--font-sans); font-size: 0.6rem; color: var(--ink-ghost); }
+.showcase-wall { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 0.3rem; padding: 2rem; pointer-events: none; }
+.showcase-photo { overflow: hidden; border-radius: 2px; opacity: 0; }
+.showcase-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* BOOK INFO PANEL */
+.book-info-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: 2.5rem 2.5rem 2rem;
+  background: linear-gradient(to top, rgba(8,7,6,0.97) 0%, rgba(8,7,6,0.85) 70%, transparent 100%);
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+.bip-content { max-width: 650px; margin: 0 auto; text-align: center; }
+.bip-title { font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; margin-bottom: 0.25rem; color: var(--gold); }
+.bip-author { font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); margin-bottom: 0.6rem; letter-spacing: 0.06em; }
+.bip-desc { font-size: 0.82rem; color: var(--ink-dim); line-height: 1.8; max-width: 480px; margin: 0 auto; }
+.info-panel-enter-active { transition: all 0.35s var(--ease); }
+.info-panel-leave-active { transition: all 0.25s var(--ease); }
+.info-panel-enter-from { opacity: 0; transform: translateY(16px); }
+.info-panel-leave-to { opacity: 0; transform: translateY(8px); }
+
+/* QUOTE */
+.quote-block { padding: 10rem 2rem; text-align: center; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.quote-block blockquote { font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 2.2rem); font-weight: 300; font-style: italic; color: var(--ink-dim); line-height: 2; letter-spacing: 0.06em; max-width: 550px; margin: 0 auto 2rem; }
+.quote-block cite { font-family: var(--font-sans); font-size: 0.7rem; color: var(--ink-ghost); letter-spacing: 0.15em; font-style: normal; }
+
+/* SHOWCASE BREATH MOMENT */
+.showcase-breath {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+.breath-text {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  opacity: 0.5;
+}
+
+/* ENDING — strong brand close */
+.ending {
+  padding: 12rem 2rem 6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+.ending-line {
+  width: 60px;
+  height: 1px;
+  background: var(--gold);
+  opacity: 0.4;
+}
+.ending-svg {
+  width: 300px;
+  height: auto;
+  margin: 1.5rem auto;
+  overflow: visible;
+  display: block;
+}
+.ending-title {
+  font-family: var(--font-body);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 900;
+  color: var(--ink);
+  letter-spacing: 0.15em;
+  opacity: 0;
+}
 
 @media (max-width: 768px) {
-  .hero-content { padding: 1rem; }
-  .hero-nav { flex-direction: column; align-items: center; }
-  .hero-link { width: 100%; justify-content: center; }
-  .sec-head { flex-direction: column; gap: 0.5rem; }
-  .sec-more { margin-left: 0; }
-  .post-row { gap: 1rem; }
-  .post-idx, .post-arrow { display: none; }
-  .books-scroll { grid-template-columns: repeat(2, 1fr); }
-  .photos-grid { grid-template-columns: repeat(2, 1fr); }
-  .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+  .hero-title { font-size: clamp(3rem, 12vw, 5rem); }
+  .hero-statement p { font-size: 1.3rem; }
+  .post-item { padding: 1.5rem; gap: 1rem; }
+  .pi-num, .pi-date { display: none; }
+  .post-preview { display: none; }
+  .stats-grid { gap: 2rem; }
+  .stat-val { font-size: 2.5rem; }
+  .stat-sep { height: 30px; }
+  .showcase-cover { width: 100px; }
+  .showcase-spine { display: none; }
+  .showcase-wall { grid-template-columns: repeat(3, 1fr); padding: 1rem; }
+  .showcase-label { left: 1rem; }
+  .brand-echo, .brand-echo-2 { font-size: clamp(2rem, 8vw, 4rem); }
+  .quote-block { padding: 6rem 2rem; }
+  .section-label { padding: 0 1.25rem; }
+  .ending { padding: 8rem 2rem 4rem; }
+  .ending-title { font-size: clamp(2.5rem, 10vw, 4rem); }
 }
 </style>

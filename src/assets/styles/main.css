@@ -23,9 +23,9 @@
   --border: rgba(255, 255, 255, 0.06);
   --border-hover: rgba(255, 255, 255, 0.14);
 
-  --font-display: 'Playfair Display', 'Noto Serif SC', Georgia, serif;
-  --font-body: 'Noto Serif SC', 'Playfair Display', Georgia, serif;
-  --font-sans: 'Inter', 'Noto Serif SC', sans-serif;
+  --font-display: 'Cormorant Garamond', 'LXGW WenKai', 'Noto Serif SC', Georgia, serif;
+  --font-body: 'LXGW WenKai', 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', 'LXGW WenKai', 'Noto Serif SC', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   --nav-h: 80px;

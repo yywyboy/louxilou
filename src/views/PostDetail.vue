@@ -39,7 +39,7 @@ async function loadComments() { comments.value = await getComments(route.params.
 async function loadLike() { const u = uid(); liked.value = await hasUserLiked(route.params.id as string, u); likes.value = await getLikeCount(route.params.id as string) }
 async function doLike() { const u = uid(); const s = await toggleLike(route.params.id as string, u); liked.value = s; likes.value += s ? 1 : -1 }
 async function doComment() { if (!cName.value.trim() || !cBody.value.trim()) return; const c = await addComment(route.params.id as string, cName.value.trim(), cBody.value.trim()); if (c) { comments.value.push(c); cBody.value = '' } }
-function goBack() { router.push('/') }
+function goBack() { router.push('/blog') }
 
 onMounted(() => { load(); window.addEventListener('scroll', onScroll, { passive: true }) })
 onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); gsap.killTweensOf('*') })
@@ -55,7 +55,7 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
     <article v-else class="art">
       <button class="back interactive" @click="goBack">
         <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-        返回
+        返回博客
       </button>
 
       <header class="art-hd">
@@ -112,7 +112,8 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
 .pd { position: relative; z-index: 1; min-height: 100vh; }
 .prog { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); z-index: 1001; transition: width 0.1s; }
 .art { max-width: 720px; margin: 0 auto; padding: 3rem 2rem 4rem; }
-.back { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.8rem; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.75rem; margin-bottom: 2.5rem; transition: all 0.3s; opacity: 0; }
+.back { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1.2rem; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 100px; color: var(--ink-dim); font-family: var(--font-sans); font-size: 0.82rem; margin-bottom: 2.5rem; transition: all 0.3s; opacity: 0; }
+.back:hover { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 .back:hover { color: var(--ink); border-color: var(--border-hover); }
 .art-hd { margin-bottom: 2.5rem; opacity: 0; }
 .art-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.78rem; color: var(--ink-ghost); }
@@ -120,7 +121,7 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
 .m-sep { opacity: 0.3; }
 .art-title { font-family: var(--font-display); font-size: clamp(1.8rem, 4vw, 2.4rem); font-weight: 700; line-height: 1.35; margin-bottom: 1rem; }
 .art-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.tag { font-family: var(--font-sans); font-size: 0.7rem; color: var(--ink-ghost); padding: 0.12rem 0.5rem; background: var(--gold-dim); border-radius: 2px; }
+.tag { font-family: var(--font-sans); font-size: 0.7rem; color: var(--ink-ghost); padding: 0.12rem 0.5rem; background: var(--gold-dim); border-radius: 100px; }
 .art-cover { margin-bottom: 2.5rem; border-radius: 3px; overflow: hidden; border: 1px solid var(--border); }
 .art-cover img { width: 100%; display: block; }
 .art-body { font-size: 1.05rem; line-height: 2.1; color: var(--ink); margin-bottom: 3rem; overflow-wrap: break-word; opacity: 0; font-weight: 300; letter-spacing: 0.01em; }
@@ -129,7 +130,7 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
 .art-body :deep(h3) { font-family: var(--font-display); font-size: 1.15rem; margin: 2rem 0 0.8rem; font-weight: 600; }
 .art-body :deep(p) { margin: 0 0 1.5rem; }
 .art-body :deep(strong) { font-weight: 600; }
-.art-body :deep(code) { background: var(--gold-dim); padding: 0.1rem 0.4rem; border-radius: 2px; font-family: var(--font-mono); font-size: 0.85em; }
+.art-body :deep(code) { background: var(--gold-dim); padding: 0.1rem 0.4rem; border-radius: 100px; font-family: var(--font-mono); font-size: 0.85em; }
 .art-body :deep(pre) { background: var(--bg-warm); border: 1px solid var(--border); border-radius: 3px; padding: 1.25rem; overflow-x: auto; margin: 1.5rem 0; }
 .art-body :deep(pre code) { background: none; padding: 0; font-size: 0.85rem; line-height: 1.7; }
 .art-body :deep(a) { color: var(--gold); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.3s; }
@@ -142,20 +143,20 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
 .art-body :deep(th), .art-body :deep(td) { padding: 0.55rem 0.85rem; border: 1px solid var(--border); text-align: left; }
 .art-body :deep(th) { background: var(--gold-dim); font-weight: 600; }
 .art-actions { display: flex; justify-content: center; padding: 2rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 3rem; }
-.like { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.15rem; background: none; border: 1px solid var(--border); border-radius: 3px; font-size: 0.88rem; color: var(--ink-ghost); transition: all 0.3s; }
+.like { display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 1.15rem; background: none; border: 1px solid var(--border); border-radius: 100px; font-size: 0.88rem; color: var(--ink-ghost); transition: all 0.3s; }
 .like:hover { border-color: var(--gold-dim); color: var(--gold); }
 .like.on { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
 .cm-sec { margin-top: 2rem; }
 .cm-title { font-family: var(--font-display); font-size: 1.1rem; font-weight: 600; letter-spacing: 0.04em; }
-.cm-form { display: flex; flex-direction: column; gap: 0.65rem; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 2rem; }
-.fi, .ft { width: 100%; padding: 0.55rem 0.8rem; background: var(--bg-warm); border: 1px solid var(--border); border-radius: 3px; font-size: 0.85rem; color: var(--ink); font-family: var(--font-body); outline: none; transition: border-color 0.3s; }
+.cm-form { display: flex; flex-direction: column; gap: 0.65rem; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 2rem; }
+.fi, .ft { width: 100%; padding: 0.55rem 0.8rem; background: var(--bg-warm); border: 1px solid var(--border); border-radius: 100px; font-size: 0.85rem; color: var(--ink); font-family: var(--font-body); outline: none; transition: border-color 0.3s; }
 .fi:focus, .ft:focus { border-color: var(--border-hover); }
 .fi::placeholder, .ft::placeholder { color: var(--ink-ghost); }
 .ft { resize: vertical; min-height: 60px; }
-.cta-fill { display: inline-flex; align-items: center; justify-content: center; padding: 0.55rem 1.15rem; background: var(--gold); color: var(--bg); font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; border: none; border-radius: 3px; cursor: pointer; transition: all 0.3s; align-self: flex-end; }
+.cta-fill { display: inline-flex; align-items: center; justify-content: center; padding: 0.55rem 1.15rem; background: var(--gold); color: var(--bg); font-family: var(--font-sans); font-size: 0.78rem; font-weight: 500; border: none; border-radius: 100px; cursor: pointer; transition: all 0.3s; align-self: flex-end; }
 .cta-fill:hover { background: var(--gold-light); transform: translateY(-1px); }
 .cm-list { display: flex; flex-direction: column; gap: 0.6rem; }
-.cm { display: flex; gap: 0.9rem; padding: 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px; }
+.cm { display: flex; gap: 0.9rem; padding: 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 3px; }
 .cm-av { width: 34px; height: 34px; background: linear-gradient(135deg, var(--gold-dim), var(--gold)); color: var(--bg); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; flex-shrink: 0; border-radius: 50%; }
 .cm-body { flex: 1; }
 .cm-head { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.35rem; }

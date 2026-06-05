@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { RouterView, useRoute } from 'vue-router'
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { gsap } from 'gsap'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { gsap, initMagnetic, initScrollColor } from './composables/useGsap'
 
 const route = useRoute()
+const router = useRouter()
 const isReader = computed(() => route.name === 'BookReader')
 const loaded = ref(false)
+const showLoader = ref(true)
 const scrollY = ref(0)
+const scrollProgress = ref(0)
 const navHidden = ref(false)
 const lastScroll = ref(0)
 const mobileOpen = ref(false)
@@ -14,24 +17,73 @@ const mobileOpen = ref(false)
 // Cursor
 const ring = ref<HTMLElement | null>(null)
 const dot = ref<HTMLElement | null>(null)
+const cursorLabel = ref('')
 const hover = ref(false)
 let cx = 0, cy = 0, tx = 0, ty = 0, raf: number
 
 function tick() {
-  cx += (tx - cx) * 0.1
-  cy += (ty - cy) * 0.1
+  cx += (tx - cx) * 0.1; cy += (ty - cy) * 0.1
   if (ring.value) ring.value.style.transform = `translate(${cx - 20}px, ${cy - 20}px)`
   if (dot.value) dot.value.style.transform = `translate(${tx - 3}px, ${ty - 3}px)`
   raf = requestAnimationFrame(tick)
 }
 
-function onMove(e: MouseEvent) { tx = e.clientX; ty = e.clientY }
-function onOver(e: MouseEvent) { if ((e.target as HTMLElement).closest('a,button,.interactive')) hover.value = true }
-function onOut() { hover.value = false }
+// Ink trail
+let lastInkX = 0, lastInkY = 0, inkDist = 0
+function spawnInk(x: number, y: number) {
+  const dot = document.createElement('div')
+  dot.className = 'ink-dot'
+  dot.style.cssText = `left:${x}px;top:${y}px;`
+  document.body.appendChild(dot)
+  gsap.to(dot, { opacity: 0, scale: 2.5, duration: 1.2, ease: 'power2.out', onComplete: () => dot.remove() })
+}
+
+function onMove(e: MouseEvent) {
+  tx = e.clientX; ty = e.clientY
+  const dx = e.clientX - lastInkX, dy = e.clientY - lastInkY
+  inkDist += Math.sqrt(dx * dx + dy * dy)
+  if (inkDist > 40) {
+    spawnInk(e.clientX, e.clientY)
+    inkDist = 0
+  }
+  lastInkX = e.clientX; lastInkY = e.clientY
+}
+function onOver(e: MouseEvent) {
+  const t = e.target as HTMLElement
+  if (t.closest('a, button, .interactive')) { hover.value = true; cursorLabel.value = '' }
+  else if (t.closest('img, .showcase-cover, .photo-cell, .ph-item')) { hover.value = true; cursorLabel.value = '查看' }
+  else if (t.closest('.post-item, article')) { hover.value = true; cursorLabel.value = '阅读' }
+  else { hover.value = false; cursorLabel.value = '' }
+}
+function onOut() { hover.value = false; cursorLabel.value = '' }
+
 function onScroll() {
   scrollY.value = window.scrollY
   navHidden.value = window.scrollY > lastScroll.value && window.scrollY > 80
   lastScroll.value = window.scrollY
+  const doc = document.documentElement
+  const sh = doc.scrollHeight - doc.clientHeight
+  scrollProgress.value = sh > 0 ? (doc.scrollTop / sh) * 100 : 0
+}
+
+// Easter egg — click logo 3 times
+const logoClicks = ref(0)
+const showEasterEgg = ref(false)
+let logoTimer: ReturnType<typeof setTimeout>
+
+function onLogoClick() {
+  logoClicks.value++
+  clearTimeout(logoTimer)
+  logoTimer = setTimeout(() => { logoClicks.value = 0 }, 1500)
+  if (logoClicks.value >= 3) {
+    logoClicks.value = 0
+    showEasterEgg.value = true
+    gsap.fromTo('.easter-egg', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' })
+  }
+}
+
+function closeEasterEgg() {
+  gsap.to('.easter-egg', { opacity: 0, y: -20, duration: 0.4, ease: 'power2.in', onComplete: () => { showEasterEgg.value = false } })
 }
 
 const navItems = [
@@ -40,7 +92,6 @@ const navItems = [
   { path: '/library', name: '藏书阁' },
   { path: '/gallery', name: '图库' },
 ]
-
 const activeIdx = ref(0)
 watch(() => route.path, (p) => {
   activeIdx.value = navItems.findIndex(i => i.path === '/' ? p === '/' : p.startsWith(i.path))
@@ -48,14 +99,36 @@ watch(() => route.path, (p) => {
   mobileOpen.value = false
 }, { immediate: true })
 
-// Page transitions - use CSS to avoid Vue 3 mode="out-in" + JS hooks bug
+// SVG circle progress
+const circleR = 18
+const circleC = 2 * Math.PI * circleR
+const circleOffset = computed(() => circleC - (scrollProgress.value / 100) * circleC)
+
 
 onMounted(() => {
-  setTimeout(() => {
-    loaded.value = true
-    gsap.fromTo('.nav-brand', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', delay: 0.15 })
-    gsap.fromTo('.nav-item', { opacity: 0, y: -12 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.07, ease: 'power3.out', delay: 0.3 })
-  }, 50)
+  // Loading sequence
+  const loaderTl = gsap.timeline({
+    onComplete: () => {
+      showLoader.value = false; loaded.value = true
+      gsap.fromTo('.nav-brand', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', delay: 0.15 })
+      nextTick(() => {
+        document.querySelectorAll('.nav-link').forEach(el => initMagnetic(el as HTMLElement, { strength: 0.2 }))
+      })
+    }
+  })
+  loaderTl
+    .fromTo('.loader-char', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 0.3)
+    .to('.loader-char', { opacity: 0, y: -20, duration: 0.4, stagger: 0.03, ease: 'power2.in' }, 1.8)
+    .to('.loader-screen', { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, 2.2)
+
+  // Scroll color transitions
+  initScrollColor([
+    { trigger: '.posts-section', color: '#0d0b0b' },
+    { trigger: '.stats-section', color: '#0a0908' },
+    { trigger: '.showcase-pin', color: '#080706' },
+    { trigger: '.quote-block', color: '#0b0a09' },
+    { trigger: '.ending', color: '#0d0b0b' },
+  ], '#0a0a0a')
 
   if (window.innerWidth > 768) {
     document.addEventListener('mousemove', onMove)
@@ -77,20 +150,40 @@ onUnmounted(() => {
 
 <template>
   <div class="site grain" :class="{ loaded }">
-    <!-- Cursor -->
+
+    <!-- LOADING SCREEN -->
+    <div v-if="showLoader" class="loader-screen">
+      <div class="loader-brand">
+        <span v-for="(ch, i) in 'LOUXILOU'.split('')" :key="i" class="loader-char">{{ ch }}</span>
+      </div>
+    </div>
+
+    <!-- CIRCULAR SCROLL PROGRESS -->
+    <div class="progress-ring" v-if="!isReader">
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" :r="circleR" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1.5" />
+        <circle cx="22" cy="22" :r="circleR" fill="none" stroke="#9F353A" stroke-width="1.5"
+          stroke-linecap="round" :stroke-dasharray="circleC" :stroke-dashoffset="circleOffset"
+          transform="rotate(-90 22 22)" style="transition: stroke-dashoffset 0.1s linear" />
+      </svg>
+      <span class="progress-pct">{{ Math.round(scrollProgress) }}</span>
+    </div>
+
+    <!-- CONTEXTUAL CURSOR -->
     <div class="cur-wrap">
-      <div ref="ring" class="cur-ring" :class="{ hover }"></div>
+      <div ref="ring" class="cur-ring" :class="{ hover, label: cursorLabel }">
+        <span v-if="cursorLabel" class="cur-label">{{ cursorLabel }}</span>
+      </div>
       <div ref="dot" class="cur-dot" :class="{ hover }"></div>
     </div>
 
-    <!-- Nav -->
+    <!-- NAV -->
     <nav v-if="!isReader" class="nav" :class="{ hidden: navHidden }">
       <div class="nav-shell">
-        <router-link to="/" class="nav-logo interactive">
+        <router-link to="/" class="nav-brand interactive" @click.prevent="onLogoClick(); router.push('/')">
           <span class="logo-glyph">楼</span>
           <span class="logo-text">LOUXILOU</span>
         </router-link>
-
         <div class="nav-links">
           <router-link v-for="(item, i) in navItems" :key="item.path" :to="item.path"
             class="nav-link interactive" :class="{ active: activeIdx === i }">
@@ -98,12 +191,10 @@ onUnmounted(() => {
             <span class="link-name">{{ item.name }}</span>
           </router-link>
         </div>
-
         <button class="nav-burger" :class="{ open: mobileOpen }" @click="mobileOpen = !mobileOpen">
           <span></span><span></span>
         </button>
       </div>
-
       <Transition name="mob">
         <div v-if="mobileOpen" class="nav-mobile">
           <router-link v-for="(item, i) in navItems" :key="item.path" :to="item.path" class="mob-link">
@@ -114,7 +205,18 @@ onUnmounted(() => {
       </Transition>
     </nav>
 
-    <!-- Content -->
+    <!-- EASTER EGG -->
+    <Transition name="egg">
+      <div v-if="showEasterEgg" class="easter-egg" @click.self="closeEasterEgg">
+        <div class="egg-card">
+          <p class="egg-text">你找到了隐藏的角落。</p>
+          <p class="egg-sub">这个网站是我用代码写给自己的情书。<br>每一行代码，每一个动画，都是深夜独自敲下的。<br>谢谢你看到这里。</p>
+          <span class="egg-sig">— LOUXILOU</span>
+        </div>
+      </div>
+    </Transition>
+
+    <!-- CONTENT -->
     <main class="main">
       <RouterView v-slot="{ Component, route: r }">
         <Transition name="page" mode="out-in">
@@ -125,184 +227,131 @@ onUnmounted(() => {
       </RouterView>
     </main>
 
-    <!-- Footer -->
+    <!-- FOOTER -->
     <footer v-if="!isReader" class="foot">
       <div class="foot-inner">
         <div class="foot-brand">
           <span class="foot-logo">LOUXILOU</span>
-          <span class="foot-sub">藏书 · 写作 · 影像</span>
+          <span class="foot-sub">文章 · 阅读 · 摄影</span>
         </div>
         <div class="foot-rule"></div>
         <div class="foot-links">
           <a href="https://github.com/yywyboy" target="_blank" class="foot-link interactive">GitHub</a>
           <a href="https://space.bilibili.com/603244446" target="_blank" class="foot-link interactive">Bilibili</a>
         </div>
-        <span class="foot-copy">© 2024</span>
+        <span class="foot-copy">© 2026</span>
       </div>
     </footer>
   </div>
 </template>
 
 <style>
-/* ===== CURSOR ===== */
+/* ===== LOADING SCREEN ===== */
+.loader-screen { position: fixed; inset: 0; z-index: 99998; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+.loader-brand { display: flex; gap: 0; }
+.loader-char { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; letter-spacing: 0.12em; color: var(--gold); opacity: 0; }
+
+/* ===== CIRCULAR PROGRESS ===== */
+.progress-ring { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.progress-ring svg { position: absolute; top: 0; left: 0; }
+.progress-pct { font-family: var(--font-mono); font-size: 0.55rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
+
+/* ===== CONTEXTUAL CURSOR ===== */
 .cur-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 99999; }
-.cur-ring {
-  position: fixed; top: 0; left: 0;
-  width: 40px; height: 40px;
-  border: 1px solid var(--gold);
-  border-radius: 50%;
-  pointer-events: none;
-  will-change: transform;
-  opacity: 0.35;
-  transition: width 0.4s var(--ease), height 0.4s var(--ease), opacity 0.3s, border-color 0.3s;
-}
-.cur-ring.hover { width: 64px; height: 64px; opacity: 0.6; border-color: var(--gold-light); }
-.cur-dot {
-  position: fixed; top: 0; left: 0;
-  width: 6px; height: 6px;
+.cur-ring { position: fixed; top: 0; left: 0; width: 40px; height: 40px; border: 1px solid var(--gold); border-radius: 50%; pointer-events: none; opacity: 0.35; display: flex; align-items: center; justify-content: center; transition: width 0.4s var(--ease), height 0.4s var(--ease), opacity 0.3s, border-color 0.3s, border-radius 0.3s; }
+.cur-ring.hover { width: 56px; height: 56px; opacity: 0.6; border-color: var(--gold-light); }
+.cur-ring.label { width: 72px; height: 72px; border-radius: 50%; border-color: var(--gold); opacity: 0.5; }
+.cur-label { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.08em; white-space: nowrap; }
+.cur-dot { position: fixed; top: 0; left: 0; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; pointer-events: none; }
+
+/* ===== INK TRAIL ===== */
+.ink-dot {
+  position: fixed;
+  width: 4px; height: 4px;
   background: var(--gold);
   border-radius: 50%;
   pointer-events: none;
-  will-change: transform;
+  z-index: 99998;
+  opacity: 0.25;
+  transform: scale(1);
 }
 
-/* ===== NAV ===== */
-.nav {
-  position: fixed; top: 0; left: 0; right: 0;
-  z-index: 1000;
-  padding: 1rem 1.5rem 0;
-  transition: transform 0.5s var(--ease);
-}
-.nav.hidden { transform: translateY(calc(-100% - 2rem)); }
-
-.nav-shell {
-  max-width: 900px; margin: 0 auto;
-  height: 52px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 0.5rem 0 1.25rem;
-  background: rgba(20, 20, 20, 0.85);
+/* ===== EASTER EGG ===== */
+.easter-egg {
+  position: fixed; inset: 0; z-index: 99997;
+  background: rgba(8,7,6,0.9);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 100px;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
-}
-
-.nav-logo {
-  display: flex; align-items: center; gap: 0.6rem;
-  text-decoration: none;
-}
-.logo-glyph {
-  font-family: var(--font-body);
-  font-size: 1.15rem; font-weight: 700;
-  color: var(--gold);
-  width: 32px; height: 32px;
   display: flex; align-items: center; justify-content: center;
-  background: var(--gold-dim);
-  border-radius: 50%;
+  cursor: pointer;
 }
-.logo-text {
+.egg-card {
+  max-width: 420px; text-align: center; padding: 3rem;
+}
+.egg-text {
   font-family: var(--font-display);
-  font-size: 0.82rem; font-weight: 600;
-  color: var(--ink);
+  font-size: 1.3rem; font-weight: 600;
+  color: var(--gold);
+  margin-bottom: 1.5rem;
+}
+.egg-sub {
+  font-size: 0.9rem; color: var(--ink-dim);
+  line-height: 2; margin-bottom: 2rem;
+}
+.egg-sig {
+  font-family: var(--font-display);
+  font-size: 0.8rem; color: var(--ink-ghost);
   letter-spacing: 0.15em;
 }
+.egg-enter-active { transition: opacity 0.4s ease; }
+.egg-leave-active { transition: opacity 0.3s ease; }
+.egg-enter-from, .egg-leave-to { opacity: 0; }
 
+/* ===== NAV ===== */
+.nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 1.5rem 0; transition: transform 0.5s var(--ease); }
+.nav.hidden { transform: translateY(calc(-100% - 2rem)); }
+.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 0.5rem 0 1.25rem; background: rgba(20,20,20,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 100px; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+.nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.logo-glyph { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; color: var(--gold); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gold-dim); border-radius: 50%; }
+.logo-text { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; color: var(--ink); letter-spacing: 0.15em; }
 .nav-links { display: flex; gap: 0; }
-.nav-link {
-  position: relative;
-  display: flex; align-items: center; gap: 0.4rem;
-  padding: 0.5rem 1.1rem;
-  text-decoration: none;
-  transition: all 0.3s;
-  border-radius: 100px;
-}
+.nav-link { position: relative; display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem; text-decoration: none; transition: all 0.3s; border-radius: 100px; }
 .nav-link:hover { background: rgba(255,255,255,0.04); }
 .nav-link.active { background: var(--gold-dim); }
-.link-num {
-  font-family: var(--font-mono);
-  font-size: 0.58rem; font-weight: 300;
-  color: var(--ink-vanish);
-  transition: color 0.3s;
-}
+.link-num { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 300; color: var(--ink-vanish); transition: color 0.3s; }
 .nav-link.active .link-num { color: var(--gold); }
-.link-name {
-  font-family: var(--font-sans);
-  font-size: 0.72rem; font-weight: 500;
-  color: var(--ink-ghost);
-  letter-spacing: 0.05em;
-  transition: color 0.3s;
-}
+.link-name { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; color: var(--ink-ghost); letter-spacing: 0.05em; transition: color 0.3s; }
 .nav-link:hover .link-name { color: var(--ink); }
 .nav-link.active .link-name { color: var(--gold); }
-
-.nav-burger {
-  display: none; flex-direction: column; gap: 5px; padding: 10px 14px;
-  border-radius: 100px;
-  transition: background 0.3s;
-}
+.nav-burger { display: none; flex-direction: column; gap: 5px; padding: 10px 14px; border-radius: 100px; transition: background 0.3s; }
 .nav-burger:hover { background: rgba(255,255,255,0.04); }
-.nav-burger span {
-  display: block; width: 18px; height: 1.5px;
-  background: var(--ink); transition: all 0.3s var(--ease); transform-origin: center;
-}
+.nav-burger span { display: block; width: 18px; height: 1.5px; background: var(--ink); transition: all 0.3s var(--ease); transform-origin: center; }
 .nav-burger.open span:first-child { transform: rotate(45deg) translate(2.5px, 2.5px); }
 .nav-burger.open span:last-child { transform: rotate(-45deg) translate(2.5px, -2.5px); }
-
-.nav-mobile {
-  max-width: 900px; margin: 0.5rem auto 0;
-  padding: 0.75rem;
-  background: rgba(20, 20, 20, 0.92);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 16px;
-  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
-}
-.mob-link {
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.65rem 1rem;
-  font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500;
-  color: var(--ink-dim); text-decoration: none;
-  border-radius: 10px;
-  transition: all 0.3s;
-}
+.nav-mobile { max-width: 900px; margin: 0.5rem auto 0; padding: 0.75rem; background: rgba(20,20,20,0.92); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+.mob-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500; color: var(--ink-dim); text-decoration: none; border-radius: 10px; transition: all 0.3s; }
 .mob-link:hover { color: var(--gold); background: var(--gold-dim); }
 .mob-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); }
 .mob-enter-active, .mob-leave-active { transition: all 0.3s var(--ease); }
 .mob-enter-from, .mob-leave-to { opacity: 0; transform: translateY(-8px) scale(0.98); }
 
 /* ===== MAIN ===== */
-.main { min-height: 100vh; padding-top: var(--nav-h); position: relative; z-index: 1; overflow: hidden; }
+.main { min-height: 100vh; padding-top: var(--nav-h); position: relative; z-index: 1; }
 .page-wrap { width: 100%; }
-.page-enter-active { transition: opacity 0.35s ease, transform 0.35s ease; }
+.page-enter-active { transition: opacity 0.4s ease, transform 0.4s ease, clip-path 0.5s ease; }
 .page-leave-active { transition: opacity 0.25s ease, transform 0.25s ease; }
-.page-enter-from { opacity: 0; transform: translateY(20px); }
-.page-leave-to { opacity: 0; transform: translateY(-12px); }
+.page-enter-from { opacity: 0; transform: translateY(16px); clip-path: circle(0% at 50% 50%); }
+.page-leave-to { opacity: 0; transform: translateY(-10px); }
 
 /* ===== FOOTER ===== */
 .foot { border-top: 1px solid var(--border); margin-top: 8rem; }
-.foot-inner {
-  max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem;
-  display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center;
-}
+.foot-inner { max-width: 1200px; margin: 0 auto; padding: 4rem 2.5rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; text-align: center; }
 .foot-brand { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; }
-.foot-logo {
-  font-family: var(--font-display); font-size: 1rem; font-weight: 700;
-  letter-spacing: 0.2em; color: var(--gold);
-}
+.foot-logo { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.2em; color: var(--gold); }
 .foot-sub { font-size: 0.72rem; color: var(--ink-ghost); letter-spacing: 0.25em; }
 .foot-rule { width: 32px; height: 1px; background: var(--gold-dim); }
 .foot-links { display: flex; gap: 2.5rem; }
-.foot-link {
-  font-family: var(--font-sans); font-size: 0.72rem;
-  color: var(--ink-ghost); letter-spacing: 0.06em;
-  text-transform: uppercase; transition: color 0.3s;
-  position: relative;
-}
-.foot-link::after {
-  content: ''; position: absolute; bottom: -3px; left: 0;
-  width: 0; height: 1px; background: var(--gold); transition: width 0.3s var(--ease);
-}
+.foot-link { font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.3s; position: relative; text-decoration: none; }
+.foot-link::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--gold); transition: width 0.3s var(--ease); }
 .foot-link:hover { color: var(--gold); }
 .foot-link:hover::after { width: 100%; }
 .foot-copy { font-size: 0.65rem; color: var(--ink-vanish); margin-top: 0.5rem; }
@@ -313,6 +362,9 @@ onUnmounted(() => {
   .nav-links { display: none; }
   .nav-burger { display: flex; }
   .cur-wrap { display: none; }
+  .progress-ring { bottom: 1rem; right: 1rem; width: 36px; height: 36px; }
+  .progress-ring svg { width: 36px; height: 36px; }
+  .progress-pct { font-size: 0.5rem; }
   .foot-inner { padding: 3rem 1.25rem; }
 }
 </style>

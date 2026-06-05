@@ -99,19 +99,14 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
       </div>
     </main>
 
-    <footer class="rd-ft">
-      <span class="ft-p">{{ idx + 1 }} / {{ total }}</span>
-      <div class="ft-nav">
-        <button class="rb interactive" :disabled="idx === 0" @click="prev">‹ 上一章</button>
-        <button class="rb interactive" :disabled="idx === total - 1" @click="next">下一章 ›</button>
-      </div>
-    </footer>
-
+    <!-- Chapter nav — dropdown below header -->
     <Transition name="sp">
-      <div v-if="showNav" class="qn">
-        <div class="qn-hd"><h3>章节导航</h3><button class="rb interactive" @click="showNav = false">✕</button></div>
-        <div class="qn-list">
-          <button v-for="(c, i) in chs" :key="c.id" class="qn-item interactive" :class="{ on: i === idx }" @click="goTo(i)">{{ c.title }}</button>
+      <div v-if="showNav" class="qn" @click.self="showNav = false">
+        <div class="qn-panel">
+          <div class="qn-hd"><h3>章节导航</h3><button class="rb interactive" @click="showNav = false">✕</button></div>
+          <div class="qn-list">
+            <button v-for="(c, i) in chs" :key="c.id" class="qn-item interactive" :class="{ on: i === idx }" @click="goTo(i)">{{ c.title }}</button>
+          </div>
         </div>
       </div>
     </Transition>
@@ -121,35 +116,65 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
 <style scoped>
 .rd { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
 .prog { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); z-index: 1001; transition: width 0.1s; }
-.rd-hd { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.25rem; position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: rgba(8,7,6,0.92); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.rd-hd {
+  display: flex; align-items: center; justify-content: space-between;
+  position: fixed; top: 1rem; left: 1.5rem; right: 1.5rem;
+  z-index: 100;
+  height: 52px;
+  max-width: 900px;
+  margin: 0 auto;
+  left: 50%; right: auto;
+  transform: translateX(-50%);
+  width: calc(100% - 3rem);
+  padding: 0 0.5rem 0 1.25rem;
+  background: rgba(20,20,20,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 100px;
+  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+}
 .rd-center { text-align: center; flex: 1; padding: 0 1rem; }
 .rd-center h2 { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rd-center p { font-size: 0.68rem; color: var(--ink-ghost); margin: 0; }
 .rd-acts { display: flex; gap: 0.35rem; align-items: center; }
-.rb { min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: 3px; color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; transition: all 0.3s; }
+.rb { min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: 100px; color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; transition: all 0.3s; }
 .rb:hover { color: var(--ink); border-color: var(--border-hover); }
 .rb.on { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 .rb-g { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 .rb-g:hover { background: var(--gold-light); }
-.rd-body { flex: 1; padding: 2rem; padding-top: 60px; padding-bottom: 70px; max-width: 660px; margin: 0 auto; width: 100%; line-height: 2; }
+.rd-body { flex: 1; padding: 2rem; padding-top: 80px; padding-bottom: 70px; max-width: 660px; margin: 0 auto; width: 100%; line-height: 2; }
 .err { text-align: center; padding: 4rem; color: var(--ink-ghost); }
 .pw { margin-bottom: 1.5rem; }
 .pp { margin: 0 0 0.35rem 0; text-indent: 2em; }
 .pt { margin: 0; text-indent: 2em; color: var(--gold); font-size: 0.88em; opacity: 0.65; border-left: 2px solid var(--gold-dim); padding-left: 0.75rem; margin-left: 2em; line-height: 1.8; }
 .pl { margin: 0; text-indent: 2em; color: var(--ink-ghost); font-size: 0.82em; font-style: italic; margin-left: 2em; }
 .lm { display: flex; justify-content: center; padding: 2rem; }
-.rd-ft { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 1.25rem; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: rgba(8,7,6,0.92); backdrop-filter: blur(10px); border-top: 1px solid var(--border); }
-.ft-p { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); }
-.ft-nav { display: flex; gap: 0.4rem; }
-.qn { position: fixed; right: 1rem; top: calc(var(--nav-h) + 55px); width: 240px; border-radius: 4px; overflow: hidden; z-index: 60; max-height: calc(100vh - 160px); display: flex; flex-direction: column; background: var(--bg-warm); border: 1px solid var(--border); }
-.qn-hd { display: flex; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--border); }
-.qn-hd h3 { margin: 0; font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; }
+.qn {
+  position: fixed; inset: 0; z-index: 10001;
+  background: rgba(8,7,6,0.6);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: calc(var(--nav-h) + 1rem);
+}
+.qn-panel {
+  width: 320px; max-height: calc(100vh - var(--nav-h) - 2rem);
+  display: flex; flex-direction: column;
+  background: var(--bg-warm);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+}
+.qn-hd { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+.qn-hd h3 { margin: 0; font-family: var(--font-display); font-size: 0.88rem; font-weight: 600; }
 .qn-list { flex: 1; overflow-y: auto; }
-.qn-item { display: block; width: 100%; padding: 0.5rem 0.9rem; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.78rem; color: var(--ink-ghost); transition: all 0.2s; }
+.qn-item { display: block; width: 100%; padding: 0.6rem 1rem; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.82rem; color: var(--ink-ghost); transition: all 0.2s; }
 .qn-item:last-child { border-bottom: none; }
 .qn-item:hover { background: var(--gold-dim); color: var(--ink); }
 .qn-item.on { background: var(--gold-dim); color: var(--gold); font-weight: 600; }
-.sp-enter-active, .sp-leave-active { transition: all 0.3s var(--ease); }
-.sp-enter-from, .sp-leave-to { opacity: 0; transform: translateX(12px); }
+.sp-enter-active { transition: all 0.3s var(--ease); }
+.sp-leave-active { transition: all 0.2s var(--ease); }
+.sp-enter-from, .sp-leave-to { opacity: 0; }
+.sp-enter-from .qn-panel { transform: translateY(-10px); }
 @media (max-width: 768px) { .rd-hd { padding: 0.4rem 0.75rem; top: 0; } .rd-center h2 { font-size: 0.78rem; } .rd-center p { display: none; } .rd-body { padding: 1rem; padding-top: 52px; padding-bottom: 60px; } .rd-ft { padding: 0.4rem 0.75rem; } .qn { right: 0.5rem; width: 200px; } }
 </style>
