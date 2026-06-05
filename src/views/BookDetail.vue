@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getBookByIdFromDB, type Book, type BookChapter } from '../lib/books'
 import { gsap } from '../composables/useGsap'
@@ -8,6 +8,19 @@ const router = useRouter()
 const route = useRoute()
 const book = ref<Book | null>(null)
 const lastRead = ref<{ chapterId: string; title: string } | null>(null)
+const jsonLd = computed(() => {
+  if (!book.value) return ''
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Book',
+    'name': book.value.title,
+    'author': { '@type': 'Person', 'name': book.value.author },
+    'description': book.value.description,
+    'url': 'https://louxilou.com.cn/library/' + book.value.id,
+    'numberOfPages': book.value.chapters.length
+  })
+})
+
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -34,6 +47,7 @@ function cont() { if (lastRead.value) router.push(`/library/${route.params.id}/r
 
 <template>
   <div class="bd">
+    <component :is="'script'" type="application/ld+json" v-if="book">{{ jsonLd }}</component>
     <div v-if="!book" style="display:flex;justify-content:center;padding:6rem"><div class="loader"></div></div>
     <template v-else>
       <button class="back interactive" @click="goBack">
@@ -42,7 +56,7 @@ function cont() { if (lastRead.value) router.push(`/library/${route.params.id}/r
       </button>
 
       <div class="hero">
-        <div class="hero-cover"><img :src="book.cover" :alt="book.title" class="bk-cover" /></div>
+        <div class="hero-cover"><img :src="book.cover" :alt="book.title" class="bk-cover" decoding="async" /></div>
         <div class="hero-info">
           <h1 class="bk-title">{{ book.title }}</h1>
           <p class="bk-author">{{ book.author }}</p>
@@ -61,7 +75,7 @@ function cont() { if (lastRead.value) router.push(`/library/${route.params.id}/r
         <div class="rule" style="margin-bottom:2rem"></div>
         <div class="ch-list">
           <div v-for="ch in book.chapters" :key="ch.id" class="ch-item interactive" @click="readCh(ch)">
-            <img :src="ch.cover" :alt="ch.title" class="ch-thumb" />
+            <img :src="ch.cover" :alt="ch.title" class="ch-thumb" loading="lazy" decoding="async" />
             <div class="ch-info"><h3 class="ch-title">{{ ch.title }}</h3><span class="ch-status" :class="ch.status === '已完结' ? 'done' : 'wip'">{{ ch.status }}</span></div>
             <div class="ch-acts">
               <button class="act-r interactive" @click.stop="readCh(ch)">阅读</button>

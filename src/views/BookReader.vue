@@ -127,10 +127,10 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
   transform: translateX(-50%);
   width: calc(100% - 3rem);
   padding: 0 0.5rem 0 1.25rem;
-  background: rgba(20,20,20,0.85);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
   border-radius: 100px;
   box-shadow: 0 4px 30px rgba(0,0,0,0.4);
 }
@@ -152,7 +152,7 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
 .lm { display: flex; justify-content: center; padding: 2rem; }
 .qn {
   position: fixed; inset: 0; z-index: 10001;
-  background: rgba(8,7,6,0.6);
+  background: rgba(var(--bg-rgb),0.6);
   display: flex; align-items: flex-start; justify-content: center;
   padding-top: calc(var(--nav-h) + 1rem);
 }

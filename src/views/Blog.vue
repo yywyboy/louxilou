@@ -4,12 +4,18 @@ import { useRouter } from 'vue-router'
 import { getPosts } from '../lib/blog'
 import type { Post } from '../lib/blog'
 import { gsap, ScrollTrigger } from '../composables/useGsap'
+import { isDark } from '../composables/useTheme'
 
 gsap.registerPlugin(ScrollTrigger)
 const router = useRouter()
 const posts = ref<Post[]>([])
 const loading = ref(true)
 const activeCat = ref('all')
+
+// Full-width background preview on hover
+const bgSrc = ref('')
+const previewEl = ref<HTMLElement | null>(null)
+const bgVisible = ref(false)
 
 const cats = [
   { id: 'all', name: '全部' },
@@ -27,7 +33,40 @@ function go(id: string) { router.push(`/blog/${id}`) }
 function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
 function catName(c: string) { return cats.find(t => t.id === c)?.name || c || '随笔' }
 
+let bgTween: gsap.core.Tween | null = null
+function onPostEnter(post: Post, e: MouseEvent) {
+  if (post.cover) {
+    if (bgTween) bgTween.kill()
+    bgSrc.value = post.cover
+    bgVisible.value = true
+    nextTick(() => {
+      if (isDark.value && previewEl.value) {
+        const img = previewEl.value.querySelector('img') as HTMLImageElement
+        bgTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
+        if (img) gsap.fromTo(img, { filter: 'blur(10px)' }, { filter: 'blur(0px)', duration: 0.5, ease: 'power2.out' })
+      } else {
+        bgTween = gsap.fromTo('.blog-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.4, ease: 'power2.out' })
+      }
+    })
+  }
+}
+function onPostMove(e: MouseEvent) {
+  if (isDark.value && previewEl.value) {
+    previewEl.value.style.left = (e.clientX + 20) + 'px'
+    previewEl.value.style.top = (e.clientY - 100) + 'px'
+  }
+}
+function onPostLeave() {
+  if (bgTween) bgTween.kill()
+  if (isDark.value && previewEl.value) {
+    bgTween = gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { bgVisible.value = false } })
+  } else {
+    bgTween = gsap.to('.blog-bg-img', { opacity: 0, duration: 0.2, ease: 'power2.in', onComplete: () => { bgVisible.value = false } })
+  }
+}
+
 onMounted(async () => {
+  
   document.title = '博客 — LOUXILOU'
   try { posts.value = await getPosts() } catch (e) { console.error(e) }
   loading.value = false
@@ -45,10 +84,21 @@ onMounted(async () => {
     )
   })
 })
+
+onUnmounted(() => {  })
 </script>
 
 <template>
   <div class="blog">
+    <!-- Dark mode: small floating preview -->
+    <div v-if="bgVisible && isDark" ref="previewEl" class="blog-preview" aria-hidden="true">
+      <img :src="bgSrc" alt="" />
+    </div>
+    <!-- Light mode: full-screen background -->
+    <div v-if="bgVisible && !isDark" class="blog-bg" aria-hidden="true">
+      <img :src="bgSrc" class="blog-bg-img" alt="" />
+    </div>
+
     <div class="ctr">
       <!-- Header -->
       <header class="pg-head">
@@ -69,7 +119,8 @@ onMounted(async () => {
 
       <!-- Posts -->
       <div v-else class="post-list">
-        <article v-for="(post, i) in filtered" :key="post.id" class="post-card interactive" @click="go(post.id)">
+        <article v-for="(post, i) in filtered" :key="post.id" class="post-card interactive"
+          @click="go(post.id)" @mouseenter="onPostEnter(post, $event)" @mousemove="onPostMove" @mouseleave="onPostLeave()">
           <div class="pc-left">
             <span class="pc-num">{{ String(i + 1).padStart(2, '0') }}</span>
             <span class="pc-date">{{ fmt(post.created_at) }}</span>
@@ -89,6 +140,23 @@ onMounted(async () => {
 <style scoped>
 .blog { position: relative; z-index: 1; padding: 2rem 0 6rem; }
 
+/* Full-width background preview */
+.blog-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.blog-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.06;
+  filter: blur(30px) saturate(0.5);
+  transform: scale(1.1);
+}
+
 .pg-head { text-align: center; margin-bottom: 3rem; opacity: 0; }
 .eyebrow { font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; display: block; margin-bottom: 1rem; }
 .pg-title { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5rem); font-weight: 900; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
@@ -99,7 +167,7 @@ onMounted(async () => {
 .cat-btn:hover { color: var(--ink-dim); border-color: var(--border-hover); }
 .cat-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 
-.post-list { display: flex; flex-direction: column; }
+.post-list { display: flex; flex-direction: column; position: relative; z-index: 1; }
 .post-card {
   display: grid;
   grid-template-columns: 100px 1fr 40px;
@@ -127,6 +195,26 @@ onMounted(async () => {
 
 .empty { text-align: center; padding: 4rem; color: var(--ink-ghost); }
 
+
+/* Small floating preview (dark mode) */
+.blog-preview {
+  position: fixed;
+  z-index: 10000;
+  width: 200px;
+  height: 140px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  pointer-events: none;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.blog-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
   .post-card { grid-template-columns: 1fr; gap: 0.75rem; padding: 2rem 0; }
@@ -135,5 +223,7 @@ onMounted(async () => {
   .pc-arrow { display: none; }
   .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; }
   .cat-btn { white-space: nowrap; flex-shrink: 0; }
+  .blog-bg { display: none; }
+  .blog-preview { display: none; }
 }
 </style>

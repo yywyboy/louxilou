@@ -11,7 +11,18 @@ export default defineConfig({
   },
   root: __dirname,
   build: {
-    outDir: 'dist'
+    outDir: 'dist',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router'],
+          'vendor-gsap': ['gsap'],
+          'vendor-supabase': ['@supabase/supabase-js']
+        }
+      }
+    },
+    cssCodeSplit: true,
+    cssMinify: true
   },
   server: {
     watch: {

@@ -2,40 +2,60 @@
    LOUXILOU — Award-Grade Literary Design
    ============================================ */
 
-@import url('https://fonts.loli.net/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,700&family=Noto+Serif+SC:wght@200;300;400;500;600;700;900&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap');
+/* Fonts loaded via index.html with preload for optimal performance */
 
 :root {
-  --bg: #0a0a0a;
-  --bg-warm: #111111;
-  --bg-card: #161616;
-  --bg-elevated: #1c1c1c;
-
-  --ink: #e8e8e8;
-  --ink-dim: #999999;
-  --ink-ghost: #555555;
-  --ink-vanish: #2a2a2a;
-
+  --bg: #f5f0e8;
+  --bg-warm: #ece6dc;
+  --bg-card: #faf7f2;
+  --bg-elevated: #e8e2d8;
+  --bg-rgb: 245, 240, 232;
+  --ink: #2a2520;
+  --ink-dim: #706860;
+  --ink-ghost: #a09888;
+  --ink-vanish: #c8c0b0;
   --gold: #9F353A;
-  --gold-light: #c4454c;
-  --gold-dim: rgba(159, 53, 58, 0.12);
-  --gold-glow: rgba(159, 53, 58, 0.3);
-
-  --border: rgba(255, 255, 255, 0.06);
-  --border-hover: rgba(255, 255, 255, 0.14);
-
+  --gold-light: #b83d44;
+  --gold-dim: rgba(159, 53, 58, 0.08);
+  --gold-glow: rgba(159, 53, 58, 0.2);
+  --border: rgba(0, 0, 0, 0.06);
+  --border-hover: rgba(0, 0, 0, 0.12);
   --font-display: 'Cormorant Garamond', 'LXGW WenKai', 'Noto Serif SC', Georgia, serif;
   --font-body: 'LXGW WenKai', 'Noto Serif SC', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Inter', 'LXGW WenKai', 'Noto Serif SC', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-
   --nav-h: 80px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+  color-scheme: light;
+}
 
+[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-warm: #111111;
+  --bg-card: #161616;
+  --bg-elevated: #1c1c1c;
+  --bg-rgb: 10, 10, 10;
+  --ink: #e8e8e8;
+  --ink-dim: #999999;
+  --ink-ghost: #555555;
+  --ink-vanish: #2a2a2a;
+  --gold-light: #c4454c;
+  --gold-dim: rgba(159, 53, 58, 0.12);
+  --gold-glow: rgba(159, 53, 58, 0.3);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-hover: rgba(255, 255, 255, 0.14);
   color-scheme: dark;
 }
 
+
+
+
+
+
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
 
 html {
   -webkit-font-smoothing: antialiased;
@@ -71,7 +91,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   content: '';
   position: fixed;
   inset: 0;
-  opacity: 0.035;
+  opacity: 0.025;
   z-index: 9998;
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -125,4 +145,40 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   :root { --nav-h: 68px; }
   .ctr { padding: 0 1.25rem; }
   .ctr-narrow { padding: 0 1.25rem; }
+}
+
+
+/* ===== MOBILE TOUCH FEEDBACK ===== */
+@media (hover: none) and (pointer: coarse) {
+  /* Subtle scale feedback on touch */
+  .interactive:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease;
+  }
+  .post-item:active,
+  .post-card:active,
+  .bk:active {
+    background: rgba(255, 255, 255, 0.03);
+  }
+  .nav-link:active {
+    background: var(--gold-dim);
+  }
+  /* Remove hover effects that don't work on touch */
+  .post-item:hover,
+  .post-card:hover,
+  .bk:hover {
+    background: transparent;
+  }
+}
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .grain::after { display: none; }
+  .ink-dot { display: none; }
+  .cur-wrap { display: none; }
 }

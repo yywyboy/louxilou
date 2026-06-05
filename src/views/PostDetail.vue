@@ -19,6 +19,21 @@ const prog = ref(0)
 let unsub: (() => void) | null = null
 
 const html = computed(() => post.value?.content ? marked.parse(post.value.content) : '')
+const jsonLd = computed(() => {
+  if (!post.value) return ''
+  return JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    'headline': post.value.title,
+    'description': post.value.summary || '',
+    'author': { '@type': 'Person', 'name': post.value.author_name || 'LOUXILOU' },
+    'datePublished': post.value.created_at,
+    'dateModified': post.value.updated_at || post.value.created_at,
+    'publisher': { '@type': 'Person', 'name': 'LOUXILOU' },
+    'mainEntityOfPage': { '@type': 'WebPage', '@id': 'https://louxilou.com.cn/blog/' + post.value.id }
+  })
+})
+
 const catMap: Record<string, string> = { tech: '技术', life: '生活', reading: '读书', thoughts: '随想' }
 function catName(c: string) { return catMap[c] || c || '随笔' }
 function fmtDate(d: string) { const date = new Date(d), now = new Date(), ms = now.getTime() - date.getTime(), min = Math.floor(ms/60000), hr = Math.floor(ms/3600000), day = Math.floor(ms/86400000); if (min < 1) return '刚刚'; if (min < 60) return `${min}分钟前`; if (hr < 24) return `${hr}小时前`; if (day < 7) return `${day}天前`; return formatDate(d) }
@@ -47,6 +62,7 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
 
 <template>
   <div class="pd">
+    <component :is="'script'" type="application/ld+json" v-if="post">{{ jsonLd }}</component>
     <div class="prog" :style="{ width: prog + '%' }"></div>
 
     <div v-if="loading" style="display:flex;justify-content:center;padding:6rem"><div class="loader"></div></div>
@@ -71,7 +87,7 @@ onUnmounted(() => { unsub?.(); window.removeEventListener('scroll', onScroll); g
         <div class="rule-wide" style="margin-top:2rem"></div>
       </header>
 
-      <div v-if="post.cover" class="art-cover"><img :src="post.cover" :alt="post.title" /></div>
+      <div v-if="post.cover" class="art-cover"><img :src="post.cover" :alt="post.title" decoding="async" /></div>
 
       <div class="art-body drop-cap" v-html="html"></div>
 

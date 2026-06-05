@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getAllBooks, type Book } from '../lib/books'
 import { BOOK_TAGS } from '../data/books'
-import { gsap, ScrollTrigger } from '../composables/useGsap'
+import { gsap, ScrollTrigger, prefersReducedMotion } from '../composables/useGsap'
 
 gsap.registerPlugin(ScrollTrigger)
+const reduced = prefersReducedMotion()
 const router = useRouter()
 const books = ref<Book[]>([])
 const loading = ref(true)
@@ -14,6 +15,49 @@ const tag = ref('all')
 const displayCount = ref(12)
 const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
+
+// 3D Bookshelf drag scroll
+const shelfRef = ref<HTMLElement | null>(null)
+let isDragging = false
+let startX = 0
+let scrollLeft = 0
+
+function onShelfMouseDown(e: MouseEvent) {
+  if (!shelfRef.value) return
+  isDragging = true
+  startX = e.pageX - shelfRef.value.offsetLeft
+  scrollLeft = shelfRef.value.scrollLeft
+  shelfRef.value.style.cursor = 'grabbing'
+  e.preventDefault()
+}
+function onShelfMouseMove(e: MouseEvent) {
+  if (!isDragging || !shelfRef.value) return
+  e.preventDefault()
+  const x = e.pageX - shelfRef.value.offsetLeft
+  const walk = (x - startX) * 1.5
+  shelfRef.value.scrollLeft = scrollLeft - walk
+}
+function onShelfMouseUp() {
+  isDragging = false
+  if (shelfRef.value) shelfRef.value.style.cursor = 'grab'
+}
+
+// Touch support
+function onShelfTouchStart(e: TouchEvent) {
+  if (!shelfRef.value) return
+  isDragging = true
+  startX = e.touches[0].pageX - shelfRef.value.offsetLeft
+  scrollLeft = shelfRef.value.scrollLeft
+}
+function onShelfTouchMove(e: TouchEvent) {
+  if (!isDragging || !shelfRef.value) return
+  const x = e.touches[0].pageX - shelfRef.value.offsetLeft
+  const walk = (x - startX) * 1.5
+  shelfRef.value.scrollLeft = scrollLeft - walk
+}
+function onShelfTouchEnd() {
+  isDragging = false
+}
 
 const filtered = computed(() => {
   let r = books.value
@@ -50,11 +94,21 @@ onMounted(async () => {
   try { books.value = await getAllBooks() } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
+
   gsap.fromTo('.pg-head', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.1 })
-  gsap.fromTo('.flt', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 })
+
+  // 3D Bookshelf entrance animation
+  if (!reduced && shelfRef.value) {
+    const shelfBooks = shelfRef.value.querySelectorAll('.shelf-book')
+    gsap.fromTo(shelfBooks, { opacity: 0, y: 40, rotateY: -20 }, { opacity: 1, y: 0, rotateY: 0, duration: 0.8, stagger: 0.06, ease: 'power3.out', delay: 0.3 })
+  }
+
+  gsap.fromTo('.flt', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.5 })
   animCards()
   setupObserver()
 })
+
+onUnmounted(() => { if (observer) observer.disconnect() })
 </script>
 
 <template>
@@ -66,6 +120,35 @@ onMounted(async () => {
         <h1 class="pg-title">藏书阁</h1>
         <p class="pg-desc">探索经典文学与现代作品的数字图书馆</p>
       </header>
+
+      <!-- 3D Bookshelf Banner -->
+      <div class="shelf-wrap" v-if="!loading && books.length">
+        <div class="shelf-label">
+          <span class="shelf-num">精选</span>
+          <span class="shelf-hint">← 拖拽浏览 →</span>
+        </div>
+        <div
+          ref="shelfRef"
+          class="shelf"
+          @mousedown="onShelfMouseDown"
+          @mousemove="onShelfMouseMove"
+          @mouseup="onShelfMouseUp"
+          @mouseleave="onShelfMouseUp"
+            @touchstart="onShelfTouchStart"
+            @touchmove="onShelfTouchMove"
+            @touchend="onShelfTouchEnd"
+        >
+          <div v-for="b in books" :key="b.id" class="shelf-book interactive" @click="go(b.id)">
+            <div class="shelf-cover">
+              <img :src="b.cover" :alt="b.title" loading="lazy" decoding="async" />
+              <div class="shelf-spine"></div>
+              <div class="shelf-edge"></div>
+            </div>
+            <p class="shelf-title">{{ b.title }}</p>
+          </div>
+        </div>
+        <div class="shelf-shadow"></div>
+      </div>
 
       <!-- Filter -->
       <div class="flt">
@@ -87,7 +170,7 @@ onMounted(async () => {
       <div v-else ref="gridRef" class="grid">
         <div v-for="b in displayed" :key="b.id" class="bk interactive" @click="go(b.id)">
           <div class="bk-cover">
-            <img :src="b.cover" :alt="b.title" loading="lazy" />
+            <img :src="b.cover" :alt="b.title" loading="lazy" decoding="async" />
             <div class="bk-shine"></div>
           </div>
           <div class="bk-info">
@@ -110,6 +193,128 @@ onMounted(async () => {
 .pg-title { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5rem); font-weight: 900; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
 
+/* ===== 3D BOOKSHELF ===== */
+.shelf-wrap {
+  margin-bottom: 3rem;
+  position: relative;
+}
+.shelf-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  padding: 0 0.5rem;
+}
+.shelf-num {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  letter-spacing: 0.05em;
+}
+.shelf-hint {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--ink-vanish);
+  letter-spacing: 0.1em;
+}
+.shelf {
+  display: flex;
+  gap: 1.5rem;
+  padding: 2rem 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+  perspective: 800px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+.shelf::-webkit-scrollbar { display: none; }
+.shelf-shadow {
+  height: 40px;
+  background: linear-gradient(to bottom, rgba(var(--bg-rgb), 0) 0%, var(--bg) 100%);
+  margin-top: -40px;
+  pointer-events: none;
+  position: relative;
+  z-index: 1;
+}
+.shelf-book {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  transition: transform 0.4s var(--ease);
+  transform-style: preserve-3d;
+}
+.shelf-book:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+.shelf-cover {
+  position: relative;
+  width: 120px;
+  aspect-ratio: 3 / 4;
+  border-radius: 2px;
+  overflow: visible;
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--ease);
+}
+.shelf-book:hover .shelf-cover {
+  transform: rotateY(-8deg) rotateX(3deg);
+}
+.shelf-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+/* Book spine — right edge */
+.shelf-spine {
+  position: absolute;
+  right: -6px;
+  top: 0;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(80,70,55,0.9), rgba(50,45,35,0.95));
+  transform: rotateY(90deg);
+  transform-origin: left center;
+  border-radius: 0 2px 2px 0;
+}
+/* Book edge — bottom */
+.shelf-edge {
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to bottom, rgba(60,55,45,0.8), rgba(40,38,30,0.9));
+  transform: rotateX(-90deg);
+  transform-origin: top center;
+  border-radius: 0 0 2px 2px;
+}
+.shelf-title {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  text-align: center;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+.shelf-book:hover .shelf-title {
+  color: var(--gold);
+}
+
+/* ===== FILTER ===== */
 .flt { margin-bottom: 3rem; opacity: 0; }
 .search { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px; margin-bottom: 1rem; color: var(--ink-ghost); transition: border-color 0.3s; }
 .search:focus-within { border-color: var(--border-hover); }
@@ -164,6 +369,10 @@ onMounted(async () => {
 
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
+  .shelf { gap: 1rem; padding: 1.5rem 0.5rem; }
+  .shelf-cover { width: 90px; }
+  .shelf-spine, .shelf-edge { display: none; }
+  .shelf-hint { display: none; }
   .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.25rem; }
   .tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; }
   .tag-btn { white-space: nowrap; flex-shrink: 0; }

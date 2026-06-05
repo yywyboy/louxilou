@@ -110,7 +110,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
             <span>关闭</span>
           </button>
           <div class="lb-body">
-            <img :src="sel.src" :alt="sel.alt" class="lb-img" />
+            <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
           </div>
           <div class="lb-meta">
             <div class="lb-info">
@@ -170,7 +170,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .ph-over {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to top, rgba(8,7,6,0.6) 0%, transparent 40%);
+  background: linear-gradient(to top, rgba(var(--bg-rgb),0.6) 0%, transparent 40%);
   opacity: 0;
   transition: opacity 0.3s;
   display: flex;
@@ -210,7 +210,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 /* Lightbox — global (teleported outside scoped component) */
 .lb {
   position: fixed; inset: 0; z-index: 10000;
-  background: rgba(6,6,6,0.97);
+  background: rgba(var(--bg-rgb),0.97);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   padding: 2rem;
 }
@@ -225,8 +225,8 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   position: absolute; top: 1.5rem; left: 1.5rem;
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.5rem 1.2rem;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--gold-dim);
+  border: 1px solid var(--border-hover);
   border-radius: 100px;
   color: var(--ink-dim);
   font-family: var(--font-sans); font-size: 0.75rem;

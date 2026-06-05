@@ -6,10 +6,12 @@ import { getAllBooks } from '../lib/books'
 import { getPhotos } from '../lib/gallery'
 import type { Post } from '../lib/blog'
 import type { Book } from '../lib/books'
-import { gsap, ScrollTrigger, scrambleText } from '../composables/useGsap'
+import { gsap, ScrollTrigger, scrambleText, prefersReducedMotion } from '../composables/useGsap'
+import { isDark } from '../composables/useTheme'
 
 gsap.registerPlugin(ScrollTrigger)
 const router = useRouter()
+const reduced = prefersReducedMotion()
 const posts = ref<Post[]>([])
 const books = ref<Book[]>([])
 const photos = ref<string[]>([])
@@ -21,15 +23,19 @@ const previewEl = ref<HTMLElement | null>(null)
 const previewSrc = ref('')
 const previewVisible = ref(false)
 
+let homePreviewTween: gsap.core.Tween | null = null
 function onPostEnter(post: Post, e: MouseEvent) {
   if (post.cover) {
+    if (homePreviewTween) homePreviewTween.kill()
     previewSrc.value = post.cover
     previewVisible.value = true
     nextTick(() => {
-      if (previewEl.value) {
+      if (isDark.value && previewEl.value) {
         const img = previewEl.value.querySelector('img') as HTMLImageElement
-        gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
+        homePreviewTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
         if (img) gsap.fromTo(img, { filter: 'blur(10px)' }, { filter: 'blur(0px)', duration: 0.5, ease: 'power2.out' })
+      } else {
+        homePreviewTween = gsap.fromTo('.post-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.4, ease: 'power2.out' })
       }
     })
   }
@@ -43,10 +49,11 @@ function onPostMove(e: MouseEvent) {
 }
 
 function onPostLeave() {
-  if (previewEl.value) {
-    gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
+  if (homePreviewTween) homePreviewTween.kill()
+  if (isDark.value && previewEl.value) {
+    homePreviewTween = gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
   } else {
-    previewVisible.value = false
+    homePreviewTween = gsap.to('.post-bg-img', { opacity: 0, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
   }
 }
 
@@ -83,6 +90,7 @@ function onBookLeave(e: MouseEvent) {
 function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
 
 onMounted(async () => {
+  
   document.title = 'LOUXILOU — 楼西楼'
   try {
     const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
@@ -91,6 +99,8 @@ onMounted(async () => {
   } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
+
+  if (reduced) return // Skip scroll animations for reduced motion
 
   // ===== HERO =====
   const heroEl = document.querySelector('.hero-pin') as HTMLElement
@@ -142,6 +152,12 @@ onMounted(async () => {
   // ===== POSTS =====
   document.querySelectorAll('.post-item').forEach((el, i) => {
     gsap.fromTo(el, { opacity: 0, x: i % 2 === 0 ? -40 : 40 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 88%', end: 'top 60%', scrub: 1 } })
+  })
+
+  
+  // ===== BREATHING SECTIONS =====
+  document.querySelectorAll('.breath').forEach(el => {
+    gsap.fromTo(el, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', scrollTrigger: { trigger: el, start: 'top 80%', end: 'top 50%', scrub: 1 } })
   })
 
   // ===== TEXT DRIFT — characters scatter on scroll =====
@@ -316,15 +332,19 @@ onMounted(async () => {
   gsap.fromTo('.ending-title', { opacity: 0, scale: 0.85, y: 40 }, { opacity: 1, scale: 1, y: 0, duration: 1.5, ease: 'power3.out', scrollTrigger: { trigger: '.ending', start: 'top 70%', end: 'top 30%', scrub: 1 } })
 })
 
-onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
+onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 </script>
 
 <template>
   <div class="page">
 
-    <!-- Post hover preview -->
-    <div v-if="previewVisible" ref="previewEl" class="post-preview">
+    <!-- Post preview: small floating image (dark mode) -->
+    <div v-if="previewVisible && isDark" ref="previewEl" class="post-preview" aria-hidden="true">
       <img :src="previewSrc" alt="" />
+    </div>
+    <!-- Post preview: full-screen background (light mode) -->
+    <div v-if="previewVisible && !isDark" class="post-bg" aria-hidden="true">
+      <img :src="previewSrc" class="post-bg-img" alt="" />
     </div>
 
     <!-- HERO -->
@@ -345,15 +365,20 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
         <p class="hero-sub">文章 · 阅读 · 摄影</p>
       </div>
       <div class="hero-statement">
-        <p>阅读的深度、<br>生活的温度、<br>思考的刻度，<br>都被楼西楼在文字与图像之间一一记录。</p>
+        <p>阅读的深度<br>生活的温度<br>思考的刻度<br>这些都能被<br>文字与图像<br>一一记录。</p>
       </div>
+    </section>
+
+    <!-- BREATH 1 -->
+    <section class="breath">
+      <p class="breath-text">文字是时间的切片，<br>每一篇都是一次停留。</p>
     </section>
 
     <!-- POSTS -->
     <section class="posts-section">
       <div class="section-label">
         <span class="label-num">01</span>
-        <span class="label-text scramble-title">写作</span>
+        <span class="label-text scramble-title">文章</span>
         <router-link to="/blog" class="label-link">查看全部 →</router-link>
       </div>
       <div class="posts-list">
@@ -367,6 +392,11 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
           <span class="pi-date">{{ fmt(post.created_at) }}</span>
         </article>
       </div>
+    </section>
+
+    <!-- BREATH 2 -->
+    <section class="breath">
+      <p class="breath-text">数字不会说话，<br>但它们记得一切。</p>
     </section>
 
     <!-- STATS — flip counter -->
@@ -403,6 +433,11 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
       <p class="drift-sub">文章 · 阅读 · 摄影</p>
     </section>
 
+    <!-- BREATH 3 -->
+    <section class="breath">
+      <p class="breath-text">书架上每一本书，<br>都是一段未完的对话。</p>
+    </section>
+
     <!-- BOOK SHOWCASE -->
     <section class="showcase-pin">
       <div class="showcase-scene">
@@ -429,7 +464,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
           <div class="showcase-hover">
             <div class="showcase-card">
               <div class="showcase-cover" @mouseenter="onBookEnter(book, $event)" @mouseleave="onBookLeave($event)">
-                <img :src="book.cover" :alt="book.title" loading="lazy" />
+                <img :src="book.cover" :alt="book.title" loading="lazy" decoding="async" />
               </div>
               <div class="showcase-spine"></div>
             </div>
@@ -441,7 +476,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
         </div>
         <div class="showcase-wall">
           <div v-for="(src, i) in photos" :key="i" class="showcase-photo">
-            <img :src="src" :alt="`Photo ${i+1}`" loading="lazy" />
+            <img :src="src" :alt="`Photo ${i+1}`" loading="lazy" decoding="async" />
           </div>
         </div>
       </div>
@@ -456,6 +491,11 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
           </div>
         </div>
       </Transition>
+    </section>
+
+    <!-- BREATH 4 -->
+    <section class="breath">
+      <p class="breath-text">有些句子，<br>值得用一个下午去记住。</p>
     </section>
 
     <!-- QUOTE — scroll typewriter -->
@@ -508,7 +548,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
 .hero-img-2 { grid-column: 3; grid-row: 1; }
 .hero-img-3 { grid-column: 1 / 3; grid-row: 2; }
 .hero-img-4 { grid-column: 3; grid-row: 2; }
-.hero-overlay { position: absolute; inset: 0; background: rgba(8, 7, 6, 0.65); opacity: 0.6; z-index: 1; }
+.hero-overlay { position: absolute; inset: 0; background: rgba(var(--bg-rgb), 0.65); opacity: 0.6; z-index: 1; }
 .hero-content { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
 .hero-year { font-family: var(--font-body); font-size: 0.75rem; color: var(--gold); letter-spacing: 0.6em; margin-bottom: 2rem; }
 .hero-title { font-family: var(--font-display); font-size: clamp(4rem, 14vw, 10rem); font-weight: 900; letter-spacing: 0.3em; color: var(--ink); line-height: 0.85; margin-bottom: 1.5rem; perspective: 800px; }
@@ -534,7 +574,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
   overflow: hidden;
   border: 1px solid var(--border);
   pointer-events: none;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 30px var(--shadow-deep);
 }
 .post-preview img {
   width: 100%;
@@ -548,7 +588,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
 .posts-list { display: flex; flex-direction: column; }
 .post-item { display: flex; align-items: flex-start; gap: 2rem; padding: 2rem 2.5rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.3s; }
 .post-item:first-child { border-top: 1px solid var(--border); }
-.post-item:hover { background: rgba(255,255,255,0.02); }
+.post-item:hover { background: var(--gold-dim); }
 .pi-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); flex-shrink: 0; padding-top: 0.3rem; min-width: 2rem; }
 .pi-body { flex: 1; min-width: 0; }
 .pi-cat { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.5rem; }
@@ -644,7 +684,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
   right: 0;
   z-index: 100;
   padding: 2.5rem 2.5rem 2rem;
-  background: linear-gradient(to top, rgba(8,7,6,0.97) 0%, rgba(8,7,6,0.85) 70%, transparent 100%);
+  background: linear-gradient(to top, rgba(var(--bg-rgb),0.97) 0%, rgba(var(--bg-rgb),0.85) 70%, transparent 100%);
   backdrop-filter: blur(12px);
   pointer-events: none;
 }
@@ -713,12 +753,49 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
   opacity: 0;
 }
 
+
+/* BREATHING SECTIONS */
+.breath {
+  padding: 10rem 2rem;
+  text-align: center;
+  opacity: 0;
+}
+.breath-text {
+  font-family: var(--font-display);
+  font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+  font-weight: 300;
+  font-style: italic;
+  color: var(--ink-dim);
+  line-height: 2.2;
+  letter-spacing: 0.05em;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+
+/* Post full-screen background preview (light mode) */
+.post-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.post-bg-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.06;
+  filter: blur(30px) saturate(0.5);
+}
+
 @media (max-width: 768px) {
   .hero-title { font-size: clamp(3rem, 12vw, 5rem); }
   .hero-statement p { font-size: 1.3rem; }
   .post-item { padding: 1.5rem; gap: 1rem; }
   .pi-num, .pi-date { display: none; }
   .post-preview { display: none; }
+  .post-bg { display: none; }
   .stats-grid { gap: 2rem; }
   .stat-val { font-size: 2.5rem; }
   .stat-sep { height: 30px; }
@@ -731,5 +808,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill()) })
   .section-label { padding: 0 1.25rem; }
   .ending { padding: 8rem 2rem 4rem; }
   .ending-title { font-size: clamp(2.5rem, 10vw, 4rem); }
+  .breath { padding: 6rem 1.5rem; }
+  .breath-text { font-size: 1rem; }
 }
 </style>

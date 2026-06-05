@@ -4,6 +4,10 @@ import { onMounted, onUnmounted } from 'vue'
 import type { Ref } from 'vue'
 
 gsap.registerPlugin(ScrollTrigger)
+/* ─── Reduced Motion Check ─── */
+export function prefersReducedMotion(): boolean {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
 
 /* ─── Text Scramble ─── */
 const GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*'
