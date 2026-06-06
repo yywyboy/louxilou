@@ -18,26 +18,31 @@ export const CATEGORIES = [
   { id: 'architecture', name: '建筑' },
 ]
 
-/* Static fallback — local photos from public/photos/ */
-const STATIC_PHOTOS: Photo[] = Array.from({ length: 30 }, (_, i) => ({
+/* Static fallback — local photos from public/assets/photos/ */
+const STATIC_PHOTOS: Photo[] = Array.from({ length: 125 }, (_, i) => ({
   id: i + 1,
-  filename: `photo (${i + 1}).jpg`,
+  filename: `photo-${String(i + 1).padStart(3, '0')}.jpg`,
   categories: ['landscape', 'nature'],
   created_at: '2024-01-01T00:00:00Z',
 }))
 
 export async function getPhotos(): Promise<Photo[]> {
+  // Always use static photos (local files)
   if (!supabase) return STATIC_PHOTOS
 
   try {
     const { data, error } = await supabase.from('photos').select('*').order('id', { ascending: true })
-    if (error) {
-      console.warn('Supabase photos error, using fallback:', error.message)
-      return STATIC_PHOTOS
-    }
-    return data && data.length > 0 ? data : STATIC_PHOTOS
+    if (error || !data || data.length === 0) return STATIC_PHOTOS
+
+    // Merge: use static filenames, but keep DB categories if available
+    return STATIC_PHOTOS.map(sp => {
+      const dbPhoto = data.find((d: any) => d.id === sp.id)
+      return {
+        ...sp,
+        categories: dbPhoto?.categories || sp.categories,
+      }
+    })
   } catch {
-    console.warn('Supabase unavailable, using static photos')
     return STATIC_PHOTOS
   }
 }

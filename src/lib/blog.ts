@@ -455,6 +455,45 @@ export function subscribeToComments(
   }
 }
 
+// Comment likes
+export async function toggleCommentLike(commentId: string, userId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { data: existing } = await supabase
+    .from('comment_likes')
+    .select('id')
+    .eq('comment_id', commentId)
+    .eq('user_id', userId)
+    .single()
+
+  if (existing) {
+    await supabase.from('comment_likes').delete().eq('comment_id', commentId).eq('user_id', userId)
+    return false
+  } else {
+    await supabase.from('comment_likes').insert({ comment_id: commentId, user_id: userId })
+    return true
+  }
+}
+
+export async function hasUserLikedComment(commentId: string, userId: string): Promise<boolean> {
+  if (!supabase) return false
+  const { data } = await supabase
+    .from('comment_likes')
+    .select('id')
+    .eq('comment_id', commentId)
+    .eq('user_id', userId)
+    .single()
+  return !!data
+}
+
+export async function getCommentLikeCount(commentId: string): Promise<number> {
+  if (!supabase) return 0
+  const { count } = await supabase
+    .from('comment_likes')
+    .select('id', { count: 'exact' })
+    .eq('comment_id', commentId)
+  return count || 0
+}
+
 export interface Announcement {
   id: string
   content: string

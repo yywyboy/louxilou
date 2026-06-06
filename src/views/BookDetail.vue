@@ -3,9 +3,11 @@ import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getBookByIdFromDB, type Book, type BookChapter } from '../lib/books'
 import { gsap } from '../composables/useGsap'
+import { usePageTransition } from '../composables/usePageTransition'
 
 const router = useRouter()
 const route = useRoute()
+const { getState, clearState } = usePageTransition()
 const book = ref<Book | null>(null)
 const lastRead = ref<{ chapterId: string; title: string } | null>(null)
 const jsonLd = computed(() => {
@@ -29,13 +31,44 @@ onMounted(async () => {
   const prog = JSON.parse(localStorage.getItem('reader-progress') || '{}')
   if (prog[id]) lastRead.value = prog[id]
   await nextTick()
-  gsap.fromTo('.back', { opacity: 0, x: -15 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out', delay: 0.1 })
-  gsap.fromTo('.bk-cover', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', delay: 0.2 })
-  gsap.fromTo('.bk-title', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 })
-  gsap.fromTo('.bk-author', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.4 })
-  gsap.fromTo('.bk-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.5 })
-  const ch = document.querySelectorAll('.ch-item')
-  gsap.fromTo(ch, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power3.out', delay: 0.6 })
+
+  const trans = getState()
+  if (trans) {
+    // Kazumi-style: cover flies from original position to detail page position
+    const coverEl = document.querySelector('.bk-cover') as HTMLElement
+    if (coverEl) {
+      const targetRect = coverEl.getBoundingClientRect()
+      const dx = trans.rect.left - targetRect.left
+      const dy = trans.rect.top - targetRect.top
+      const scaleX = trans.rect.width / targetRect.width
+      const scaleY = trans.rect.height / targetRect.height
+
+      gsap.set(coverEl, { x: dx, y: dy, scaleX, scaleY, opacity: 0.8 })
+      gsap.to(coverEl, {
+        x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1,
+        duration: 0.5, ease: 'power3.out'
+      })
+    }
+    clearState()
+    // Rest of page fades in after cover arrives
+    gsap.fromTo('.back', { opacity: 0, x: -15 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out', delay: 0.3 })
+    gsap.fromTo('.bk-title', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out', delay: 0.35 })
+    gsap.fromTo('.bk-author', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out', delay: 0.4 })
+    gsap.fromTo('.bk-desc', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.35, ease: 'power3.out', delay: 0.45 })
+    gsap.fromTo('.bk-stat', { opacity: 0 }, { opacity: 1, duration: 0.3, delay: 0.5 })
+    gsap.fromTo('.cta-fill', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, delay: 0.5 })
+    const ch = document.querySelectorAll('.ch-item')
+    gsap.fromTo(ch, { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.04, ease: 'power3.out', delay: 0.5 })
+  } else {
+    // No transition state — normal fade-in
+    gsap.fromTo('.back', { opacity: 0, x: -15 }, { opacity: 1, x: 0, duration: 0.5, ease: 'power3.out', delay: 0.1 })
+    gsap.fromTo('.bk-cover', { opacity: 0, scale: 0.95 }, { opacity: 1, scale: 1, duration: 0.7, ease: 'power3.out', delay: 0.2 })
+    gsap.fromTo('.bk-title', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.3 })
+    gsap.fromTo('.bk-author', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.4 })
+    gsap.fromTo('.bk-desc', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out', delay: 0.5 })
+    const ch = document.querySelectorAll('.ch-item')
+    gsap.fromTo(ch, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, ease: 'power3.out', delay: 0.6 })
+  }
 })
 
 onUnmounted(() => { gsap.killTweensOf('*') })
@@ -90,11 +123,11 @@ function cont() { if (lastRead.value) router.push(`/library/${route.params.id}/r
 
 <style scoped>
 .bd { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 2rem; }
-.back { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1.2rem; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: 100px; color: var(--ink-dim); font-family: var(--font-sans); font-size: 0.82rem; margin-bottom: 2.5rem; transition: all 0.3s; opacity: 0; }
+.back { display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.5rem 1.2rem; background: var(--bg-card); border: 1px solid var(--border-hover); border-radius: var(--r-full); color: var(--ink-dim); font-family: var(--font-sans); font-size: 0.82rem; margin-bottom: 2.5rem; transition: all 0.3s; opacity: 0; }
 .back:hover { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 .hero { display: grid; grid-template-columns: 220px 1fr; gap: 3rem; margin-bottom: 4rem; }
 .hero-cover { position: relative; }
-.bk-cover { width: 100%; border-radius: 3px; border: 1px solid var(--border); opacity: 0; }
+.bk-cover { width: 100%; border-radius: var(--r-xs); border: 1px solid var(--border); opacity: 0; }
 .bk-title { font-family: var(--font-display); font-size: 2rem; font-weight: 700; margin-bottom: 0.4rem; letter-spacing: 0.02em; opacity: 0; }
 .bk-author { font-size: 0.9rem; color: var(--ink-ghost); opacity: 0; }
 .bk-desc { font-size: 0.88rem; color: var(--ink-dim); line-height: 2; margin-bottom: 1.5rem; opacity: 0; }
@@ -106,16 +139,16 @@ function cont() { if (lastRead.value) router.push(`/library/${route.params.id}/r
 .ch-sec { margin-bottom: 2rem; }
 .sec-title { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; letter-spacing: 0.04em; }
 .ch-list { display: flex; flex-direction: column; gap: 0.6rem; }
-.ch-item { display: flex; align-items: center; gap: 1.25rem; padding: 0.9rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; cursor: pointer; transition: all 0.3s var(--ease); opacity: 0; }
+.ch-item { display: flex; align-items: center; gap: 1.25rem; padding: 0.9rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-sm); cursor: pointer; transition: all 0.3s var(--ease); opacity: 0; }
 .ch-item:hover { border-color: var(--border-hover); transform: translateX(4px); }
-.ch-thumb { width: 44px; height: 60px; object-fit: cover; border-radius: 3px; border: 1px solid var(--border); flex-shrink: 0; }
+.ch-thumb { width: 44px; height: 60px; object-fit: cover; border-radius: var(--r-xs); border: 1px solid var(--border); flex-shrink: 0; }
 .ch-info { flex: 1; min-width: 0; }
 .ch-title { font-family: var(--font-display); font-size: 0.9rem; font-weight: 600; margin-bottom: 0.2rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ch-status { font-family: var(--font-sans); font-size: 0.65rem; padding: 0.12rem 0.45rem; border-radius: 100px; font-weight: 500; }
+.ch-status { font-family: var(--font-sans); font-size: 0.65rem; padding: 0.12rem 0.45rem; border-radius: var(--r-full); font-weight: 500; }
 .ch-status.done { background: rgba(122,158,126,0.12); color: #7a9e7e; }
 .ch-status.wip { background: rgba(200,164,94,0.12); color: var(--gold); }
 .ch-acts { display: flex; gap: 0.4rem; flex-shrink: 0; }
-.act-r, .act-d { padding: 0.3rem 0.75rem; font-family: var(--font-sans); font-size: 0.7rem; font-weight: 500; border-radius: 100px; transition: all 0.3s; text-decoration: none; border: none; cursor: pointer; }
+.act-r, .act-d { padding: 0.3rem 0.75rem; font-family: var(--font-sans); font-size: 0.7rem; font-weight: 500; border-radius: var(--r-full); transition: all 0.3s; text-decoration: none; border: none; cursor: pointer; }
 .act-r { background: var(--gold); color: var(--bg); }
 .act-r:hover { background: var(--gold-light); }
 .act-d { background: none; color: var(--ink-ghost); border: 1px solid var(--border); }

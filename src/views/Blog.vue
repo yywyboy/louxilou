@@ -23,6 +23,7 @@ const cats = [
   { id: 'tech', name: '技术' },
   { id: 'reading', name: '读书' },
   { id: 'life', name: '生活' },
+  { id: 'thoughts', name: '随想' },
 ]
 
 function readTime(content: string) {
@@ -45,34 +46,54 @@ function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateStri
 function catName(c: string) { return cats.find(t => t.id === c)?.name || c || '随笔' }
 
 let bgTween: gsap.core.Tween | null = null
+let blogMouseX = 0, blogMouseY = 0
+let blogPreviewX = 0, blogPreviewY = 0
+let blogPreviewRaf: number | null = null
+
+function animateBlogPreview() {
+  if (!previewEl.value) { blogPreviewRaf = null; return }
+  blogPreviewX += (blogMouseX - blogPreviewX) * 0.12
+  blogPreviewY += (blogMouseY - blogPreviewY) * 0.12
+  previewEl.value.style.transform = 'translate(' + (blogPreviewX + 20) + 'px, ' + (blogPreviewY - 80) + 'px)'
+  blogPreviewRaf = requestAnimationFrame(animateBlogPreview)
+}
+
 function onPostEnter(post: Post, e: MouseEvent) {
   if (post.cover) {
     if (bgTween) bgTween.kill()
     bgSrc.value = post.cover
     bgVisible.value = true
+    blogMouseX = e.clientX
+    blogMouseY = e.clientY
+    blogPreviewX = blogMouseX
+    blogPreviewY = blogMouseY
     nextTick(() => {
       if (isDark.value && previewEl.value) {
-        const img = previewEl.value.querySelector('img') as HTMLImageElement
-        bgTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
-        if (img) gsap.fromTo(img, { filter: 'blur(10px)' }, { filter: 'blur(0px)', duration: 0.5, ease: 'power2.out' })
+        previewEl.value.style.position = 'fixed'
+        previewEl.value.style.left = '0'
+        previewEl.value.style.top = '0'
+        previewEl.value.style.pointerEvents = 'none'
+        bgTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' })
+        if (!blogPreviewRaf) blogPreviewRaf = requestAnimationFrame(animateBlogPreview)
       } else {
-        bgTween = gsap.fromTo('.blog-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.4, ease: 'power2.out' })
+        bgTween = gsap.fromTo('.blog-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.5, ease: 'power2.out' })
       }
     })
   }
 }
 function onPostMove(e: MouseEvent) {
-  if (isDark.value && previewEl.value) {
-    previewEl.value.style.left = (e.clientX + 20) + 'px'
-    previewEl.value.style.top = (e.clientY - 100) + 'px'
-  }
+  blogMouseX = e.clientX
+  blogMouseY = e.clientY
 }
 function onPostLeave() {
   if (bgTween) bgTween.kill()
   if (isDark.value && previewEl.value) {
-    bgTween = gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { bgVisible.value = false } })
+    bgTween = gsap.to(previewEl.value, { opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => {
+      bgVisible.value = false
+      if (blogPreviewRaf) { cancelAnimationFrame(blogPreviewRaf); blogPreviewRaf = null }
+    }})
   } else {
-    bgTween = gsap.to('.blog-bg-img', { opacity: 0, duration: 0.2, ease: 'power2.in', onComplete: () => { bgVisible.value = false } })
+    bgTween = gsap.to('.blog-bg-img', { opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => { bgVisible.value = false } })
   }
 }
 
@@ -185,7 +206,7 @@ onUnmounted(() => {  })
 .archive-link:hover { color: var(--gold); }
 
 /* Search bar */
-.search-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px; margin-bottom: 1.5rem; color: var(--ink-ghost); transition: border-color 0.3s; max-width: 480px; margin-left: auto; margin-right: auto; }
+.search-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-full); margin-bottom: 1.5rem; color: var(--ink-ghost); transition: border-color 0.3s; max-width: 480px; margin-left: auto; margin-right: auto; }
 .search-bar:focus-within { border-color: var(--border-hover); }
 .search-input { flex: 1; background: none; border: none; outline: none; font-size: 0.88rem; color: var(--ink); font-family: var(--font-body); }
 .search-input::placeholder { color: var(--ink-ghost); }
@@ -193,7 +214,7 @@ onUnmounted(() => {  })
 .search-clear:hover { color: var(--ink); }
 
 .cat-bar { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 3.5rem; opacity: 0; }
-.cat-btn { padding: 0.4rem 1.2rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: 100px; transition: all 0.3s; }
+.cat-btn { padding: 0.4rem 1.2rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; }
 .cat-btn:hover { color: var(--ink-dim); border-color: var(--border-hover); }
 .cat-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 
@@ -230,10 +251,13 @@ onUnmounted(() => {  })
 /* Small floating preview (dark mode) */
 .blog-preview {
   position: fixed;
+  left: 0;
+  top: 0;
   z-index: 10000;
   width: 200px;
   height: 140px;
-  border-radius: 4px;
+  will-change: transform;
+  border-radius: var(--r-xs);
   overflow: hidden;
   border: 1px solid var(--border);
   pointer-events: none;

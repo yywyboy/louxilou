@@ -69,7 +69,7 @@ onMounted(() => {
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
 
 .friend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; margin-bottom: 4rem; }
-.friend-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; text-decoration: none; transition: all 0.3s; }
+.friend-card { display: flex; align-items: center; gap: 1rem; padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-sm); text-decoration: none; transition: all 0.3s; }
 .friend-card:hover { border-color: var(--gold); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
 .friend-avatar { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border); flex-shrink: 0; }
 .friend-info { flex: 1; min-width: 0; }
@@ -83,7 +83,7 @@ onMounted(() => {
 .apply-info p { font-size: 0.85rem; color: var(--ink-dim); margin-bottom: 0.4rem; }
 .apply-link { color: var(--gold); text-decoration: none; border-bottom: 1px solid transparent; transition: border-color 0.3s; }
 .apply-link:hover { border-bottom-color: var(--gold); }
-.apply-format { padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; text-align: left; }
+.apply-format { padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-sm); text-align: left; }
 .format-title { font-family: var(--font-display); font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; }
 .format-list { padding-left: 1.25rem; }
 .format-list li { font-size: 0.85rem; color: var(--ink-dim); margin-bottom: 0.3rem; }

@@ -131,14 +131,14 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
-  border-radius: 100px;
+  border-radius: var(--r-full);
   box-shadow: 0 4px 30px rgba(0,0,0,0.4);
 }
 .rd-center { text-align: center; flex: 1; padding: 0 1rem; }
 .rd-center h2 { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rd-center p { font-size: 0.68rem; color: var(--ink-ghost); margin: 0; }
 .rd-acts { display: flex; gap: 0.35rem; align-items: center; }
-.rb { min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: 100px; color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; transition: all 0.3s; }
+.rb { min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: var(--r-full); color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; transition: all 0.3s; }
 .rb:hover { color: var(--ink); border-color: var(--border-hover); }
 .rb.on { background: var(--gold); border-color: var(--gold); color: var(--bg); }
 .rb-g { background: var(--gold); border-color: var(--gold); color: var(--bg); }
@@ -161,7 +161,7 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
   display: flex; flex-direction: column;
   background: var(--bg-warm);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   overflow: hidden;
   box-shadow: 0 12px 48px rgba(0,0,0,0.5);
 }

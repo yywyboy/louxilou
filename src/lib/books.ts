@@ -33,6 +33,8 @@ export async function getAllBooks(): Promise<Book[]> {
     author: b.author,
     cover: b.cover || '',
     description: b.description || '',
+    tags: b.tags || [],
+    featured: b.featured || false,
     chapters: (chapterMap.get(b.id) || []).map(ch => ({
       id: ch.id,
       title: ch.title,
@@ -43,7 +45,22 @@ export async function getAllBooks(): Promise<Book[]> {
   }))
 
   const dbIds = new Set(dbResult.map(b => b.id))
-  const merged = [...dbResult, ...staticResult.filter(b => !dbIds.has(b.id))]
+  // Merge: static books first (always preferred), then DB-only books
+  const merged: Book[] = [...staticResult]
+  // Add DB books that aren't in static data
+  dbResult.forEach(dbBook => {
+    if (!staticBooks.find(s => s.id === dbBook.id)) {
+      merged.push(dbBook)
+    } else {
+      // Book exists in both: merge chapters from DB if static has none
+      const staticBook = merged.find(b => b.id === dbBook.id)
+      if (staticBook && staticBook.chapters.length <= 1 && dbBook.chapters.length > 1) {
+        staticBook.chapters = dbBook.chapters
+      }
+      // Merge featured from static
+      if (staticBook && dbBook.featured) staticBook.featured = true
+    }
+  })
   return merged
 }
 

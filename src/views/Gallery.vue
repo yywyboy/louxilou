@@ -14,7 +14,7 @@ const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
 const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
-const mapped = computed(() => photos.value.map((p, i) => ({ ...p, src: `/photos/${p.filename}`, alt: `Photo ${p.id}`, catNames: getCategoryNames(p.categories), idx: i + 1 })))
+const mapped = computed(() => photos.value.map((p, i) => ({ ...p, src: `/assets/photos/${p.filename}`, alt: `Photo ${p.id}`, catNames: getCategoryNames(p.categories), idx: i + 1 })))
 const filtered = computed(() => { if (!cats.value.length) return mapped.value; return mapped.value.filter(p => cats.value.every(c => p.categories.includes(c))) })
 const displayed = computed(() => filtered.value.slice(0, displayCount.value))
 const hasMore = computed(() => displayCount.value < filtered.value.length)
@@ -135,7 +135,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
 
 .cat-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 3rem; opacity: 0; }
-.cat-btn { padding: 0.35rem 1rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: 100px; transition: all 0.3s; }
+.cat-btn { padding: 0.35rem 1rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; }
 .cat-btn:hover { color: var(--ink-dim); border-color: var(--border-hover); }
 .cat-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 
@@ -151,7 +151,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   margin-bottom: 0.5rem;
   position: relative;
   overflow: hidden;
-  border-radius: 3px;
+  border-radius: var(--r-xs);
   cursor: pointer;
   opacity: 0;
   transition: transform 0.4s var(--ease);
@@ -183,7 +183,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   padding: 0.12rem 0.45rem;
   background: rgba(159,53,58,0.2);
   backdrop-filter: blur(6px);
-  border-radius: 100px;
+  border-radius: var(--r-full);
   font-family: var(--font-sans);
   font-size: 0.6rem;
   color: var(--gold-light);
@@ -200,7 +200,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 
   /* Grid — equal width columns instead of masonry */
   .grid { columns: 2; column-gap: 0.3rem; }
-  .ph { margin-bottom: 0.3rem; border-radius: 2px; }
+  .ph { margin-bottom: 0.3rem; border-radius: var(--r-xs); }
 
   /* Category bar — horizontal scroll */
   .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
@@ -228,14 +228,14 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .lb-info { display: flex; align-items: center; gap: 1rem; }
 .lb-num { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-ghost); }
 .lb-cats { display: flex; gap: 0.4rem; }
-.lb-cat { padding: 0.2rem 0.7rem; background: rgba(159,53,58,0.12); border-radius: 100px; font-family: var(--font-sans); font-size: 0.68rem; color: var(--gold-light); }
+.lb-cat { padding: 0.2rem 0.7rem; background: rgba(159,53,58,0.12); border-radius: var(--r-full); font-family: var(--font-sans); font-size: 0.68rem; color: var(--gold-light); }
 .lb-close {
   position: absolute; top: 1.5rem; left: 1.5rem;
   display: flex; align-items: center; gap: 0.5rem;
   padding: 0.5rem 1.2rem;
   background: var(--gold-dim);
   border: 1px solid var(--border-hover);
-  border-radius: 100px;
+  border-radius: var(--r-full);
   color: var(--ink-dim);
   font-family: var(--font-sans); font-size: 0.75rem;
   transition: all 0.3s; z-index: 10;

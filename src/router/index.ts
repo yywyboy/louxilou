@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { scrollTo as lenisScrollTo, getLenis } from '../composables/useLenis'
 
 const routes = [
   {
@@ -61,8 +62,29 @@ const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior() {
-    return { top: 0 }
+    const lenis = getLenis()
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true })
+    } else {
+      window.scrollTo(0, 0)
+    }
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+    return { top: 0, behavior: 'instant' }
   },
+})
+
+router.afterEach(() => {
+  requestAnimationFrame(() => {
+    const lenis = getLenis()
+    if (lenis) {
+      lenis.scrollTo(0, { immediate: true })
+    } else {
+      window.scrollTo(0, 0)
+    }
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
+  })
 })
 
 router.beforeEach((to) => {

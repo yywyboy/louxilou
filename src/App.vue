@@ -2,6 +2,7 @@
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { gsap, initMagnetic, prefersReducedMotion } from './composables/useGsap'
+import { scrollTo as lenisScrollTo } from './composables/useLenis'
 import { updateThemeState } from './composables/useTheme'
 
 const route = useRoute()
@@ -105,14 +106,26 @@ function tick() {
   raf = requestAnimationFrame(tick)
 }
 
-// Ink trail
+// Ink trail — tracked for cleanup
 let lastInkX = 0, lastInkY = 0, inkDist = 0
+const inkDots: HTMLElement[] = []
+
 function spawnInk(x: number, y: number) {
   const dot = document.createElement('div')
   dot.className = 'ink-dot'
   dot.style.cssText = `left:${x}px;top:${y}px;`
   document.body.appendChild(dot)
-  gsap.to(dot, { opacity: 0, scale: 2.5, duration: 1.2, ease: 'power2.out', onComplete: () => dot.remove() })
+  inkDots.push(dot)
+  gsap.to(dot, { opacity: 0, scale: 2.5, duration: 1.2, ease: 'power2.out', onComplete: () => {
+    dot.remove()
+    const idx = inkDots.indexOf(dot)
+    if (idx > -1) inkDots.splice(idx, 1)
+  }})
+}
+
+function cleanupInkDots() {
+  inkDots.forEach(dot => { gsap.killTweensOf(dot); dot.remove() })
+  inkDots.length = 0
 }
 
 function onMove(e: MouseEvent) {
@@ -181,6 +194,8 @@ const circleR = 18
 const circleC = 2 * Math.PI * circleR
 const circleOffset = computed(() => circleC - (scrollProgress.value / 100) * circleC)
 
+
+watch(() => route.path, () => { cleanupInkDots() })
 
 onMounted(() => {
   
@@ -251,8 +266,8 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- CIRCULAR SCROLL PROGRESS -->
-    <div class="progress-ring" v-if="!isReader">
+    <!-- CIRCULAR SCROLL PROGRESS — click to scroll to top -->
+    <div class="progress-ring interactive" @click="lenisScrollTo(0)" title="回到顶部">
       <svg width="44" height="44" viewBox="0 0 44 44">
         <circle cx="22" cy="22" :r="circleR" fill="none" stroke="var(--border)" stroke-width="1.5" />
         <circle cx="22" cy="22" :r="circleR" fill="none" stroke="#9F353A" stroke-width="1.5"
@@ -361,8 +376,10 @@ onUnmounted(() => {
 .loader-char { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 4rem); font-weight: 900; letter-spacing: 0.12em; color: var(--gold); opacity: 0; }
 
 /* ===== CIRCULAR PROGRESS ===== */
-.progress-ring { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; }
+.progress-ring { position: fixed; bottom: 2rem; right: 2rem; z-index: 1000; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.3s; }
+.progress-ring:hover { transform: scale(1.1); }
 .progress-ring svg { position: absolute; top: 0; left: 0; }
+@media (max-width: 900px) { .progress-ring { display: none; } }
 .progress-pct { font-family: var(--font-mono); font-size: 0.55rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
 
 /* ===== CONTEXTUAL CURSOR ===== */
@@ -418,12 +435,12 @@ onUnmounted(() => {
 /* ===== NAV ===== */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 1.5rem 0; transition: transform 0.5s var(--ease); }
 .nav.hidden { transform: translateY(calc(-100% - 2rem)); }
-.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 100px; box-shadow: 0 4px 30px var(--shadow); }
+.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--r-full); box-shadow: 0 4px 30px var(--shadow); }
 .nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; flex: 1; min-width: 0; }
 .logo-glyph { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; color: var(--gold); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gold-dim); border-radius: 50%; }
 .logo-text { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; color: var(--ink); letter-spacing: 0.15em; }
 .nav-links { display: flex; gap: 0; }
-.nav-link { position: relative; display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem; text-decoration: none; transition: all 0.3s; border-radius: 100px; }
+.nav-link { position: relative; display: flex; align-items: center; gap: 0.4rem; padding: 0.5rem 1.1rem; text-decoration: none; transition: all 0.3s; border-radius: var(--r-full); }
 .nav-link:hover { background: var(--gold-dim); }
 .nav-link.active { background: var(--gold-dim); }
 .link-num { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 300; color: var(--ink-vanish); transition: color 0.3s; }
@@ -438,7 +455,7 @@ onUnmounted(() => {
 .nav-burger.open span:last-child { transform: rotate(-45deg) translate(2px, -2px); }
 .theme-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--ink-ghost); transition: all 0.3s; flex-shrink: 0; }
 .theme-toggle:hover { color: var(--gold); background: var(--gold-dim); }
-.nav-mobile { max-width: 900px; margin: 0.5rem auto 0; padding: 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 30px var(--shadow); }
+.nav-mobile { max-width: 900px; margin: 0.5rem auto 0; padding: 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--r-xl); box-shadow: 0 4px 30px var(--shadow); }
 .mob-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500; color: var(--ink-dim); text-decoration: none; border-radius: 10px; transition: all 0.3s; }
 .mob-link:hover { color: var(--gold); background: var(--gold-dim); }
 .mob-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); }

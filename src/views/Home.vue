@@ -24,36 +24,58 @@ const previewSrc = ref('')
 const previewVisible = ref(false)
 
 let homePreviewTween: gsap.core.Tween | null = null
+let mouseX = 0, mouseY = 0
+let previewX = 0, previewY = 0
+let previewRaf: number | null = null
+
+function animatePreview() {
+  if (!previewEl.value) { previewRaf = null; return }
+  // Lerp for inertia
+  previewX += (mouseX - previewX) * 0.12
+  previewY += (mouseY - previewY) * 0.12
+  previewEl.value.style.transform = 'translate(' + (previewX + 20) + 'px, ' + (previewY - 80) + 'px)'
+  previewRaf = requestAnimationFrame(animatePreview)
+}
+
 function onPostEnter(post: Post, e: MouseEvent) {
   if (post.cover) {
     if (homePreviewTween) homePreviewTween.kill()
     previewSrc.value = post.cover
     previewVisible.value = true
+    mouseX = e.clientX
+    mouseY = e.clientY
+    previewX = mouseX
+    previewY = mouseY
     nextTick(() => {
       if (isDark.value && previewEl.value) {
-        const img = previewEl.value.querySelector('img') as HTMLImageElement
-        homePreviewTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.9, x: 20 }, { opacity: 1, scale: 1, x: 0, duration: 0.35, ease: 'power2.out' })
-        if (img) gsap.fromTo(img, { filter: 'blur(10px)' }, { filter: 'blur(0px)', duration: 0.5, ease: 'power2.out' })
+        previewEl.value.style.position = 'fixed'
+        previewEl.value.style.left = '0'
+        previewEl.value.style.top = '0'
+        previewEl.value.style.pointerEvents = 'none'
+        homePreviewTween = gsap.fromTo(previewEl.value, { opacity: 0, scale: 0.85 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'power2.out' })
+        if (!previewRaf) previewRaf = requestAnimationFrame(animatePreview)
       } else {
-        homePreviewTween = gsap.fromTo('.post-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.4, ease: 'power2.out' })
+        homePreviewTween = gsap.fromTo('.post-bg-img', { opacity: 0 }, { opacity: 0.55, duration: 0.5, ease: 'power2.out' })
       }
     })
   }
 }
 
 function onPostMove(e: MouseEvent) {
-  if (previewEl.value) {
-    previewEl.value.style.left = (e.clientX + 20) + 'px'
-    previewEl.value.style.top = (e.clientY - 100) + 'px'
-  }
+  mouseX = e.clientX
+  mouseY = e.clientY
 }
 
 function onPostLeave() {
   if (homePreviewTween) homePreviewTween.kill()
   if (isDark.value && previewEl.value) {
-    homePreviewTween = gsap.to(previewEl.value, { opacity: 0, scale: 0.9, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
+    // Fade out only opacity — keep position from raf
+    homePreviewTween = gsap.to(previewEl.value, { opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => {
+      previewVisible.value = false
+      if (previewRaf) { cancelAnimationFrame(previewRaf); previewRaf = null }
+    }})
   } else {
-    homePreviewTween = gsap.to('.post-bg-img', { opacity: 0, duration: 0.2, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
+    homePreviewTween = gsap.to('.post-bg-img', { opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => { previewVisible.value = false } })
   }
 }
 
@@ -95,7 +117,7 @@ onMounted(async () => {
   try {
     const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
     posts.value = p; books.value = b
-    photos.value = ph.slice(0, 12).map(x => `/photos/${x.filename}`)
+    photos.value = ph.slice(0, 12).map(x => `/assets/photos/${x.filename}`)
   } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
@@ -350,11 +372,11 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
     <!-- HERO -->
     <section class="hero-pin">
       <div class="hero-images">
-        <div class="hero-img hero-img-0"><img src="/photos/photo (1).jpg" alt="" /></div>
-        <div class="hero-img hero-img-1"><img src="/photos/photo (2).jpg" alt="" /></div>
-        <div class="hero-img hero-img-2"><img src="/photos/photo (3).jpg" alt="" /></div>
-        <div class="hero-img hero-img-3"><img src="/photos/photo (4).jpg" alt="" /></div>
-        <div class="hero-img hero-img-4"><img src="/photos/photo (5).jpg" alt="" /></div>
+        <div class="hero-img hero-img-0"><img src="/assets/photos/photo-018.jpg" alt="" /></div>
+        <div class="hero-img hero-img-1"><img src="/assets/photos/photo-069.jpg" alt="" /></div>
+        <div class="hero-img hero-img-2"><img src="/assets/photos/photo-071.jpg" alt="" /></div>
+        <div class="hero-img hero-img-3"><img src="/assets/photos/photo-055.jpg" alt="" /></div>
+        <div class="hero-img hero-img-4"><img src="/assets/photos/photo-062.jpg" alt="" /></div>
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-content">
@@ -567,10 +589,13 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 /* POST HOVER PREVIEW */
 .post-preview {
   position: fixed;
+  left: 0;
+  top: 0;
   z-index: 10000;
   width: 200px;
   height: 140px;
-  border-radius: 4px;
+  will-change: transform;
+  border-radius: var(--r-xs);
   overflow: hidden;
   border: 1px solid var(--border);
   pointer-events: none;
@@ -666,14 +691,14 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 .showcase-book { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; pointer-events: none; user-select: none; }
 .showcase-hover { pointer-events: none; }
 .showcase-card { position: relative; transform-style: preserve-3d; }
-.showcase-cover { width: 160px; aspect-ratio: 3/4; overflow: hidden; border-radius: 2px; border: 1px solid var(--border); backface-visibility: hidden; pointer-events: auto; cursor: default; }
+.showcase-cover { width: 160px; aspect-ratio: 3/4; overflow: hidden; border-radius: var(--r-xs); border: 1px solid var(--border); backface-visibility: hidden; pointer-events: auto; cursor: default; }
 .showcase-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .showcase-spine { position: absolute; right: -8px; top: 0; width: 8px; height: 100%; background: linear-gradient(to right, rgba(60,50,40,0.8), rgba(40,35,28,0.95)); transform: rotateY(90deg); transform-origin: left center; opacity: 0; border-radius: 0 2px 2px 0; }
 .showcase-info { text-align: center; opacity: 0; }
 .showcase-info h3 { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; margin-bottom: 0.15rem; white-space: nowrap; }
 .showcase-info p { font-family: var(--font-sans); font-size: 0.6rem; color: var(--ink-ghost); }
 .showcase-wall { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(3, 1fr); gap: 0.3rem; padding: 2rem; pointer-events: none; }
-.showcase-photo { overflow: hidden; border-radius: 2px; opacity: 0; }
+.showcase-photo { overflow: hidden; border-radius: var(--r-xs); opacity: 0; }
 .showcase-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* BOOK INFO PANEL */

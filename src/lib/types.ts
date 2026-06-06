@@ -19,4 +19,7 @@ export interface Comment {
   user_avatar: string | null
   content: string
   created_at: string
+  parent_id: string | null
+  reply_to_name?: string | null
+  like_count?: number
 }
