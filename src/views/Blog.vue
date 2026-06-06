@@ -11,6 +11,7 @@ const router = useRouter()
 const posts = ref<Post[]>([])
 const loading = ref(true)
 const activeCat = ref('all')
+const searchQuery = ref('')
 
 // Full-width background preview on hover
 const bgSrc = ref('')
@@ -24,9 +25,19 @@ const cats = [
   { id: 'life', name: '生活' },
 ]
 
+function readTime(content: string) {
+  if (!content) return 1
+  return Math.max(1, Math.ceil(content.replace(/[#*`\n\r]/g, '').length / 400))
+}
+
 const filtered = computed(() => {
-  if (activeCat.value === 'all') return posts.value
-  return posts.value.filter(p => p.category === activeCat.value)
+  let r = posts.value
+  if (activeCat.value !== 'all') r = r.filter(p => p.category === activeCat.value)
+  if (searchQuery.value.trim()) {
+    const q = searchQuery.value.toLowerCase()
+    r = r.filter(p => p.title.toLowerCase().includes(q) || (p.summary || '').toLowerCase().includes(q) || (p.content || '').toLowerCase().includes(q))
+  }
+  return r
 })
 
 function go(id: string) { router.push(`/blog/${id}`) }
@@ -105,7 +116,15 @@ onUnmounted(() => {  })
         <span class="eyebrow">Writing</span>
         <h1 class="pg-title">博客</h1>
         <p class="pg-desc">技术思考、读书笔记与生活感悟</p>
+        <router-link to="/archive" class="archive-link">查看归档 →</router-link>
       </header>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input v-model="searchQuery" type="text" placeholder="搜索文章…" class="search-input" />
+        <button v-if="searchQuery" class="search-clear interactive" @click="searchQuery = ''">×</button>
+      </div>
 
       <!-- Categories -->
       <div class="cat-bar">
@@ -129,6 +148,7 @@ onUnmounted(() => {  })
             <span class="pc-cat">{{ catName(post.category) }}</span>
             <h2 class="pc-title">{{ post.title }}</h2>
             <p class="pc-summary">{{ post.summary || (post.content || '').substring(0, 120) }}…</p>
+            <span class="pc-meta">{{ readTime(post.content || '') }} 分钟阅读</span>
           </div>
           <span class="pc-arrow">→</span>
         </article>
@@ -161,6 +181,16 @@ onUnmounted(() => {  })
 .eyebrow { font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; display: block; margin-bottom: 1rem; }
 .pg-title { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5rem); font-weight: 900; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
+.archive-link { font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; display: inline-block; margin-top: 0.75rem; }
+.archive-link:hover { color: var(--gold); }
+
+/* Search bar */
+.search-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 100px; margin-bottom: 1.5rem; color: var(--ink-ghost); transition: border-color 0.3s; max-width: 480px; margin-left: auto; margin-right: auto; }
+.search-bar:focus-within { border-color: var(--border-hover); }
+.search-input { flex: 1; background: none; border: none; outline: none; font-size: 0.88rem; color: var(--ink); font-family: var(--font-body); }
+.search-input::placeholder { color: var(--ink-ghost); }
+.search-clear { font-size: 1.1rem; color: var(--ink-ghost); padding: 0 0.25rem; }
+.search-clear:hover { color: var(--ink); }
 
 .cat-bar { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 3.5rem; opacity: 0; }
 .cat-btn { padding: 0.4rem 1.2rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: 100px; transition: all 0.3s; }
@@ -190,6 +220,7 @@ onUnmounted(() => {  })
 .pc-cat { font-family: var(--font-sans); font-size: 0.6rem; font-weight: 500; color: var(--gold); letter-spacing: 0.1em; text-transform: uppercase; display: block; margin-bottom: 0.6rem; }
 .pc-title { font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; line-height: 1.35; margin-bottom: 0.6rem; transition: color 0.3s; letter-spacing: 0.01em; }
 .pc-summary { font-size: 0.88rem; color: var(--ink-ghost); line-height: 1.8; max-width: 550px; }
+.pc-meta { font-family: var(--font-mono); font-size: 0.65rem; color: var(--ink-vanish); margin-top: 0.4rem; display: block; }
 
 .pc-arrow { font-size: 1.2rem; color: var(--ink-vanish); transition: all 0.3s var(--ease); justify-self: center; padding-top: 0.2rem; }
 

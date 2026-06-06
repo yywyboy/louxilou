@@ -340,6 +340,8 @@ onUnmounted(() => {
         <div class="foot-links">
           <a href="https://github.com/yywyboy" target="_blank" class="foot-link interactive">GitHub</a>
           <a href="https://space.bilibili.com/603244446" target="_blank" class="foot-link interactive">Bilibili</a>
+          <router-link to="/friends" class="foot-link interactive">友链</router-link>
+          <a href="/feed.xml" target="_blank" class="foot-link interactive">RSS</a>
         </div>
         <span class="foot-copy">© 2026</span>
       </div>

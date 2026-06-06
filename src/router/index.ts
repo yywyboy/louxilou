@@ -43,6 +43,18 @@ const routes = [
     component: () => import('../views/Gallery.vue'),
     meta: { title: '图库 — 楼西楼' },
   },
+  {
+    path: '/archive',
+    name: 'Archive',
+    component: () => import('../views/Archive.vue'),
+    meta: { title: '归档 — 楼西楼' },
+  },
+  {
+    path: '/friends',
+    name: 'Friends',
+    component: () => import('../views/Friends.vue'),
+    meta: { title: '友链 — 楼西楼' },
+  },
 ]
 
 const router = createRouter({
