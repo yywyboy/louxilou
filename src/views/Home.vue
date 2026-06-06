@@ -790,25 +790,49 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 }
 
 @media (max-width: 768px) {
-  .hero-title { font-size: clamp(3rem, 12vw, 5rem); }
-  .hero-statement p { font-size: 1.3rem; }
-  .post-item { padding: 1.5rem; gap: 1rem; }
+  /* Hero — simplified for mobile */
+  .hero-title { font-size: clamp(3rem, 14vw, 5rem); }
+  .hero-statement p { font-size: 1.2rem; line-height: 1.8; }
+  .hero-overlay { opacity: 0.7; }
+
+  /* Posts — larger touch targets */
+  .post-item { padding: 1.25rem 1rem; gap: 0.75rem; }
   .pi-num, .pi-date { display: none; }
+  .pi-title { font-size: 1.2rem; }
+  .pi-excerpt { font-size: 0.8rem; }
   .post-preview { display: none; }
   .post-bg { display: none; }
-  .stats-grid { gap: 2rem; }
-  .stat-val { font-size: 2.5rem; }
+
+  /* Stats — compact */
+  .stats-grid { gap: 1.5rem; }
+  .flip-digit { font-size: 2.5rem; }
   .stat-sep { height: 30px; }
-  .showcase-cover { width: 100px; }
+
+  /* Showcase — simplified */
+  .showcase-cover { width: 90px; }
   .showcase-spine { display: none; }
   .showcase-wall { grid-template-columns: repeat(3, 1fr); padding: 1rem; }
   .showcase-label { left: 1rem; }
   .brand-echo, .brand-echo-2 { font-size: clamp(2rem, 8vw, 4rem); }
-  .quote-block { padding: 6rem 2rem; }
-  .section-label { padding: 0 1.25rem; }
-  .ending { padding: 8rem 2rem 4rem; }
+
+  /* Quote */
+  .quote-block { padding: 5rem 1.5rem; }
+  .quote-block blockquote { font-size: 1.1rem; }
+
+  /* Section label */
+  .section-label { padding: 0 1rem; }
+
+  /* Ending */
+  .ending { padding: 6rem 1.5rem 3rem; }
   .ending-title { font-size: clamp(2.5rem, 10vw, 4rem); }
-  .breath { padding: 6rem 1.5rem; }
+  .ending-svg { width: 200px; }
+
+  /* Breath */
+  .breath { padding: 5rem 1.5rem; }
   .breath-text { font-size: 1rem; }
+
+  /* Drift */
+  .drift-section { padding: 6rem 0; }
+  .drift-char { font-size: clamp(2.5rem, 10vw, 5rem); }
 }
 </style>

@@ -176,5 +176,15 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
 .sp-leave-active { transition: all 0.2s var(--ease); }
 .sp-enter-from, .sp-leave-to { opacity: 0; }
 .sp-enter-from .qn-panel { transform: translateY(-10px); }
-@media (max-width: 768px) { .rd-hd { padding: 0.4rem 0.75rem; top: 0; } .rd-center h2 { font-size: 0.78rem; } .rd-center p { display: none; } .rd-body { padding: 1rem; padding-top: 52px; padding-bottom: 60px; } .rd-ft { padding: 0.4rem 0.75rem; } .qn { right: 0.5rem; width: 200px; } }
+@media (max-width: 768px) {
+  .rd-hd { padding: 0.5rem 0.75rem; top: 0; }
+  .rd-center h2 { font-size: 0.78rem; }
+  .rd-center p { display: none; }
+  .rd-body { padding: 1rem; padding-top: 56px; padding-bottom: 80px; }
+  .rd-ft { padding: 0.5rem 0.75rem; padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
+  .rd-acts { gap: 0.25rem; }
+  .rd-acts button { padding: 0.3rem 0.5rem; font-size: 0.7rem; }
+  .qn { right: 0.5rem; width: 200px; }
+  .rd-body p { font-size: calc(var(--fs, 18px) * 0.95); }
+}
 </style>

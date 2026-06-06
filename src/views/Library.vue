@@ -369,12 +369,23 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
-  .shelf { gap: 1rem; padding: 1.5rem 0.5rem; }
-  .shelf-cover { width: 90px; }
+
+  /* Shelf — simplified */
+  .shelf { gap: 0.75rem; padding: 1rem 0.25rem; }
+  .shelf-cover { width: 80px; }
   .shelf-spine, .shelf-edge { display: none; }
   .shelf-hint { display: none; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 1.25rem; }
-  .tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; }
-  .tag-btn { white-space: nowrap; flex-shrink: 0; }
+  .shelf-title { font-size: 0.65rem; max-width: 75px; }
+
+  /* Search — larger touch target */
+  .search { padding: 0.75rem 1rem; }
+  .search-in { font-size: 1rem; }
+
+  /* Grid — responsive */
+  .grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 1rem; }
+
+  /* Tags — horizontal scroll */
+  .tags { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
+  .tag-btn { white-space: nowrap; flex-shrink: 0; padding: 0.35rem 0.75rem; }
 }
 </style>

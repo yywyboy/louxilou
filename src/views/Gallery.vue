@@ -197,12 +197,20 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
-  .grid { columns: 2; column-gap: 0.35rem; }
-  .ph { margin-bottom: 0.35rem; }
-  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; }
-  .cat-btn { white-space: nowrap; flex-shrink: 0; }
-  .lb-meta { flex-direction: column; gap: 1rem; align-items: stretch; }
-  .lb-close { justify-content: center; }
+
+  /* Grid — equal width columns instead of masonry */
+  .grid { columns: 2; column-gap: 0.3rem; }
+  .ph { margin-bottom: 0.3rem; border-radius: 2px; }
+
+  /* Category bar — horizontal scroll */
+  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
+  .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.3rem 0.8rem; }
+
+  /* Lightbox — full screen */
+  .lb { padding: 1rem; }
+  .lb-meta { flex-direction: column; gap: 0.75rem; align-items: stretch; }
+  .lb-close { justify-content: center; padding: 0.75rem 1.5rem; }
+  .lb-img { max-width: 95vw; max-height: 75vh; }
 }
 </style>
 

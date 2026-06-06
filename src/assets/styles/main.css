@@ -141,34 +141,66 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   animation: spin 0.7s linear infinite;
 }
 
+/* ===== MOBILE BASE ===== */
 @media (max-width: 768px) {
   :root { --nav-h: 68px; }
   .ctr { padding: 0 1.25rem; }
   .ctr-narrow { padding: 0 1.25rem; }
+
+  /* Better touch targets */
+  button, a, .interactive { min-height: 44px; min-width: 44px; }
+
+  /* Prevent overscroll bounce */
+  html { overscroll-behavior: none; }
+
+  /* Smoother scrolling */
+  * { -webkit-overflow-scrolling: touch; }
+
+  /* Hide grain on mobile for performance */
+  .grain::after { display: none; }
+
+  /* Safe area for notched phones */
+  .nav { padding-top: max(1rem, env(safe-area-inset-top)); }
+  .foot { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* Very small screens */
+@media (max-width: 375px) {
+  :root { --nav-h: 60px; }
+  .ctr { padding: 0 1rem; }
 }
 
 
-/* ===== MOBILE TOUCH FEEDBACK ===== */
+/* ===== TOUCH DEVICE FEEDBACK ===== */
 @media (hover: none) and (pointer: coarse) {
-  /* Subtle scale feedback on touch */
-  .interactive:active {
-    transform: scale(0.97);
-    transition: transform 0.1s ease;
-  }
+  /* Scale feedback on press */
+  .interactive:active,
   .post-item:active,
   .post-card:active,
-  .bk:active {
-    background: rgba(255, 255, 255, 0.03);
+  .bk:active,
+  .ph:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+    transition: transform 0.08s ease, opacity 0.08s ease;
   }
-  .nav-link:active {
+
+  /* Active state highlight */
+  .nav-link:active,
+  .cat-btn:active,
+  .tag-btn:active,
+  .mob-link:active {
     background: var(--gold-dim);
   }
-  /* Remove hover effects that don't work on touch */
-  .post-item:hover,
-  .post-card:hover,
-  .bk:hover {
-    background: transparent;
-  }
+
+  /* Disable hover-only effects */
+  .post-item:hover { background: transparent; }
+  .post-item:hover .pi-title { color: inherit; }
+  .post-card:hover { padding-left: 0; }
+  .post-card:hover .pc-title { color: inherit; }
+  .bk:hover .bk-cover { transform: none; }
+  .ph:hover { transform: none; }
+  .ph:hover .ph-img { transform: none; filter: none; }
+  .ph:hover .ph-over { opacity: 0; }
 }
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {

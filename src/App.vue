@@ -311,8 +311,8 @@ onUnmounted(() => {
     <Transition name="egg">
       <div v-if="showEasterEgg" class="easter-egg" @click.self="closeEasterEgg">
         <div class="egg-card">
-          <p class="egg-text">你找到了隐藏的角落。</p>
-          <p class="egg-sub">这个网站是我用代码写给自己的情书。<br>每一行代码，每一个动画，都是深夜独自敲下的。<br>谢谢你看到这里。</p>
+          <p class="egg-text">恭喜我的朋友！</p>
+          <p class="egg-sub">你找到了我给你埋下的一个小彩蛋！<br>虽然我忘记了你的生日。。。<br>但还是祝你生日快乐！</p>
           <span class="egg-sig">— LOUXILOU</span>
         </div>
       </div>
@@ -416,8 +416,8 @@ onUnmounted(() => {
 /* ===== NAV ===== */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 1.5rem 0; transition: transform 0.5s var(--ease); }
 .nav.hidden { transform: translateY(calc(-100% - 2rem)); }
-.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 0.5rem 0 1.25rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 100px; box-shadow: 0 4px 30px var(--shadow); }
-.nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; }
+.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 100px; box-shadow: 0 4px 30px var(--shadow); }
+.nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; flex: 1; min-width: 0; }
 .logo-glyph { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; color: var(--gold); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gold-dim); border-radius: 50%; }
 .logo-text { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; color: var(--ink); letter-spacing: 0.15em; }
 .nav-links { display: flex; gap: 0; }
@@ -429,11 +429,11 @@ onUnmounted(() => {
 .link-name { font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; color: var(--ink-ghost); letter-spacing: 0.05em; transition: color 0.3s; }
 .nav-link:hover .link-name { color: var(--ink); }
 .nav-link.active .link-name { color: var(--gold); }
-.nav-burger { display: none; flex-direction: column; gap: 5px; padding: 10px 14px; border-radius: 100px; transition: background 0.3s; }
+.nav-burger { display: none; flex-direction: column; align-items: center; justify-content: center; gap: 4px; width: 36px; height: 36px; border-radius: 50%; transition: background 0.3s; }
 .nav-burger:hover { background: var(--gold-dim); }
-.nav-burger span { display: block; width: 18px; height: 1.5px; background: var(--ink); transition: all 0.3s var(--ease); transform-origin: center; }
-.nav-burger.open span:first-child { transform: rotate(45deg) translate(2.5px, 2.5px); }
-.nav-burger.open span:last-child { transform: rotate(-45deg) translate(2.5px, -2.5px); }
+.nav-burger span { display: block; width: 16px; height: 1.5px; background: var(--ink); transition: all 0.3s var(--ease); transform-origin: center; }
+.nav-burger.open span:first-child { transform: rotate(45deg) translate(2px, 2px); }
+.nav-burger.open span:last-child { transform: rotate(-45deg) translate(2px, -2px); }
 .theme-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--ink-ghost); transition: all 0.3s; flex-shrink: 0; }
 .theme-toggle:hover { color: var(--gold); background: var(--gold-dim); }
 .nav-mobile { max-width: 900px; margin: 0.5rem auto 0; padding: 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 4px 30px var(--shadow); }
@@ -458,6 +458,19 @@ onUnmounted(() => {
 .foot-logo { font-family: var(--font-display); font-size: 1rem; font-weight: 700; letter-spacing: 0.2em; color: var(--gold); }
 .foot-sub { font-size: 0.72rem; color: var(--ink-ghost); letter-spacing: 0.25em; }
 .foot-rule { width: 32px; height: 1px; background: var(--gold-dim); }
+
+/* ===== MOBILE NAV ===== */
+@media (max-width: 768px) {
+  .nav { padding: 0.5rem 0.75rem 0; }
+  .nav-shell { padding: 0 0.5rem; height: 48px; gap: 0.25rem; }
+  .nav-links { display: none; }
+  .nav-burger { display: flex; }
+  .cur-wrap { display: none; }
+  .theme-toggle { width: 36px; height: 36px; }
+  .logo-glyph { width: 28px; height: 28px; font-size: 1rem; }
+  .logo-text { font-size: 0.75rem; }
+  .foot-inner { padding: 3rem 1.25rem; }
+}
 .foot-links { display: flex; gap: 2.5rem; }
 .foot-link { font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); letter-spacing: 0.06em; text-transform: uppercase; transition: color 0.3s; position: relative; text-decoration: none; }
 .foot-link::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--gold); transition: width 0.3s var(--ease); }

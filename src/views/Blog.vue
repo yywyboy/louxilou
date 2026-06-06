@@ -217,12 +217,19 @@ onUnmounted(() => {  })
 
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
-  .post-card { grid-template-columns: 1fr; gap: 0.75rem; padding: 2rem 0; }
-  .pc-left { flex-direction: row; gap: 1rem; }
-  .pc-title { font-size: 1.3rem; }
+
+  /* Post cards — single column, larger touch */
+  .post-card { grid-template-columns: 1fr; gap: 0.5rem; padding: 1.5rem 0; }
+  .pc-left { flex-direction: row; gap: 0.75rem; }
+  .pc-title { font-size: 1.2rem; }
+  .pc-summary { font-size: 0.82rem; }
   .pc-arrow { display: none; }
-  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; }
-  .cat-btn { white-space: nowrap; flex-shrink: 0; }
+
+  /* Category bar */
+  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
+  .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.35rem 0.8rem; }
+
+  /* Hide previews on mobile */
   .blog-bg { display: none; }
   .blog-preview { display: none; }
 }
