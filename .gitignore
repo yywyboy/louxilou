@@ -39,3 +39,14 @@ vue-framework/
 # Temp directories
 temp_install2/
 temp_npm_cache/
+
+# Workers
+workers/
+
+# Upload/temp scripts
+scripts/test-r2.mjs
+scripts/upload-to-r2.mjs
+
+# Book text duplicates (renamed without parentheses)
+public/books/texts/xiaoshimin/秋季限定栗金饨事件上.txt
+public/books/texts/xiaoshimin/秋季限定栗金饨事件下.txt

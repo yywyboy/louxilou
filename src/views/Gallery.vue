@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
 import { getPhotos, CATEGORIES, getCategoryNames } from '../lib/gallery'
 import type { Photo } from '../lib/gallery'
+import { getR2Url } from '../lib/r2-utils'
 import { gsap, ScrollTrigger } from '../composables/useGsap'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -14,7 +15,7 @@ const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
 const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
-const mapped = computed(() => photos.value.map((p, i) => ({ ...p, src: `/assets/photos/${p.filename}`, alt: `Photo ${p.id}`, catNames: getCategoryNames(p.categories), idx: i + 1 })))
+const mapped = computed(() => photos.value.map((p, i) => ({ ...p, src: getR2Url(`gallery/photos/${p.filename}`), alt: `Photo ${p.id}`, catNames: getCategoryNames(p.categories), idx: i + 1 })))
 const filtered = computed(() => { if (!cats.value.length) return mapped.value; return mapped.value.filter(p => cats.value.every(c => p.categories.includes(c))) })
 const displayed = computed(() => filtered.value.slice(0, displayCount.value))
 const hasMore = computed(() => displayCount.value < filtered.value.length)

@@ -8,6 +8,7 @@ import type { Post } from '../lib/blog'
 import type { Book } from '../lib/books'
 import { gsap, ScrollTrigger, scrambleText, prefersReducedMotion } from '../composables/useGsap'
 import { isDark } from '../composables/useTheme'
+import { getR2Url } from '../lib/r2-utils'
 
 gsap.registerPlugin(ScrollTrigger)
 const router = useRouter()
@@ -117,7 +118,7 @@ onMounted(async () => {
   try {
     const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
     posts.value = p; books.value = b
-    photos.value = ph.slice(0, 12).map(x => `/assets/photos/${x.filename}`)
+    photos.value = ph.slice(0, 12).map(x => getR2Url(`gallery/photos/${x.filename}`))
   } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
@@ -372,11 +373,11 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
     <!-- HERO -->
     <section class="hero-pin">
       <div class="hero-images">
-        <div class="hero-img hero-img-0"><img src="/assets/photos/photo-018.jpg" alt="" /></div>
-        <div class="hero-img hero-img-1"><img src="/assets/photos/photo-069.jpg" alt="" /></div>
-        <div class="hero-img hero-img-2"><img src="/assets/photos/photo-071.jpg" alt="" /></div>
-        <div class="hero-img hero-img-3"><img src="/assets/photos/photo-055.jpg" alt="" /></div>
-        <div class="hero-img hero-img-4"><img src="/assets/photos/photo-062.jpg" alt="" /></div>
+        <div class="hero-img hero-img-0"><img :src="getR2Url('gallery/photos/photo-018.jpg')" alt="" /></div>
+        <div class="hero-img hero-img-1"><img :src="getR2Url('gallery/photos/photo-069.jpg')" alt="" /></div>
+        <div class="hero-img hero-img-2"><img :src="getR2Url('gallery/photos/photo-071.jpg')" alt="" /></div>
+        <div class="hero-img hero-img-3"><img :src="getR2Url('gallery/photos/photo-055.jpg')" alt="" /></div>
+        <div class="hero-img hero-img-4"><img :src="getR2Url('gallery/photos/photo-062.jpg')" alt="" /></div>
       </div>
       <div class="hero-overlay"></div>
       <div class="hero-content">

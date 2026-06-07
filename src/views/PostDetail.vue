@@ -8,6 +8,19 @@ import { scrollTo as lenisScrollTo } from '../composables/useLenis'
 
 declare const marked: any
 declare const hljs: any
+
+/** 轻量 HTML 消毒 — 移除 script/iframe/事件处理器，防止 XSS */
+function sanitize(html: string): string {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[\s\S]*?<\/object>/gi, '')
+    .replace(/<embed[\s\S]*?>/gi, '')
+    .replace(/<form[\s\S]*?<\/form>/gi, '')
+    .replace(/\son\w+\s*=\s*(["'])[\s\S]*?\1/gi, '')
+    .replace(/\son\w+\s*=\s*[^\s>]*/gi, '')
+    .replace(/javascript\s*:/gi, '')
+}
 const router = useRouter()
 const route = useRoute()
 const post = ref<Post | null>(null)
@@ -67,7 +80,7 @@ const html = computed(() => {
       try { return `<pre><code class="hljs language-${lang}">${hljs.highlight(decodeURIComponent(code), { language: lang }).value}</code></pre>` } catch { return match }
     })
   }
-  return parsed
+  return sanitize(parsed)
 })
 
 function extractToc() {
