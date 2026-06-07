@@ -92,9 +92,8 @@ export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
     txtUrl: ch.txt_url || ''
   }))
 
-  // 如果数据库章节有 txt_url，用数据库的；否则用静态数据
-  const hasTxtUrls = dbChapters.some(ch => ch.txtUrl)
-  const finalChapters = hasTxtUrls ? dbChapters : (staticBook?.chapters || dbChapters)
+  // 优先使用静态数据（txtUrl 已正确指向 R2），数据库章节作为补充
+  const finalChapters = staticBook?.chapters?.length ? staticBook.chapters : dbChapters
 
   return {
     id: book.id,
