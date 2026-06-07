@@ -50,3 +50,12 @@ scripts/upload-to-r2.mjs
 # Book text duplicates (renamed without parentheses)
 public/books/texts/xiaoshimin/秋季限定栗金饨事件上.txt
 public/books/texts/xiaoshimin/秋季限定栗金饨事件下.txt
+
+# R2-hosted assets (images, book covers/texts, etc.)
+public/assets/photos/
+public/assets/blog/
+public/books/
+public/friends/
+
+# Import data
+import/

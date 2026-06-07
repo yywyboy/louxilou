@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { gsap } from '../composables/useGsap'
+import { getR2Url } from '../lib/r2-utils'
 
 interface Friend {
   name: string
@@ -10,7 +11,7 @@ interface Friend {
 }
 
 const friends = ref<Friend[]>([
-  { name: '楼西楼', url: 'https://louxilou.com.cn', avatar: '/p.png', desc: '文章 · 阅读 · 摄影' },
+  { name: '楼西楼', url: 'https://louxilou.com.cn', avatar: getR2Url('friends/louxilou.com.cn.png'), desc: '文章 · 阅读 · 摄影' },
 ])
 
 onMounted(() => {
