@@ -65,7 +65,9 @@ export async function getAllBooks(): Promise<Book[]> {
 }
 
 export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
-  if (!supabase) return staticBooks.find(b => b.id === id)
+  const staticBook = staticBooks.find(b => b.id === id)
+
+  if (!supabase) return staticBook
 
   const { data: book } = await supabase
     .from('books')
@@ -73,7 +75,7 @@ export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
     .eq('id', id)
     .single()
 
-  if (!book) return staticBooks.find(b => b.id === id)
+  if (!book) return staticBook
 
   const { data: chapters } = await supabase
     .from('book_chapters')
@@ -81,19 +83,26 @@ export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
     .eq('book_id', id)
     .order('sort_order')
 
+  // 数据库章节
+  const dbChapters = (chapters || []).map(ch => ({
+    id: ch.id,
+    title: ch.title,
+    cover: ch.cover || book.cover || '',
+    status: ch.status || '已完结',
+    txtUrl: ch.txt_url || ''
+  }))
+
+  // 如果数据库章节有 txt_url，用数据库的；否则用静态数据
+  const hasTxtUrls = dbChapters.some(ch => ch.txtUrl)
+  const finalChapters = hasTxtUrls ? dbChapters : (staticBook?.chapters || dbChapters)
+
   return {
     id: book.id,
     title: book.title,
     author: book.author,
-    cover: book.cover || '',
-    description: book.description || '',
-    chapters: (chapters || []).map(ch => ({
-      id: ch.id,
-      title: ch.title,
-      cover: ch.cover || book.cover || '',
-      status: ch.status || '已完结',
-      txtUrl: ch.txt_url || ''
-    }))
+    cover: book.cover || staticBook?.cover || '',
+    description: book.description || staticBook?.description || '',
+    chapters: finalChapters
   }
 }
 
