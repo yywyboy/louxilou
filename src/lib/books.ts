@@ -92,8 +92,9 @@ export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
     txtUrl: ch.txt_url || ''
   }))
 
-  // 优先使用静态数据（txtUrl 已正确指向 R2），数据库章节作为补充
-  const finalChapters = staticBook?.chapters?.length ? staticBook.chapters : dbChapters
+  // 优先使用数据库章节（txt_url 已统一为中文路径），静态数据作为补充
+  const hasTxtUrls = dbChapters.some(ch => ch.txtUrl)
+  const finalChapters = hasTxtUrls ? dbChapters : (staticBook?.chapters?.length ? staticBook.chapters : dbChapters)
 
   return {
     id: book.id,
