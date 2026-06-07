@@ -137,12 +137,12 @@ export const books: Book[] = [
     tags: ["light-novel","japanese"],
     featured: true,
     chapters: [
-      { id: '1', title: '春季限定草莓塔事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/春季限定草莓塔事件.txt') },
-      { id: '2', title: '夏季限定热带水果芭菲事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/夏季限定热带水果百汇事件.txt') },
-      { id: '3', title: '秋季限定栗金饨事件(上)', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/秋季限定栗金饨事件上.txt') },
-      { id: '4', title: '秋季限定栗金饨事件(下)', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/秋季限定栗金饨事件下.txt') },
-      { id: '5', title: '冬季限定法式巧克力事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/冬季限定法式巧克力事件.txt') },
-      { id: '6', title: '巴黎马卡龙之谜', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('xiaoshimin/巴黎马卡龙之谜.txt') },
+      { id: '1', title: '春季限定草莓塔事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/春季限定草莓塔事件.txt') },
+      { id: '2', title: '夏季限定热带水果芭菲事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/夏季限定热带水果百汇事件.txt') },
+      { id: '3', title: '秋季限定栗金饨事件(上)', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/秋季限定栗金饨事件(上).txt') },
+      { id: '4', title: '秋季限定栗金饨事件(下)', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/秋季限定栗金饨事件(下).txt') },
+      { id: '5', title: '冬季限定法式巧克力事件', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/冬季限定法式巧克力事件.txt') },
+      { id: '6', title: '巴黎马卡龙之谜', cover: cover('小市民系列.webp'), status: '已完结', txtUrl: txt('小市民系列/巴黎马卡龙之谜.txt') },
     ]
   },
   {
