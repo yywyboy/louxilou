@@ -61,3 +61,4 @@ public/friends/
 import/
 scripts/set-r2-cors.mjs
 scripts/rename-xiaoshimin.mjs
+scripts/upload-mobitchi.mjs

@@ -126,6 +126,14 @@ export const books: Book[] = [
       { id: '19', title: '第19卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅19.txt') },
       { id: '20', title: '第20卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅20.txt') },
       { id: '21', title: '第21卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅21.txt') },
+      { id: '22', title: '第22卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅22.txt') },
+      { id: '23', title: '第23卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅 23.txt') },
+      { id: '24', title: '第24卷', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅 24.txt') },
+      { id: 's1', title: '短篇集', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅短篇集.txt') },
+      { id: 's2', title: '番外', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅番外.txt') },
+      { id: 's3', title: '学院', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅学院.txt') },
+      { id: 's4', title: '学院物语', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅学院物语.txt') },
+      { id: 's5', title: '短篇', cover: cover('魔女之旅.webp'), status: '已完结', txtUrl: txt('mobitchi/魔女之旅短篇.txt') },
     ]
   },
   {
