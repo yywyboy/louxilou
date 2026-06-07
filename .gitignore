@@ -60,3 +60,4 @@ public/friends/
 # Import data
 import/
 scripts/set-r2-cors.mjs
+scripts/rename-xiaoshimin.mjs
