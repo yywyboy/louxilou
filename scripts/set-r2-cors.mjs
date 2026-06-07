@@ -6,9 +6,9 @@
 import { createHash, createHmac } from 'crypto'
 import https from 'https'
 
-const ACCOUNT_ID = 'fe43d67a052aba3d1f30e4397675db9e'
-const ACCESS_KEY_ID = '91db861f2bd1f8d74ee23cf5c3d2e811'
-const SECRET_ACCESS_KEY = '3f8b618ab1b39af4919d162914790e236d9d7354f090e60533b58ef0a7f42507'
+const ACCOUNT_ID = process.env.R2_ACCOUNT_ID
+const ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID
+const SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY
 const BUCKET = 'louxilou'
 const HOST = `${ACCOUNT_ID}.r2.cloudflarestorage.com`
 const REGION = 'auto'
