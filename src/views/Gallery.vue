@@ -14,8 +14,9 @@ const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
 const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
-// 存储点击位置用于返回动画
+// 存储点击位置
 const originRect = ref<DOMRect | null>(null)
+const clickedEl = ref<HTMLElement | null>(null)
 
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
@@ -48,45 +49,59 @@ function toggle(id: string) {
 }
 
 function open(idx: number, e: MouseEvent) {
-  const imgEl = (e.target as HTMLElement).closest('.ph')?.querySelector('.ph-img') as HTMLElement
-  if (imgEl) {
-    originRect.value = imgEl.getBoundingClientRect()
-  }
+  const phEl = (e.target as HTMLElement).closest('.ph') as HTMLElement
+  if (!phEl) return
+
+  const imgEl = phEl.querySelector('.ph-img') as HTMLElement
+  if (!imgEl) return
+
+  originRect.value = imgEl.getBoundingClientRect()
+  clickedEl.value = phEl
   selIdx.value = idx
   document.body.style.overflow = 'hidden'
 
+  // 隐藏原图
+  phEl.style.visibility = 'hidden'
+
   nextTick(() => {
+    const lb = document.querySelector('.lb') as HTMLElement
     const lbImg = document.querySelector('.lb-img') as HTMLElement
     const lbBar = document.querySelector('.lb-bar') as HTMLElement
-    if (!lbImg || !originRect.value) return
+    if (!lb || !lbImg || !originRect.value) return
 
+    // 背景初始透明
+    gsap.set(lb, { opacity: 0 })
+    gsap.to(lb, { opacity: 1, duration: 0.35, ease: 'power2.out' })
+
+    // 计算目标位置（屏幕中央）
     const targetRect = lbImg.getBoundingClientRect()
     const dx = originRect.value.left - targetRect.left
     const dy = originRect.value.top - targetRect.top
     const scaleX = originRect.value.width / targetRect.width
     const scaleY = originRect.value.height / targetRect.height
 
-    // 图片从原位飞入
-    gsap.set(lbImg, { x: dx, y: dy, scaleX, scaleY, opacity: 0.8 })
+    // 图片从原位放大到中央
+    gsap.set(lbImg, { x: dx, y: dy, scaleX, scaleY, borderRadius: '6px' })
     gsap.to(lbImg, {
-      x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1,
+      x: 0, y: 0, scaleX: 1, scaleY: 1, borderRadius: 0,
       duration: 0.5, ease: 'power3.out'
     })
 
     // 底部栏浮出
     if (lbBar) {
-      gsap.fromTo(lbBar, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, delay: 0.2, ease: 'power3.out' })
+      gsap.set(lbBar, { y: 60, opacity: 0 })
+      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.4, delay: 0.25, ease: 'power3.out' })
     }
   })
 }
 
 function close() {
+  const lb = document.querySelector('.lb') as HTMLElement
   const lbImg = document.querySelector('.lb-img') as HTMLElement
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
 
-  if (!lbImg || !originRect.value) {
-    selIdx.value = -1
-    document.body.style.overflow = ''
+  if (!lb || !lbImg || !originRect.value) {
+    doClose()
     return
   }
 
@@ -101,16 +116,26 @@ function close() {
     gsap.to(lbBar, { y: 30, opacity: 0, duration: 0.2, ease: 'power2.in' })
   }
 
+  // 背景淡出
+  gsap.to(lb, { opacity: 0, duration: 0.4, delay: 0.15, ease: 'power2.in' })
+
   // 图片缩放回原位
   gsap.to(lbImg, {
-    x: dx, y: dy, scaleX, scaleY, opacity: 0.5,
+    x: dx, y: dy, scaleX, scaleY, borderRadius: '6px',
     duration: 0.4, ease: 'power3.in',
-    onComplete: () => {
-      selIdx.value = -1
-      document.body.style.overflow = ''
-      originRect.value = null
-    }
+    onComplete: doClose
   })
+}
+
+function doClose() {
+  // 恢复原图可见
+  if (clickedEl.value) {
+    clickedEl.value.style.visibility = ''
+  }
+  selIdx.value = -1
+  document.body.style.overflow = ''
+  originRect.value = null
+  clickedEl.value = null
 }
 
 function prev() {
@@ -118,9 +143,7 @@ function prev() {
     selIdx.value--
     nextTick(() => {
       const lbImg = document.querySelector('.lb-img') as HTMLElement
-      if (lbImg) {
-        gsap.fromTo(lbImg, { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
-      }
+      if (lbImg) gsap.fromTo(lbImg, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
     })
   }
 }
@@ -130,9 +153,7 @@ function next() {
     selIdx.value++
     nextTick(() => {
       const lbImg = document.querySelector('.lb-img') as HTMLElement
-      if (lbImg) {
-        gsap.fromTo(lbImg, { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
-      }
+      if (lbImg) gsap.fromTo(lbImg, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
     })
   }
 }
@@ -166,9 +187,7 @@ function setupObserver() {
 watch(cats, () => {
   displayCount.value = 12
   nextTick(() => {
-    if (gridRef.value) {
-      gridRef.value.querySelectorAll('.ph').forEach(c => c.classList.add('shown'))
-    }
+    if (gridRef.value) gridRef.value.querySelectorAll('.ph').forEach(c => c.classList.add('shown'))
     setupObserver()
   })
 })
@@ -207,9 +226,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
       </div>
 
       <div v-if="loading" class="skeleton-grid">
-        <div v-for="i in 9" :key="i" class="skeleton-card">
-          <div class="skeleton-img"></div>
-        </div>
+        <div v-for="i in 9" :key="i" class="skeleton-card"><div class="skeleton-img"></div></div>
       </div>
 
       <div v-else-if="filtered.length === 0" class="empty">没有找到匹配的图片</div>
@@ -227,9 +244,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 
       <div ref="sentinelRef" class="sentinel" v-if="hasMore"><div class="loader"></div></div>
 
-      <div v-if="!loading && filtered.length > 0" class="counter">
-        共 {{ filtered.length }} 张图片
-      </div>
+      <div v-if="!loading && filtered.length > 0" class="counter">共 {{ filtered.length }} 张图片</div>
     </div>
 
     <!-- Lightbox -->
@@ -284,26 +299,17 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .skeleton-img {
   width: 100%; height: 200px;
   background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-warm) 50%, var(--bg-elevated) 75%);
-  background-size: 200% 100%;
-  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background-size: 200% 100%; animation: skeleton-pulse 1.5s ease-in-out infinite;
   border-radius: var(--r-xs);
 }
-@keyframes skeleton-pulse {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
+@keyframes skeleton-pulse { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
 .grid { columns: 3; column-gap: 0.5rem; margin-bottom: 2rem; }
 
 .ph {
-  break-inside: avoid;
-  margin-bottom: 0.5rem;
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--r-xs);
-  cursor: pointer;
-  opacity: 0;
-  transition: transform 0.4s var(--ease);
+  break-inside: avoid; margin-bottom: 0.5rem; position: relative;
+  overflow: hidden; border-radius: var(--r-xs); cursor: pointer;
+  opacity: 0; transition: transform 0.4s var(--ease);
 }
 .ph.shown { opacity: 1; }
 .ph:hover { z-index: 2; transform: scale(1.01); }
@@ -324,10 +330,8 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 }
 .ph:hover .ph-over { opacity: 1; }
 .ph-cat {
-  padding: 0.12rem 0.45rem;
-  background: rgba(159,53,58,0.2);
-  backdrop-filter: blur(6px);
-  border-radius: var(--r-full);
+  padding: 0.12rem 0.45rem; background: rgba(159,53,58,0.2);
+  backdrop-filter: blur(6px); border-radius: var(--r-full);
   font-family: var(--font-sans); font-size: 0.6rem; color: var(--gold-light);
 }
 
@@ -356,7 +360,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   flex: 1; display: flex; align-items: center; justify-content: center;
   width: 100%; min-height: 0; padding: 2rem;
 }
-.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; }
+.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; will-change: transform; }
 
 .lb-bar {
   position: fixed; bottom: 0.75rem; left: 50%; transform: translateX(-50%);
