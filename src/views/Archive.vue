@@ -31,6 +31,7 @@ onMounted(async () => {
   document.title = '归档 — LOUXILOU'
   try { posts.value = await getPosts() } catch (e) { console.error(e) }
   loading.value = false
+  await nextTick()
   gsap.fromTo('.pg-head', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.1 })
   gsap.fromTo('.archive-group', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power3.out', delay: 0.3 })
 })

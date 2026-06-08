@@ -118,7 +118,9 @@ onMounted(async () => {
   try {
     const [p, b, ph] = await Promise.all([getPosts(), getAllBooks(), getPhotos()])
     posts.value = p; books.value = b
-    photos.value = ph.slice(0, 12).map(x => getR2Url(`gallery/photos/${x.filename}`))
+    // 随机打乱取12张
+    const shuffled = [...ph].sort(() => Math.random() - 0.5)
+    photos.value = shuffled.slice(0, 12).map(x => getR2Url(`gallery/photos/${x.filename}`))
   } catch (e) { console.error(e) }
   loading.value = false
   await nextTick()
