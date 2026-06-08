@@ -122,59 +122,61 @@ function close() {
   const lbImg = document.querySelector('.lb-img') as HTMLImageElement
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
 
-  if (!lb || !lbImg || !origImgEl) {
+  if (!lbImg || !origImgEl) {
     finishClose()
     return
   }
 
-  const targetRect = lbImg.getBoundingClientRect()
+  // 先记录原图位置（在 lightbox 还没消失前）
   const origRect = origImgEl.getBoundingClientRect()
+  const targetRect = lbImg.getBoundingClientRect()
 
-  // 创建飞图从 lightbox 位置飞回原位
+  // 隐藏 lightbox 图片
+  lbImg.style.opacity = '0'
+
+  // 创建飞图
   flyImg.value = {
     src: sel.value?.src || '',
     x: targetRect.left, y: targetRect.top,
     w: targetRect.width, h: targetRect.height
   }
 
-  // 隐藏 lightbox 图片
-  lbImg.style.opacity = '0'
-
-  // 背景淡出
-  gsap.to(lb, { opacity: 0, duration: 0.5, delay: 0.2, ease: 'power2.inOut' })
-
   // 底部栏消失
-  if (lbBar) {
-    gsap.to(lbBar, { y: 40, opacity: 0, duration: 0.3, ease: 'power2.in' })
-  }
+  if (lbBar) gsap.to(lbBar, { y: 40, opacity: 0, duration: 0.25, ease: 'power2.in' })
 
   nextTick(() => {
     const fly = document.querySelector('.fly-img') as HTMLElement
-    if (fly) {
-      gsap.set(fly, { willChange: 'transform, opacity' })
-      gsap.to(fly, {
-        x: origRect.left - targetRect.left,
-        y: origRect.top - targetRect.top,
-        width: origRect.width,
-        height: origRect.height,
-        borderRadius: 6,
-        duration: 0.5,
-        ease: 'expo.inOut',
-        onComplete: () => {
-          gsap.to(fly, { opacity: 0, duration: 0.1, ease: 'power1.out', onComplete: finishClose })
-        }
-      })
-    } else {
-      finishClose()
-    }
+    if (!fly) { finishClose(); return }
+
+    // 飞图飞回原位
+    gsap.to(fly, {
+      x: origRect.left - targetRect.left,
+      y: origRect.top - targetRect.top,
+      width: origRect.width,
+      height: origRect.height,
+      borderRadius: 6,
+      duration: 0.45,
+      ease: 'expo.inOut',
+      onComplete: () => {
+        // 关键：先显示原图，再移除飞图，再关 lightbox
+        origImgEl!.style.opacity = '1'
+        // 强制一帧后再清理
+        requestAnimationFrame(() => {
+          flyImg.value = null
+          selIdx.value = -1
+          document.body.style.overflow = ''
+          origImgEl = null
+        })
+      }
+    })
+
+    // 背景淡出（与飞图同步）
+    if (lb) gsap.to(lb, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
   })
 }
 
 function finishClose() {
-  // 恢复原图
-  if (origImgEl) {
-    origImgEl.style.opacity = ''
-  }
+  if (origImgEl) origImgEl.style.opacity = '1'
   flyImg.value = null
   selIdx.value = -1
   document.body.style.overflow = ''
