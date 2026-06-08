@@ -315,7 +315,6 @@ onMounted(async () => {
     gsap.fromTo(shelfBooks, { opacity: 0, y: 40, rotateY: -20 }, { opacity: 1, y: 0, rotateY: 0, duration: 0.8, stagger: 0.06, ease: 'power3.out', delay: 0.3 })
   }
 
-  gsap.fromTo('.flt', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.5 })
   animCards()
   setupObserver()
 })
