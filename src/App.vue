@@ -280,7 +280,7 @@ onUnmounted(() => {
     </div>
 
     <!-- CIRCULAR SCROLL PROGRESS — click to scroll to top -->
-    <div class="progress-ring interactive" @click="lenisScrollTo(0)" title="回到顶部">
+    <div v-if="!isReader" class="progress-ring interactive" @click="lenisScrollTo(0)" title="回到顶部">
       <svg width="44" height="44" viewBox="0 0 44 44">
         <circle cx="22" cy="22" :r="circleR" fill="none" stroke="var(--border)" stroke-width="1.5" />
         <circle cx="22" cy="22" :r="circleR" fill="none" stroke="#9F353A" stroke-width="1.5"
