@@ -76,8 +76,6 @@ const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
 
 <template>
   <div class="rd">
-    <div class="prog" :style="{ width: prog + '%' }"></div>
-
     <main class="rd-body" :style="{ fontSize: fs + 'px' }" @click="showNav = false">
       <div v-if="err" class="err">{{ err }}</div>
       <div v-else class="rd-text">
@@ -147,7 +145,6 @@ const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
 
 <style scoped>
 .rd { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
-.prog { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); z-index: 1001; transition: width 0.1s; }
 
 .rd-body {
   flex: 1;
