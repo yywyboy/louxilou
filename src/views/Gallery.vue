@@ -165,14 +165,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="sel" class="lb" @click.self="close">
-          <!-- Prev/Next buttons -->
-          <button class="lb-nav lb-prev interactive" @click.stop="prev" :disabled="selIdx <= 0">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="lb-nav lb-next interactive" @click.stop="next" :disabled="selIdx >= filtered.length - 1">
-            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-
           <div class="lb-body" @click.self="close">
             <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
           </div>
@@ -182,6 +174,13 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
             <div class="lb-bar-shell">
               <button class="lb-btn interactive" @click="close" title="关闭">
                 <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              <div class="lb-div"></div>
+              <button class="lb-btn interactive" @click.stop="prev" :disabled="selIdx <= 0" title="上一张">
+                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="lb-btn interactive" @click.stop="next" :disabled="selIdx >= filtered.length - 1" title="下一张">
+                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
               </button>
               <div class="lb-div"></div>
               <span class="lb-num">#{{ sel.idx }}</span>
@@ -301,7 +300,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   .skeleton-grid { columns: 2; }
   .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
   .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.3rem 0.8rem; }
-  .lb-nav { display: none; }
 }
 </style>
 
@@ -324,23 +322,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   max-width: 90vw; max-height: 80vh; object-fit: contain;
   cursor: default;
 }
-
-.lb-nav {
-  position: absolute; top: 50%; transform: translateY(-50%);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 48px; height: 48px;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--ink-dim);
-  cursor: pointer;
-  transition: all 0.3s;
-  z-index: 10;
-}
-.lb-nav:hover { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
-.lb-nav:disabled { opacity: 0.3; cursor: not-allowed; }
-.lb-prev { left: 1.5rem; }
-.lb-next { right: 1.5rem; }
 
 /* Bottom bar */
 .lb-bar {
