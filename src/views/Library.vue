@@ -367,7 +367,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 
         <!-- Mobile: search bar + selected tags display -->
         <div class="flt-mobile">
-          <div class="search-mobile" @click="onSearchBarClick">
+          <div class="search-mobile" @click="openSearchOverlay">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <span class="search-mobile-text" v-if="!kw && selectedTags.length === 0">搜索或筛选书籍…</span>
             <span class="search-mobile-text" v-else-if="kw">{{ kw }}</span>
