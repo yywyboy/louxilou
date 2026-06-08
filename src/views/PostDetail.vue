@@ -100,6 +100,46 @@ function catName(c: string) { return catMap[c] || c || '随笔' }
 function fmtDate(d: string) { const date = new Date(d), now = new Date(), ms = now.getTime() - date.getTime(), min = Math.floor(ms/60000), hr = Math.floor(ms/3600000), day = Math.floor(ms/86400000); if (min < 1) return '刚刚'; if (min < 60) return `${min}分钟前`; if (hr < 24) return `${hr}小时前`; if (day < 7) return `${day}天前`; return formatDate(d) }
 function uid() { let u = localStorage.getItem('blog_user_id'); if (!u) { u = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('blog_user_id', u) } return u }
 
+function updateMeta(p: Post) {
+  const url = `https://louxilou.com.cn/blog/${p.id}`
+  const desc = p.summary || p.content.substring(0, 160).replace(/[#*`\n\r]/g, '')
+
+  document.title = `${p.title} — LOUXILOU`
+
+  // 更新 meta 标签
+  const setMeta = (name: string, content: string) => {
+    let el = document.querySelector(`meta[name="${name}"]`) || document.querySelector(`meta[property="${name}"]`)
+    if (!el) {
+      el = document.createElement('meta')
+      if (name.startsWith('og:') || name.startsWith('twitter:')) el.setAttribute('property', name)
+      else el.setAttribute('name', name)
+      document.head.appendChild(el)
+    }
+    el.setAttribute('content', content)
+  }
+
+  setMeta('description', desc)
+  setMeta('og:title', p.title)
+  setMeta('og:description', desc)
+  setMeta('og:url', url)
+  setMeta('og:type', 'article')
+  setMeta('twitter:title', p.title)
+  setMeta('twitter:description', desc)
+  if (p.cover) {
+    setMeta('og:image', p.cover)
+    setMeta('twitter:image', p.cover)
+  }
+
+  // 更新 canonical
+  let canonical = document.querySelector('link[rel="canonical"]')
+  if (!canonical) {
+    canonical = document.createElement('link')
+    canonical.setAttribute('rel', 'canonical')
+    document.head.appendChild(canonical)
+  }
+  canonical.setAttribute('href', url)
+}
+
 function onScroll() {
   const d = document.documentElement
   prog.value = d.scrollHeight > d.clientHeight ? (d.scrollTop / (d.scrollHeight - d.clientHeight)) * 100 : 0
@@ -134,7 +174,7 @@ async function load() {
     const [p, all] = await Promise.all([getPost(route.params.id as string), getPosts()])
     post.value = p; allPosts.value = all
     if (post.value) {
-      document.title = `${post.value.title} — LOUXILOU`
+      updateMeta(post.value)
       extractToc()
       await Promise.all([loadComments(), loadLike()])
       await loadCommentLikes()

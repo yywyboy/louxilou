@@ -1,17 +1,42 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/assets/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LOUXILOU — 楼西楼</title>
-    <meta name="description" content="LOUXILOU 的个人空间，阅读、生活与摄影。" />
+    <meta name="description" content="LOUXILOU 的个人空间，分享前端技术、生活随想与阅读笔记。" />
     <meta name="author" content="LOUXILOU" />
+    <meta name="keywords" content="LOUXILOU,楼西楼,博客,前端,阅读,摄影,个人网站" />
+
+    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:title" content="LOUXILOU — 楼西楼" />
-    <meta property="og:description" content="文章 · 阅读 · 摄影" />
-    <meta property="og:image" content="/assets/favicon.png" />
+    <meta property="og:description" content="分享前端技术、生活随想与阅读笔记" />
+    <meta property="og:image" content="https://louxilou.com.cn/assets/favicon.png" />
+    <meta property="og:url" content="https://louxilou.com.cn" />
+    <meta property="og:site_name" content="LOUXILOU" />
     <meta property="og:locale" content="zh_CN" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="LOUXILOU — 楼西楼" />
+    <meta name="twitter:description" content="分享前端技术、生活随想与阅读笔记" />
+    <meta name="twitter:image" content="https://louxilou.com.cn/assets/favicon.png" />
+
+    <!-- Canonical -->
+    <link rel="canonical" href="https://louxilou.com.cn" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/assets/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/assets/favicon.png" />
+
+    <!-- RSS -->
+    <link rel="alternate" type="application/rss+xml" title="LOUXILOU 博客" href="/feed.xml" />
+
+    <!-- Sitemap -->
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+
     <link rel="preconnect" href="https://fonts.loli.net" crossorigin />
     <link rel="preload" as="style" href="https://fonts.loli.net/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;0,900;1,400&family=LXGW+WenKai:wght@300;400;700&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" />
     <link href="https://fonts.loli.net/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;0,900;1,400&family=LXGW+WenKai:wght@300;400;700&family=Noto+Serif+SC:wght@400;600;700;900&family=JetBrains+Mono:wght@300;400&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,900;1,400&display=swap" rel="stylesheet" />
@@ -28,12 +53,17 @@
       "@type": "WebSite",
       "name": "LOUXILOU — 楼西楼",
       "url": "https://louxilou.com.cn",
-      "description": "LOUXILOU 的个人空间，阅读、生活与摄影。",
+      "description": "LOUXILOU 的个人空间，分享前端技术、生活随想与阅读笔记。",
       "author": {
         "@type": "Person",
         "name": "LOUXILOU"
       },
-      "inLanguage": "zh-CN"
+      "inLanguage": "zh-CN",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://louxilou.com.cn/blog?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
     }
     </script>
   </head>
