@@ -17,23 +17,69 @@ const displayCount = ref(12)
 // Search overlay state
 const searchOverlay = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
+const flySearch = ref<{ x: number; y: number; w: number; h: number } | null>(null)
+let searchOrigEl: HTMLElement | null = null
 
-function openSearchOverlay() {
+function openSearchOverlay(e: MouseEvent) {
+  const el = (e.currentTarget as HTMLElement).querySelector('.search-mobile') || e.currentTarget as HTMLElement
+  const rect = el.getBoundingClientRect()
+
+  // 隐藏原搜索栏
+  searchOrigEl = el
+  el.style.opacity = '0'
+
+  // 设置飞搜索栏起点
+  flySearch.value = { x: rect.left, y: rect.top, w: rect.width, h: rect.height }
+
   searchOverlay.value = true
   document.body.style.overflow = 'hidden'
+
   nextTick(() => {
-    // 搜索栏从下方移入
-    const bar = document.querySelector('.search-overlay-bar') as HTMLElement
-    if (bar) gsap.fromTo(bar, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' })
-    // 筛选按钮逐个出现
+    const overlay = document.querySelector('.search-overlay') as HTMLElement
+    const overlayBar = document.querySelector('.search-overlay-bar') as HTMLElement
     const tags = document.querySelectorAll('.search-overlay-tags .tag-btn')
-    gsap.fromTo(tags, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.15 })
-    // 聚焦输入框
-    setTimeout(() => searchInputRef.value?.focus(), 300)
+
+    if (!overlay || !overlayBar) return
+
+    // 遮罩淡入
+    gsap.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.35, ease: 'power2.out' })
+
+    // 隐藏目标搜索栏，等飞搜索栏到位
+    overlayBar.style.opacity = '0'
+    overlayBar.style.transition = 'none'
+
+    const targetRect = overlayBar.getBoundingClientRect()
+
+    // 飞搜索栏动画
+    const fly = document.querySelector('.fly-search') as HTMLElement
+    if (fly) {
+      gsap.fromTo(fly, {
+        x: 0, y: 0, width: rect.width, height: rect.height, opacity: 1
+      }, {
+        x: targetRect.left - rect.left,
+        y: targetRect.top - rect.top,
+        width: targetRect.width,
+        height: targetRect.height,
+        duration: 0.5,
+        ease: 'expo.out',
+        onComplete: () => {
+          gsap.to(fly, { opacity: 0, duration: 0.1, onComplete: () => { flySearch.value = null } })
+          overlayBar.style.opacity = '1'
+          // 聚焦输入框
+          setTimeout(() => searchInputRef.value?.focus(), 100)
+        }
+      })
+    }
+
+    // 筛选按钮逐个出现
+    gsap.fromTo(tags, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.04, ease: 'power2.out', delay: 0.25 })
   })
 }
 
 function closeSearchOverlay() {
+  // 恢复原搜索栏
+  if (searchOrigEl) searchOrigEl.style.opacity = ''
+  flySearch.value = null
   searchOverlay.value = false
   document.body.style.overflow = ''
 }
@@ -367,7 +413,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 
         <!-- Mobile: search bar + selected tags display -->
         <div class="flt-mobile">
-          <div class="search-mobile" @click="openSearchOverlay">
+          <div class="search-mobile" @click="openSearchOverlay($event)">
             <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <span class="search-mobile-text" v-if="!kw && selectedTags.length === 0">搜索或筛选书籍…</span>
             <span class="search-mobile-text" v-else-if="kw">{{ kw }}</span>
@@ -429,6 +475,13 @@ onUnmounted(() => { if (observer) observer.disconnect() })
     <Teleport to="body">
       <div v-if="flyCover" class="fly-cover" :style="{ left: flyCover.x + 'px', top: flyCover.y + 'px', width: flyCover.w + 'px', height: flyCover.h + 'px' }">
         <img :src="flyCover.src" alt="" />
+      </div>
+      <!-- Flying search bar -->
+      <div v-if="flySearch" class="fly-search" :style="{ left: flySearch.x + 'px', top: flySearch.y + 'px', width: flySearch.w + 'px', height: flySearch.h + 'px' }">
+        <div class="fly-search-inner">
+          <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="fly-search-text">搜索或筛选书籍…</span>
+        </div>
       </div>
     </Teleport>
 
@@ -530,7 +583,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 }
 .search-overlay-bar {
   display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1.1rem;
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--r-full);
   margin-bottom: 1.5rem;
@@ -619,6 +672,26 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* Flying search bar */
+.fly-search {
+  position: fixed;
+  z-index: 10006;
+  pointer-events: none;
+  will-change: transform;
+}
+.fly-search-inner {
+  display: flex; align-items: center; gap: 0.75rem;
+  width: 100%; height: 100%;
+  padding: 0.65rem 1.1rem;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  color: var(--ink-ghost);
+  box-sizing: border-box;
+}
+.fly-search-text {
+  flex: 1; font-size: 0.88rem; color: var(--ink-ghost);
 }
 
 /* Card overlay — 与图库一致 */
