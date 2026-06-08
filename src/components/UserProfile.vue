@@ -50,7 +50,11 @@ async function handleDelete() {
 }
 
 function onOverlayClick(e: MouseEvent) {
-  if ((e.target as HTMLElement).classList.contains('profile-overlay')) emit('close')
+  if ((e.target as HTMLElement).classList.contains('profile-overlay')) {
+    editing.value = false
+    deleting.value = false
+    emit('close')
+  }
 }
 </script>
 

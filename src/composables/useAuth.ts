@@ -70,7 +70,8 @@ export function useAuth() {
   async function deleteAccount() {
     if (!supabase || !session.value?.access_token) return { error: '未登录' }
     try {
-      const res = await fetch(`${supabase.supabaseUrl}/functions/v1/delete-account`, {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const res = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.value.access_token}`,
@@ -79,7 +80,6 @@ export function useAuth() {
       })
       const data = await res.json()
       if (!res.ok) return { error: data.error || '注销失败' }
-      // 注销成功，清除本地状态
       await signOut()
       return { error: null }
     } catch {

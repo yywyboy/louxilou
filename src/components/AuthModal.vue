@@ -2,10 +2,10 @@
 import { ref, watch } from 'vue'
 import { useAuth } from '../composables/useAuth'
 
-const props = defineProps<{ visible: boolean }>()
+defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
-const { user, sendMagicLink } = useAuth()
+const { user, sendMagicLink, updateUsername } = useAuth()
 
 const step = ref<'email' | 'sent' | 'username'>('email')
 const email = ref('')
@@ -43,7 +43,6 @@ async function handleSetUsername() {
   error.value = ''
   submitting.value = true
 
-  const { updateUsername } = useAuth()
   const { error: err } = await updateUsername(username.value.trim())
   if (err) { error.value = err; submitting.value = false; return }
 
