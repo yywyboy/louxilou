@@ -123,7 +123,9 @@ const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
           <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
         </button>
         <div class="mb-div"></div>
-        <span class="mb-book-title">{{ bookTitle }}</span>
+        <div class="mb-book-title-wrap">
+          <span class="mb-book-title" :class="{ scroll: bookTitle.length > 10 }">{{ bookTitle }}</span>
+        </div>
         <div class="mb-div"></div>
         <div class="mb-prog" @click="window.scrollTo({ top: 0, behavior: 'smooth' })" title="回到顶部">
           <svg width="28" height="28" viewBox="0 0 28 28">
@@ -244,16 +246,27 @@ const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
   flex-shrink: 0;
 }
 
+.mb-book-title-wrap {
+  max-width: 120px;
+  overflow: hidden;
+  padding: 0 0.3rem;
+}
 .mb-book-title {
   font-family: var(--font-display);
   font-size: 0.72rem;
   font-weight: 600;
   color: var(--ink-dim);
   white-space: nowrap;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 0.3rem;
+  display: inline-block;
+}
+.mb-book-title.scroll {
+  animation: title-scroll 8s ease-in-out infinite;
+  animation-delay: 3s;
+}
+@keyframes title-scroll {
+  0%, 20% { transform: translateX(0); }
+  40%, 60% { transform: translateX(calc(-100% + 120px)); }
+  80%, 100% { transform: translateX(0); }
 }
 
 .mb-prog {

@@ -19,6 +19,24 @@ const flyImg = ref<{ src: string; x: number; y: number; w: number; h: number } |
 let origImgEl: HTMLElement | null = null
 let origRect: DOMRect | null = null
 
+// 标签轮播
+const tagIdx = ref(0)
+let tagTimer: ReturnType<typeof setInterval> | null = null
+
+function startTagCycle() {
+  tagIdx.value = 0
+  if (tagTimer) clearInterval(tagTimer)
+  tagTimer = setInterval(() => {
+    if (sel.value && sel.value.catNames.length > 1) {
+      tagIdx.value = (tagIdx.value + 1) % sel.value.catNames.length
+    }
+  }, 3000)
+}
+
+function stopTagCycle() {
+  if (tagTimer) { clearInterval(tagTimer); tagTimer = null }
+}
+
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
   src: getR2Url(`gallery/photos/${p.filename}`),
@@ -69,6 +87,7 @@ function open(idx: number, e: MouseEvent) {
 
   selIdx.value = idx
   document.body.style.overflow = 'hidden'
+  startTagCycle()
 
   nextTick(() => {
     const lb = document.querySelector('.lb') as HTMLElement
@@ -196,6 +215,7 @@ function finishClose() {
   document.body.style.overflow = ''
   origImgEl = null
   origRect = null
+  stopTagCycle()
 }
 
 function prev() {
@@ -339,7 +359,9 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
             <div class="lb-div"></div>
             <span class="lb-num">#{{ sel.idx }}</span>
             <div class="lb-cats">
-              <span v-for="cn in sel.catNames" :key="cn" class="lb-cat">{{ cn }}</span>
+              <Transition name="tag-slide" mode="out-in">
+                <span :key="tagIdx" class="lb-cat">{{ sel.catNames[tagIdx] }}</span>
+              </Transition>
             </div>
             <div class="lb-div"></div>
             <span class="lb-counter">{{ selIdx + 1 }} / {{ filtered.length }}</span>
@@ -389,7 +411,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .ph.shown { opacity: 1; }
 .ph:hover { z-index: 2; transform: scale(1.01); }
 
-.ph-placeholder { background: var(--bg-elevated); min-height: 100px; }
+.ph-placeholder { background: var(--bg-elevated); line-height: 0; }
 
 .ph-img {
   width: 100%; height: auto; display: block;
@@ -419,8 +441,8 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   .grid { columns: 2; column-gap: 0.3rem; }
   .ph { margin-bottom: 0.3rem; }
   .skeleton-grid { columns: 2; }
-  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
-  .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.3rem 0.8rem; }
+  .cat-bar { flex-wrap: wrap; justify-content: center; gap: 0.35rem; margin-bottom: 2rem; }
+  .cat-btn { padding: 0.3rem 0.7rem; font-size: 0.68rem; }
 }
 </style>
 
@@ -463,6 +485,12 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold);
 }
 .lb-counter { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); white-space: nowrap; }
+
+/* 标签轮播动画 */
+.tag-slide-enter-active { transition: all 0.3s ease-out; }
+.tag-slide-leave-active { transition: all 0.2s ease-in; }
+.tag-slide-enter-from { opacity: 0; transform: translateY(8px); }
+.tag-slide-leave-to { opacity: 0; transform: translateY(-8px); }
 
 /* 飞图 */
 .fly-img {

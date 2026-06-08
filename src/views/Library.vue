@@ -517,9 +517,9 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 /* Search overlay */
 .search-overlay {
   position: fixed; inset: 0; z-index: 10005;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(var(--bg-rgb), 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex; flex-direction: column; align-items: center;
   padding-top: 2rem;
 }
@@ -550,9 +550,10 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--r-lg);
 }
-.search-overlay-enter-active { transition: opacity 0.25s; }
-.search-overlay-leave-active { transition: opacity 0.2s; }
-.search-overlay-enter-from, .search-overlay-leave-to { opacity: 0; }
+.search-overlay-enter-active { transition: all 0.35s ease-out; }
+.search-overlay-leave-active { transition: all 0.25s ease-in; }
+.search-overlay-enter-from { opacity: 0; transform: translateY(-20px); }
+.search-overlay-leave-to { opacity: 0; transform: translateY(-10px); }
 
 /* Selected tags display */
 .selected-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
@@ -581,7 +582,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .bk.shown { opacity: 1; }
 .bk:hover .bk-cover { transform: translateY(-6px); }
 .bk:hover .bk-shine { opacity: 1; }
-.bk-cover { position: relative; aspect-ratio: 3/4; overflow: hidden; border-radius: var(--r-xs); border: 1px solid var(--border); margin-bottom: 0.75rem; transition: transform 0.4s var(--ease); }
+.bk-cover { position: relative; aspect-ratio: 3/4; overflow: hidden; border-radius: var(--r-xs); background: var(--bg-elevated); margin-bottom: 0.75rem; transition: transform 0.4s var(--ease); }
 .bk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .bk-shine { position: absolute; inset: 0; background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.03) 45%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.03) 55%, transparent 60%); opacity: 0; transition: opacity 0.4s; pointer-events: none; }
 .bk-info { padding: 0 0.1rem; }

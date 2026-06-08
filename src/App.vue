@@ -334,11 +334,6 @@ onUnmounted(() => {
             <span class="mob-num">{{ String(i + 1).padStart(2, '0') }}</span>
             {{ item.name }}
           </router-link>
-        
-          <button class="mob-link" @click="toggleTheme()" style="border:none;cursor:pointer;width:100%;text-align:left">
-            <span class="mob-num">☀</span>
-            {{ theme === 'light' ? '切换暗色' : '切换亮色' }}
-          </button>
         </div>
       </Transition>
     </nav>
@@ -390,6 +385,8 @@ onUnmounted(() => {
 
 <style>
 
+/* 全局防止横向滚动 */
+html, body { overflow-x: hidden; }
 
 /* ===== THEME OVERLAY ===== */
 .theme-overlay { position: fixed; inset: 0; z-index: 99990; pointer-events: none; display: none; opacity: 0; }
