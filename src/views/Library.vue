@@ -433,7 +433,6 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 
     <!-- Card overlay -->
     <Teleport to="body">
-      <Transition name="card-bg">
         <div v-if="cardOpen" class="card-overlay" @click.self="closeCard" @wheel.prevent>
           <div class="book-card" v-if="activeBook" @wheel.stop>
             <button class="card-close interactive" @click="closeCard">
@@ -474,7 +473,6 @@ onUnmounted(() => { if (observer) observer.disconnect() })
             </div>
           </div>
         </div>
-      </Transition>
     </Teleport>
   </div>
 </template>
@@ -622,12 +620,12 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   display: block;
 }
 
-/* Card overlay */
+/* Card overlay — 与图库一致 */
 .card-overlay {
   position: fixed; inset: 0; z-index: 10003;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(var(--bg-rgb), 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
@@ -688,9 +686,6 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .card-ch-btn { padding: 0.3rem 0.75rem; font-family: var(--font-sans); font-size: 0.7rem; font-weight: 500; border-radius: var(--r-full); background: var(--gold); color: var(--bg); border: none; cursor: pointer; transition: all 0.3s; flex-shrink: 0; }
 .card-ch-btn:hover { background: var(--gold-light); }
 
-.card-bg-enter-active { transition: opacity 0.3s; }
-.card-bg-leave-active { transition: opacity 0.25s; }
-.card-bg-enter-from, .card-bg-leave-to { opacity: 0; }
 
 @media (max-width: 768px) {
   .card-top { grid-template-columns: 100px 1fr; gap: 1.25rem; padding: 1.25rem; }
