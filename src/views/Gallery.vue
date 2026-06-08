@@ -118,60 +118,77 @@ function open(idx: number, e: MouseEvent) {
 }
 
 function close() {
+  // 杀掉所有进行中的动画
+  gsap.killTweensOf('.fly-img')
+  gsap.killTweensOf('.lb')
+  gsap.killTweensOf('.lb-img')
+  gsap.killTweensOf('.lb-bar')
+
   const lb = document.querySelector('.lb') as HTMLElement
   const lbImg = document.querySelector('.lb-img') as HTMLImageElement
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
+  const fly = document.querySelector('.fly-img') as HTMLElement
 
-  if (!lbImg || !origImgEl) {
-    finishClose()
-    return
+  if (!origImgEl) { finishClose(); return }
+
+  // 获取飞图当前位置（可能还在动画中）
+  const origRect = origImgEl.getBoundingClientRect()
+
+  let startX = 0, startY = 0, startW = 0, startH = 0
+
+  if (fly) {
+    // 飞图存在，用它的当前位置
+    const flyRect = fly.getBoundingClientRect()
+    startX = flyRect.left
+    startY = flyRect.top
+    startW = flyRect.width
+    startH = flyRect.height
+  } else if (lbImg) {
+    // 飞图不存在，用 lightbox 图片位置
+    const imgRect = lbImg.getBoundingClientRect()
+    startX = imgRect.left
+    startY = imgRect.top
+    startW = imgRect.width
+    startH = imgRect.height
   }
 
-  // 先记录原图位置（在 lightbox 还没消失前）
-  const origRect = origImgEl.getBoundingClientRect()
-  const targetRect = lbImg.getBoundingClientRect()
-
-  // 隐藏 lightbox 图片
-  lbImg.style.opacity = '0'
-
-  // 创建飞图
-  flyImg.value = {
-    src: sel.value?.src || '',
-    x: targetRect.left, y: targetRect.top,
-    w: targetRect.width, h: targetRect.height
+  // 确保飞图存在
+  if (!fly) {
+    flyImg.value = {
+      src: sel.value?.src || '',
+      x: startX, y: startY, w: startW, h: startH
+    }
+    nextTick(() => doCloseAnim(document.querySelector('.fly-img') as HTMLElement, origRect, startX, startY))
+  } else {
+    doCloseAnim(fly, origRect, startX, startY)
   }
 
   // 底部栏消失
   if (lbBar) gsap.to(lbBar, { y: 40, opacity: 0, duration: 0.25, ease: 'power2.in' })
+  // 背景淡出
+  if (lb) gsap.to(lb, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
+}
 
-  nextTick(() => {
-    const fly = document.querySelector('.fly-img') as HTMLElement
-    if (!fly) { finishClose(); return }
+function doCloseAnim(fly: HTMLElement, origRect: DOMRect, startX: number, startY: number) {
+  if (!fly) { finishClose(); return }
 
-    // 飞图飞回原位
-    gsap.to(fly, {
-      x: origRect.left - targetRect.left,
-      y: origRect.top - targetRect.top,
-      width: origRect.width,
-      height: origRect.height,
-      borderRadius: 6,
-      duration: 0.45,
-      ease: 'expo.inOut',
-      onComplete: () => {
-        // 关键：先显示原图，再移除飞图，再关 lightbox
-        origImgEl!.style.opacity = '1'
-        // 强制一帧后再清理
-        requestAnimationFrame(() => {
-          flyImg.value = null
-          selIdx.value = -1
-          document.body.style.overflow = ''
-          origImgEl = null
-        })
-      }
-    })
-
-    // 背景淡出（与飞图同步）
-    if (lb) gsap.to(lb, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
+  gsap.to(fly, {
+    x: origRect.left - startX,
+    y: origRect.top - startY,
+    width: origRect.width,
+    height: origRect.height,
+    borderRadius: 6,
+    duration: 0.45,
+    ease: 'expo.inOut',
+    onComplete: () => {
+      if (origImgEl) origImgEl.style.opacity = '1'
+      requestAnimationFrame(() => {
+        flyImg.value = null
+        selIdx.value = -1
+        document.body.style.overflow = ''
+        origImgEl = null
+      })
+    }
   })
 }
 
