@@ -67,29 +67,23 @@ function toggleTrans() { trans.value = !trans.value; if (trans.value) doTrans() 
 function isEn(t: string) { const m = t.match(/[a-zA-Z]/g); return m ? m.length / t.length > 0.3 : false }
 async function doTrans() { const ps = paras.value; for (let i = 0; i < ps.length && trans.value; i += 3) { const batch = []; for (let j = i; j < Math.min(i + 3, ps.length); j++) { if (!transMap.value[j] && !transSet.value.has(j) && isEn(ps[j])) batch.push(j) } if (!batch.length) continue; batch.forEach(x => transSet.value.add(x)); transSet.value = new Set(transSet.value); const res = await Promise.all(batch.map(x => trText(ps[x]))); batch.forEach((x, k) => { transMap.value[x] = res[k]; transSet.value.delete(x) }); transMap.value = { ...transMap.value }; transSet.value = new Set(transSet.value) } }
 async function trText(t: string): Promise<string> { try { const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(t.slice(0, 300))}`); if (r.ok) { const d = await r.json(); if (d[0]) return d[0].map((s: string[]) => s[0]).join('') } } catch {} return '翻译失败' }
+
+// SVG circle progress
+const circleR = 14
+const circleC = 2 * Math.PI * circleR
+const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
 </script>
 
 <template>
   <div class="rd">
     <div class="prog" :style="{ width: prog + '%' }"></div>
-    <header class="rd-hd">
-      <button class="rb interactive" @click="goBack" title="返回">
-        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-      </button>
-      <div class="rd-center"><h2>{{ bookTitle }}</h2><p>{{ chTitle }}</p></div>
-      <div class="rd-acts">
-        <button class="rb interactive" :class="{ on: trans }" @click="toggleTrans" title="翻译">译</button>
-        <button class="rb interactive" @click="adjFs(-1)">A-</button>
-        <button class="rb interactive" @click="adjFs(1)">A+</button>
-        <button class="rb rb-g interactive" @click.stop="showNav = !showNav" title="目录">
-          <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-      </div>
-    </header>
 
     <main class="rd-body" :style="{ fontSize: fs + 'px' }" @click="showNav = false">
       <div v-if="err" class="err">{{ err }}</div>
       <div v-else class="rd-text">
+        <div class="rd-ch-header">
+          <h1 class="rd-ch-title">{{ chTitle }}</h1>
+        </div>
         <div v-for="(p, i) in visParas" :key="i" class="pw">
           <p class="pp">{{ p }}</p>
           <p v-if="trans && transMap[i]" class="pt">{{ transMap[i] }}</p>
@@ -99,92 +93,263 @@ async function trText(t: string): Promise<string> { try { const r = await fetch(
       </div>
     </main>
 
-    <!-- Chapter nav — dropdown below header -->
-    <Transition name="sp">
-      <div v-if="showNav" class="qn" @click.self="showNav = false">
-        <div class="qn-panel">
-          <div class="qn-hd"><h3>章节导航</h3><button class="rb interactive" @click="showNav = false">✕</button></div>
-          <div class="qn-list">
-            <button v-for="(c, i) in chs" :key="c.id" class="qn-item interactive" :class="{ on: i === idx }" @click="goTo(i)">{{ c.title }}</button>
-          </div>
+    <!-- Bottom bar -->
+    <div class="rd-bar">
+      <div class="rd-bar-shell">
+        <button class="mb-btn interactive" @click="goBack" title="返回">
+          <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        </button>
+        <button class="mb-btn interactive" :class="{ on: trans }" @click="toggleTrans" title="翻译">
+          <span class="mb-text">译</span>
+        </button>
+        <button class="mb-btn interactive" @click="adjFs(-1)" title="字号减">
+          <span class="mb-text">A-</span>
+        </button>
+        <button class="mb-btn interactive" @click="adjFs(1)" title="字号加">
+          <span class="mb-text">A+</span>
+        </button>
+        <button class="mb-btn interactive" @click.stop="showNav = !showNav" title="章节导航">
+          <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+        </button>
+        <div class="mb-div"></div>
+        <span class="mb-book-title">{{ bookTitle }}</span>
+        <div class="mb-div"></div>
+        <div class="mb-prog" @click="window.scrollTo({ top: 0, behavior: 'smooth' })" title="回到顶部">
+          <svg width="28" height="28" viewBox="0 0 28 28">
+            <circle cx="14" cy="14" r="12" fill="none" stroke="var(--border)" stroke-width="2" />
+            <circle cx="14" cy="14" r="12" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" :stroke-dasharray="2 * Math.PI * 12" :stroke-dashoffset="2 * Math.PI * 12 * (1 - prog / 100)" transform="rotate(-90 14 14)" style="transition: stroke-dashoffset 0.1s linear" />
+          </svg>
+          <span class="mb-prog-num">{{ Math.round(prog) }}%</span>
         </div>
       </div>
-    </Transition>
+
+      <!-- Chapter nav popup -->
+      <Transition name="toc-card">
+        <div v-if="showNav" class="toc-card-wrap">
+          <div class="toc-card">
+            <div class="toc-card-hd">
+              <span class="toc-card-title">章节导航</span>
+              <button class="toc-card-close interactive" @click="showNav = false">×</button>
+            </div>
+            <div class="toc-card-body">
+              <ul class="toc-card-list">
+                <li v-for="(c, i) in chs" :key="c.id">
+                  <button class="toc-card-item interactive" :class="{ active: i === idx }" @click="goTo(i)">{{ c.title }}</button>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .rd { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
 .prog { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); z-index: 1001; transition: width 0.1s; }
-.rd-hd {
-  display: flex; align-items: center; justify-content: space-between;
-  position: fixed; top: 1rem; left: 1.5rem; right: 1.5rem;
-  z-index: 100;
-  height: 52px;
-  max-width: 900px;
+
+.rd-body {
+  flex: 1;
+  padding: 2rem 2rem 6rem;
+  max-width: 660px;
   margin: 0 auto;
-  left: 50%; right: auto;
-  transform: translateX(-50%);
-  width: calc(100% - 3rem);
-  padding: 0 0.5rem 0 1.25rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  box-shadow: 0 4px 30px rgba(0,0,0,0.4);
+  width: 100%;
+  line-height: 2;
 }
-.rd-center { text-align: center; flex: 1; padding: 0 1rem; }
-.rd-center h2 { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rd-center p { font-size: 0.68rem; color: var(--ink-ghost); margin: 0; }
-.rd-acts { display: flex; gap: 0.35rem; align-items: center; }
-.rb { min-width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; background: none; border: 1px solid var(--border); border-radius: var(--r-full); color: var(--ink-ghost); font-family: var(--font-sans); font-size: 0.72rem; font-weight: 500; transition: all 0.3s; }
-.rb:hover { color: var(--ink); border-color: var(--border-hover); }
-.rb.on { background: var(--gold); border-color: var(--gold); color: var(--bg); }
-.rb-g { background: var(--gold); border-color: var(--gold); color: var(--bg); }
-.rb-g:hover { background: var(--gold-light); }
-.rd-body { flex: 1; padding: 2rem; padding-top: 80px; padding-bottom: 70px; max-width: 660px; margin: 0 auto; width: 100%; line-height: 2; }
+
+.rd-ch-header {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.rd-ch-title {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+
 .err { text-align: center; padding: 4rem; color: var(--ink-ghost); }
 .pw { margin-bottom: 1.5rem; }
 .pp { margin: 0 0 0.35rem 0; text-indent: 2em; }
 .pt { margin: 0; text-indent: 2em; color: var(--gold); font-size: 0.88em; opacity: 0.65; border-left: 2px solid var(--gold-dim); padding-left: 0.75rem; margin-left: 2em; line-height: 1.8; }
 .pl { margin: 0; text-indent: 2em; color: var(--ink-ghost); font-size: 0.82em; font-style: italic; margin-left: 2em; }
 .lm { display: flex; justify-content: center; padding: 2rem; }
-.qn {
-  position: fixed; inset: 0; z-index: 10001;
-  background: rgba(var(--bg-rgb),0.6);
-  display: flex; align-items: flex-start; justify-content: center;
-  padding-top: calc(var(--nav-h) + 1rem);
+
+/* Bottom bar */
+.rd-bar {
+  position: fixed;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1001;
+  width: auto;
 }
-.qn-panel {
-  width: 320px; max-height: calc(100vh - var(--nav-h) - 2rem);
-  display: flex; flex-direction: column;
-  background: var(--bg-warm);
+
+.rd-bar-shell {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 0.6rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  overflow: hidden;
-  box-shadow: 0 12px 48px rgba(0,0,0,0.5);
+  border-radius: var(--r-full);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  gap: 0;
 }
-.qn-hd { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
-.qn-hd h3 { margin: 0; font-family: var(--font-display); font-size: 0.88rem; font-weight: 600; }
-.qn-list { flex: 1; overflow-y: auto; }
-.qn-item { display: block; width: 100%; padding: 0.6rem 1rem; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 0.82rem; color: var(--ink-ghost); transition: all 0.2s; }
-.qn-item:last-child { border-bottom: none; }
-.qn-item:hover { background: var(--gold-dim); color: var(--ink); }
-.qn-item.on { background: var(--gold-dim); color: var(--gold); font-weight: 600; }
-.sp-enter-active { transition: all 0.3s var(--ease); }
-.sp-leave-active { transition: all 0.2s var(--ease); }
-.sp-enter-from, .sp-leave-to { opacity: 0; }
-.sp-enter-from .qn-panel { transform: translateY(-10px); }
+
+.mb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  color: var(--ink-ghost);
+  transition: color 0.2s;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.mb-btn:hover, .mb-btn.on { color: var(--gold); }
+
+.mb-text {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.mb-div {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 0.2rem;
+  flex-shrink: 0;
+}
+
+.mb-book-title {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 0.3rem;
+}
+
+.mb-prog {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.mb-prog-num {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 0.45rem;
+  color: var(--ink-ghost);
+}
+
+/* Chapter nav popup */
+.toc-card-wrap {
+  position: absolute;
+  bottom: calc(100% + 0.5rem);
+  left: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.toc-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  overflow: hidden;
+  width: 320px;
+  max-height: 50vh;
+}
+
+.toc-card-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.toc-card-title {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.toc-card-close {
+  background: none;
+  border: none;
+  color: var(--ink-ghost);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0 0.2rem;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.toc-card-close:hover { color: var(--ink); }
+
+.toc-card-body {
+  max-height: 40vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.toc-card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-card-item {
+  display: block;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--ink-ghost);
+  transition: all 0.2s;
+}
+
+.toc-card-item:last-child { border-bottom: none; }
+.toc-card-item:hover { background: var(--gold-dim); color: var(--ink); }
+.toc-card-item.active { background: var(--gold-dim); color: var(--gold); font-weight: 600; }
+
+.toc-card-enter-active { transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+.toc-card-leave-active { transition: all 0.2s ease; }
+.toc-card-enter-from { opacity: 0; transform: translateY(8px); }
+.toc-card-leave-to { opacity: 0; transform: translateY(8px); }
+
 @media (max-width: 768px) {
-  .rd-hd { padding: 0.5rem 0.75rem; top: 0; }
-  .rd-center h2 { font-size: 0.78rem; }
-  .rd-center p { display: none; }
-  .rd-body { padding: 1rem; padding-top: 56px; padding-bottom: 80px; }
-  .rd-ft { padding: 0.5rem 0.75rem; padding-bottom: max(0.5rem, env(safe-area-inset-bottom)); }
-  .rd-acts { gap: 0.25rem; }
-  .rd-acts button { padding: 0.3rem 0.5rem; font-size: 0.7rem; }
-  .qn { right: 0.5rem; width: 200px; }
-  .rd-body p { font-size: calc(var(--fs, 18px) * 0.95); }
+  .rd-body { padding: 1rem 1rem 5rem; }
+  .rd-ch-title { font-size: 1.2rem; }
+  .mb-book-title { max-width: 80px; font-size: 0.65rem; }
+  .toc-card { width: 280px; }
 }
 </style>
