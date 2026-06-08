@@ -162,10 +162,9 @@ function openBook(book: Book, e: MouseEvent) {
         width: targetRect.width,
         height: targetRect.height,
         borderRadius: 0,
-        duration: 0.55,
-        ease: 'expo.out',
+        duration: 0.6,
+        ease: 'power3.out',
         onComplete: () => {
-          // 柔和切换（与图库一致）
           gsap.to(fly, { opacity: 0, duration: 0.15, ease: 'power1.out', onComplete: () => { flyCover.value = null } })
           cardCoverImg.style.opacity = '1'
         }
@@ -174,11 +173,11 @@ function openBook(book: Book, e: MouseEvent) {
 
     // 卡片弹出（与图库一致）
     gsap.set(card, { willChange: 'transform, opacity' })
-    gsap.fromTo(card, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: 'back.out(1.2)', delay: 0.25 })
+    gsap.fromTo(card, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.2)', delay: 0.1 })
 
     // 内容淡入
-    gsap.fromTo('.card-info', { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out', delay: 0.4 })
-    gsap.fromTo('.card-chapters', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', delay: 0.5 })
+    gsap.fromTo('.card-info', { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out', delay: 0.25 })
+    gsap.fromTo('.card-chapters', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', delay: 0.35 })
   })
 }
 

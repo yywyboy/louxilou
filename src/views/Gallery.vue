@@ -85,36 +85,33 @@ function open(idx: number, e: MouseEvent) {
 
     const targetRect = lbImg.getBoundingClientRect()
 
-    // 飞图动画 — 更丝滑的曲线
+    // 飞图动画
     const fly = document.querySelector('.fly-img') as HTMLElement
     if (fly) {
-      gsap.set(fly, { willChange: 'transform, opacity, filter' })
+      gsap.set(fly, { willChange: 'transform' })
       gsap.fromTo(fly, {
         x: 0, y: 0,
         width: rect.width, height: rect.height,
         opacity: 1, borderRadius: 6,
-        filter: 'blur(0px) brightness(1)',
       }, {
         x: targetRect.left - rect.left,
         y: targetRect.top - rect.top,
         width: targetRect.width,
         height: targetRect.height,
         borderRadius: 0,
-        filter: 'blur(0px) brightness(1.05)',
-        duration: 0.55,
-        ease: 'expo.out',
+        duration: 0.6,
+        ease: 'power3.out',
         onComplete: () => {
-          // 柔和切换
           gsap.to(fly, { opacity: 0, duration: 0.15, ease: 'power1.out', onComplete: () => { flyImg.value = null } })
           lbImg.style.opacity = '1'
         }
       })
     }
 
-    // 底部栏浮出 — 弹性效果
+    // 底部栏浮出
     if (lbBar) {
-      gsap.set(lbBar, { y: 80, opacity: 0 })
-      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.6, delay: 0.25, ease: 'back.out(1.2)' })
+      gsap.set(lbBar, { y: 60, opacity: 0 })
+      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.5, delay: 0.15, ease: 'back.out(1.2)' })
     }
   })
 }
