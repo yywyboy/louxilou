@@ -17,6 +17,7 @@ const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 // 飞图动画状态
 const flyImg = ref<{ src: string; x: number; y: number; w: number; h: number } | null>(null)
 let origImgEl: HTMLElement | null = null
+let origRect: DOMRect | null = null
 
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
@@ -54,8 +55,9 @@ function open(idx: number, e: MouseEvent) {
 
   const rect = phEl.getBoundingClientRect()
 
-  // 隐藏原图
+  // 隐藏原图，存储原位
   origImgEl = phEl
+  origRect = rect
   phEl.style.opacity = '0'
 
   // 设置飞图起点
@@ -129,10 +131,7 @@ function close() {
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
   const fly = document.querySelector('.fly-img') as HTMLElement
 
-  if (!origImgEl) { finishClose(); return }
-
-  // 获取飞图当前位置（可能还在动画中）
-  const origRect = origImgEl.getBoundingClientRect()
+  if (!origImgEl || !origRect) { finishClose(); return }
 
   let startX = 0, startY = 0, startW = 0, startH = 0
 
@@ -169,8 +168,8 @@ function close() {
   if (lb) gsap.to(lb, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
 }
 
-function doCloseAnim(fly: HTMLElement, origRect: DOMRect, startX: number, startY: number) {
-  if (!fly) { finishClose(); return }
+function doCloseAnim(fly: HTMLElement, targetRect: DOMRect, startX: number, startY: number) {
+  if (!fly || !origRect) { finishClose(); return }
 
   gsap.to(fly, {
     x: origRect.left - startX,
@@ -187,6 +186,7 @@ function doCloseAnim(fly: HTMLElement, origRect: DOMRect, startX: number, startY
         selIdx.value = -1
         document.body.style.overflow = ''
         origImgEl = null
+        origRect = null
       })
     }
   })
@@ -198,6 +198,7 @@ function finishClose() {
   selIdx.value = -1
   document.body.style.overflow = ''
   origImgEl = null
+  origRect = null
 }
 
 function prev() {
