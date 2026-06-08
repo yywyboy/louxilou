@@ -6,6 +6,7 @@ import { scrollTo as lenisScrollTo } from './composables/useLenis'
 import { updateThemeState } from './composables/useTheme'
 import { useAuth } from './composables/useAuth'
 import AuthModal from './components/AuthModal.vue'
+import UserProfile from './components/UserProfile.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -22,6 +23,14 @@ const mobileOpen = ref(false)
 const theme = ref<'light' | 'dark'>('light')
 const { user, loading: authLoading, signOut, getDisplayName } = useAuth()
 const showAuthModal = ref(false)
+const showProfile = ref(false)
+
+// 新用户通过魔法链接登录后，如果没有用户名，自动弹出个人中心设置
+watch(() => user.value, (u) => {
+  if (u && !u.user_metadata?.username) {
+    showProfile.value = true
+  }
+})
 
 function applyTheme(t: 'light' | 'dark') {
   const r = document.documentElement.style
@@ -308,7 +317,7 @@ onUnmounted(() => {
           <svg v-else viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
         <div v-if="!authLoading" class="nav-user">
-          <button v-if="user" class="user-btn interactive" @click="signOut()" :title="'退出登录 (' + getDisplayName() + ')'">
+          <button v-if="user" class="user-btn interactive" @click="showProfile = true" :title="getDisplayName()">
             <span class="user-avatar">{{ getDisplayName().charAt(0).toUpperCase() }}</span>
           </button>
           <button v-else class="user-btn interactive" @click="showAuthModal = true" title="登录">
@@ -375,6 +384,7 @@ onUnmounted(() => {
     </footer>
 
     <AuthModal :visible="showAuthModal" @close="showAuthModal = false" />
+    <UserProfile :visible="showProfile" @close="showProfile = false" />
   </div>
 </template>
 
