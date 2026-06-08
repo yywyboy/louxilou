@@ -2,6 +2,7 @@
 import { ref, computed, onMounted, watch, nextTick, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { getBookByIdFromDB, type Book, type BookChapter } from '../lib/books'
+import { gsap } from '../composables/useGsap'
 
 const router = useRouter()
 const route = useRoute()
@@ -57,7 +58,19 @@ async function loadCh() {
 }
 
 function save() { const bid = route.params.bookId as string; const cid = chs.value[idx.value]?.id; if (!bid || !cid) return; const p = JSON.parse(localStorage.getItem('rp') || '{}'); p[bid] = { chapterId: cid, title: chTitle.value, ts: Date.now() }; localStorage.setItem('rp', JSON.stringify(p)); localStorage.setItem('rf-sz', String(fs.value)) }
-function goBack() { router.push(`/library/${route.params.bookId}`) }
+function goBack() {
+  const el = document.querySelector('.rd')
+  if (!el) { router.push(`/library/${route.params.bookId}`); return }
+  gsap.to(el, {
+    scale: 0.85,
+    opacity: 0,
+    y: 40,
+    borderRadius: '20px',
+    duration: 0.4,
+    ease: 'power3.in',
+    onComplete: () => router.push(`/library/${route.params.bookId}`)
+  })
+}
 function adjFs(d: number) { fs.value = Math.max(14, Math.min(22, fs.value + d)) }
 function goChapter() { router.push(`/library/${route.params.bookId}/read/${chs.value[idx.value].id}`) }
 function prev() { if (idx.value > 0) { idx.value--; goChapter() } }
