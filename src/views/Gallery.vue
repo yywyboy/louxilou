@@ -17,11 +17,9 @@ const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
   src: getR2Url(`gallery/photos/${p.filename}`),
-  thumb: getR2Url(`gallery/photos/${p.filename}`), // 可以后续换成缩略图
   alt: `Photo ${p.id}`,
   catNames: getCategoryNames(p.categories),
   idx: i + 1,
-  loaded: false,
 })))
 
 const filtered = computed(() => {
@@ -50,14 +48,11 @@ function toggle(id: string) {
 function open(idx: number) {
   selIdx.value = idx
   document.body.style.overflow = 'hidden'
-  nextTick(() => {
-    gsap.fromTo('.lb-img', { scale: 0.92, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: 'power3.out' })
-    gsap.fromTo('.lb-meta', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, delay: 0.2, ease: 'power3.out' })
-  })
 }
 
 function close() {
-  gsap.to('.lb-img', { scale: 0.95, opacity: 0, duration: 0.25, ease: 'power2.in', onComplete: () => { selIdx.value = -1; document.body.style.overflow = '' } })
+  selIdx.value = -1
+  document.body.style.overflow = ''
 }
 
 function prev() {
@@ -66,14 +61,6 @@ function prev() {
 
 function next() {
   if (selIdx.value < filtered.value.length - 1) selIdx.value++
-}
-
-function download() {
-  if (!sel.value) return
-  const a = document.createElement('a')
-  a.href = sel.value.src
-  a.download = sel.value.filename
-  a.click()
 }
 
 function onKey(e: KeyboardEvent) {
@@ -86,7 +73,8 @@ function onKey(e: KeyboardEvent) {
 function animPhotos() {
   if (!gridRef.value) return
   const cards = gridRef.value.querySelectorAll('.ph:not(.shown)')
-  gsap.fromTo(cards, { opacity: 0, y: 25 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.04, ease: 'power3.out', onComplete: () => cards.forEach(c => c.classList.add('shown')) })
+  if (!cards.length) return
+  gsap.fromTo(cards, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.03, ease: 'power3.out', onComplete: () => cards.forEach(c => c.classList.add('shown')) })
 }
 
 function loadMore() { if (hasMore.value) displayCount.value = Math.min(displayCount.value + 12, filtered.value.length) }
@@ -101,12 +89,17 @@ function setupObserver() {
   observer.observe(sentinelRef.value)
 }
 
-function onImgLoad(e: Event) {
-  const img = e.target as HTMLImageElement
-  img.classList.add('loaded')
-}
-
-watch(cats, () => { displayCount.value = 12; nextTick(() => { animPhotos(); setupObserver() }) })
+// 筛选变化时重置并重新动画
+watch(cats, () => {
+  displayCount.value = 12
+  nextTick(() => {
+    // 强制所有图片可见（移除动画依赖）
+    if (gridRef.value) {
+      gridRef.value.querySelectorAll('.ph').forEach(c => c.classList.add('shown'))
+    }
+    setupObserver()
+  })
+})
 
 onMounted(async () => {
   document.title = '图库 — LOUXILOU'
@@ -151,9 +144,9 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
       <div v-else-if="filtered.length === 0" class="empty">没有找到匹配的图片</div>
 
       <div v-else ref="gridRef" class="grid">
-        <div v-for="(p, i) in displayed" :key="p.id" class="ph interactive" @click="open(i)">
+        <div v-for="(p, i) in displayed" :key="p.id" class="ph interactive shown" @click="open(i)">
           <div class="ph-placeholder">
-            <img :src="p.src" :alt="p.alt" loading="lazy" class="ph-img" @load="onImgLoad" />
+            <img :src="p.src" :alt="p.alt" loading="lazy" class="ph-img" />
           </div>
           <div class="ph-over">
             <span v-for="cn in p.catNames" :key="cn" class="ph-cat">{{ cn }}</span>
@@ -163,7 +156,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 
       <div ref="sentinelRef" class="sentinel" v-if="hasMore"><div class="loader"></div></div>
 
-      <!-- Counter -->
       <div v-if="!loading && filtered.length > 0" class="counter">
         共 {{ filtered.length }} 张图片
       </div>
@@ -173,33 +165,32 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
     <Teleport to="body">
       <Transition name="fade">
         <div v-if="sel" class="lb" @click.self="close">
-          <button class="lb-close interactive" @click="close">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            <span>关闭</span>
-          </button>
-
           <!-- Prev/Next buttons -->
-          <button class="lb-nav lb-prev interactive" @click="prev" :disabled="selIdx <= 0">
+          <button class="lb-nav lb-prev interactive" @click.stop="prev" :disabled="selIdx <= 0">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
           </button>
-          <button class="lb-nav lb-next interactive" @click="next" :disabled="selIdx >= filtered.length - 1">
+          <button class="lb-nav lb-next interactive" @click.stop="next" :disabled="selIdx >= filtered.length - 1">
             <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
 
-          <div class="lb-body">
+          <div class="lb-body" @click.self="close">
             <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
           </div>
-          <div class="lb-meta">
-            <div class="lb-info">
-              <span class="lb-num">{{ selIdx + 1 }} / {{ filtered.length }}</span>
+
+          <!-- Bottom bar -->
+          <div class="lb-bar">
+            <div class="lb-bar-shell">
+              <button class="lb-btn interactive" @click="close" title="关闭">
+                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+              <div class="lb-div"></div>
+              <span class="lb-num">#{{ sel.idx }}</span>
               <div class="lb-cats">
                 <span v-for="cn in sel.catNames" :key="cn" class="lb-cat">{{ cn }}</span>
               </div>
+              <div class="lb-div"></div>
+              <span class="lb-counter">{{ selIdx + 1 }} / {{ filtered.length }}</span>
             </div>
-            <button class="lb-download interactive" @click="download" title="下载">
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              <span>下载</span>
-            </button>
           </div>
         </div>
       </Transition>
@@ -236,7 +227,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   100% { background-position: -200% 0; }
 }
 
-/* Grid — masonry with natural aspect ratios */
+/* Grid — masonry */
 .grid {
   columns: 3;
   column-gap: 0.5rem;
@@ -265,10 +256,8 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   width: 100%;
   height: auto;
   display: block;
-  opacity: 0;
-  transition: opacity 0.5s ease, transform 0.5s var(--ease), filter 0.4s;
+  transition: transform 0.5s var(--ease), filter 0.4s;
 }
-.ph-img.loaded { opacity: 1; }
 .ph:hover .ph-img { transform: scale(1.04); filter: brightness(1.08); }
 
 .ph-over {
@@ -303,21 +292,15 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   padding: 1rem 0;
 }
 
-.fade-enter-active, .fade-leave-active { transition: opacity 0.3s; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
 .empty { text-align: center; padding: 4rem; color: var(--ink-ghost); }
 
 @media (max-width: 768px) {
   .pg-title { font-size: 2.5rem; }
   .grid { columns: 2; column-gap: 0.3rem; }
-  .ph { margin-bottom: 0.3rem; border-radius: var(--r-xs); }
+  .ph { margin-bottom: 0.3rem; }
   .skeleton-grid { columns: 2; }
   .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
   .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.3rem 0.8rem; }
-  .lb { padding: 1rem; }
-  .lb-meta { flex-direction: column; gap: 0.75rem; align-items: stretch; }
-  .lb-close { justify-content: center; padding: 0.75rem 1.5rem; }
-  .lb-img { max-width: 95vw; max-height: 75vh; }
   .lb-nav { display: none; }
 }
 </style>
@@ -328,28 +311,19 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   position: fixed; inset: 0; z-index: 10000;
   background: rgba(var(--bg-rgb),0.97);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 2rem;
-}
-.lb-body { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
-.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; }
-.lb-meta { width: 100%; max-width: 90vw; display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 0 0; }
-.lb-info { display: flex; align-items: center; gap: 1rem; }
-.lb-num { font-family: var(--font-mono); font-size: 0.7rem; color: var(--ink-ghost); }
-.lb-cats { display: flex; gap: 0.4rem; }
-.lb-cat { padding: 0.2rem 0.7rem; background: rgba(159,53,58,0.12); border-radius: var(--r-full); font-family: var(--font-sans); font-size: 0.68rem; color: var(--gold-light); }
-.lb-close {
-  position: absolute; top: 1.5rem; left: 1.5rem;
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem 1.2rem;
-  background: var(--gold-dim);
-  border: 1px solid var(--border-hover);
-  border-radius: var(--r-full);
-  color: var(--ink-dim);
-  font-family: var(--font-sans); font-size: 0.75rem;
-  transition: all 0.3s; z-index: 10;
   cursor: pointer;
 }
-.lb-close:hover { background: rgba(159,53,58,0.15); border-color: var(--gold); color: var(--gold); }
+
+.lb-body {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 0; padding: 2rem;
+  cursor: pointer;
+}
+
+.lb-img {
+  max-width: 90vw; max-height: 80vh; object-fit: contain;
+  cursor: default;
+}
 
 .lb-nav {
   position: absolute; top: 50%; transform: translateY(-50%);
@@ -368,22 +342,84 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .lb-prev { left: 1.5rem; }
 .lb-next { right: 1.5rem; }
 
-.lb-download {
-  display: flex; align-items: center; gap: 0.5rem;
-  padding: 0.5rem 1rem;
-  background: var(--gold-dim);
-  border: 1px solid var(--border-hover);
-  border-radius: var(--r-full);
-  color: var(--ink-dim);
-  font-family: var(--font-sans); font-size: 0.75rem;
-  transition: all 0.3s;
-  cursor: pointer;
+/* Bottom bar */
+.lb-bar {
+  position: fixed;
+  bottom: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10001;
 }
-.lb-download:hover { background: rgba(159,53,58,0.15); border-color: var(--gold); color: var(--gold); }
+
+.lb-bar-shell {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 0.8rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  gap: 0;
+}
+
+.lb-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: none;
+  color: var(--ink-ghost);
+  transition: color 0.2s;
+  cursor: pointer;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.lb-btn:hover { color: var(--gold); }
+
+.lb-div {
+  width: 1px;
+  height: 20px;
+  background: var(--border);
+  margin: 0 0.4rem;
+  flex-shrink: 0;
+}
+
+.lb-num {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-ghost);
+  padding: 0 0.3rem;
+}
+
+.lb-cats {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0 0.3rem;
+}
+
+.lb-cat {
+  padding: 0.15rem 0.5rem;
+  background: var(--gold-dim);
+  border-radius: var(--r-full);
+  font-family: var(--font-sans);
+  font-size: 0.65rem;
+  color: var(--gold);
+}
+
+.lb-counter {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--ink-ghost);
+  white-space: nowrap;
+}
 
 @media (max-width: 768px) {
-  .lb-meta { flex-direction: column; gap: 1rem; align-items: stretch; }
-  .lb-close { justify-content: center; }
   .lb-nav { display: none; }
+  .lb-bar-shell { padding: 0 0.6rem; }
 }
 </style>
