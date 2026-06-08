@@ -293,8 +293,9 @@ onUnmounted(() => {  })
   .pc-arrow { display: none; }
 
   /* Category bar */
-  .cat-bar { overflow-x: auto; flex-wrap: nowrap; justify-content: flex-start; padding-bottom: 0.5rem; -webkit-overflow-scrolling: touch; }
-  .cat-btn { white-space: nowrap; flex-shrink: 0; padding: 0.35rem 0.8rem; }
+  .cat-bar { flex-wrap: wrap; justify-content: center; gap: 0.35rem; margin-bottom: 2rem; }
+  .cat-btn { padding: 0.3rem 0.7rem; font-size: 0.68rem; }
+  .cat-count { font-size: 0.55rem; }
 
   /* Hide previews on mobile */
   .blog-bg { display: none; }

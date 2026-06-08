@@ -108,6 +108,14 @@ const filtered = computed(() => {
 const displayed = computed(() => filtered.value.slice(0, displayCount.value))
 const hasMore = computed(() => displayCount.value < filtered.value.length)
 
+const tagCounts = computed(() => {
+  const counts: Record<string, number> = { all: books.value.length }
+  BOOK_TAGS.forEach(t => {
+    counts[t.id] = books.value.filter(b => b.tags?.includes(t.id)).length
+  })
+  return counts
+})
+
 function loadMore() { if (hasMore.value) displayCount.value = Math.min(displayCount.value + 12, filtered.value.length) }
 
 // Store original cover element for hiding/restoring
@@ -353,8 +361,8 @@ onUnmounted(() => { if (observer) observer.disconnect() })
             <button v-if="kw" class="search-x interactive" @click="kw = ''">×</button>
           </div>
           <div class="tags">
-            <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部</button>
-            <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }}</button>
+            <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部 <span class="tag-count">{{ tagCounts.all || 0 }}</span></button>
+            <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }} <span class="tag-count">{{ tagCounts[t.id] || 0 }}</span></button>
           </div>
         </div>
 
@@ -392,8 +400,8 @@ onUnmounted(() => { if (observer) observer.disconnect() })
               <button class="search-overlay-close interactive" @click="closeSearchOverlay">完成</button>
             </div>
             <div class="search-overlay-tags">
-              <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部</button>
-              <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }}</button>
+              <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部 <span class="tag-count">{{ tagCounts.all || 0 }}</span></button>
+              <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }} <span class="tag-count">{{ tagCounts[t.id] || 0 }}</span></button>
             </div>
           </div>
         </div>
@@ -495,7 +503,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .shelf-title { font-family: var(--font-display); font-size: 0.72rem; font-weight: 600; color: var(--ink-dim); text-align: center; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shelf-book:hover .shelf-title { color: var(--gold); }
 
-.flt { margin-bottom: 3rem; opacity: 0; }
+.flt { margin-bottom: 3rem; position: relative; z-index: 10; }
 .search { display: flex; align-items: center; gap: 0.75rem; padding: 0.65rem 1.1rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-full); margin-bottom: 1rem; color: var(--ink-ghost); transition: border-color 0.3s; }
 .search:focus-within { border-color: var(--border-hover); }
 .search-in { flex: 1; background: none; border: none; outline: none; font-size: 0.88rem; color: var(--ink); font-family: var(--font-body); }
@@ -503,9 +511,10 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .search-x { font-size: 1.1rem; color: var(--ink-ghost); padding: 0 0.25rem; cursor: pointer; border: none; background: none; }
 .search-x:hover { color: var(--ink); }
 .tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.tag-btn { padding: 0.3rem 0.8rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; cursor: pointer; }
+.tag-btn { padding: 0.3rem 0.8rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; }
 .tag-btn:hover { color: var(--ink-dim); border-color: var(--border-hover); }
 .tag-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
+.tag-count { font-family: var(--font-mono); font-size: 0.6rem; opacity: 0.6; }
 .flt-mobile { display: none; }
 
 /* Search overlay */
