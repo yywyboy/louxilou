@@ -13,5 +13,12 @@ function isValidKey(key: string | undefined): boolean {
 
 export const supabase: SupabaseClient | null =
   supabaseUrl && isValidKey(supabaseAnonKey)
-    ? createClient(supabaseUrl, supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+          persistSession: true,
+          storage: localStorage,
+          autoRefreshToken: true,
+          detectSessionInUrl: true,
+        },
+      })
     : null
