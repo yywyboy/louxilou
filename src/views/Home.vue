@@ -112,6 +112,9 @@ function onBookLeave(e: MouseEvent) {
 }
 function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
 
+// 标记 hero 动画是否已播放（防止页面切换时重复播放导致闪烁）
+let heroPlayed = false
+
 onMounted(async () => {
   
   document.title = 'LOUXILOU — 楼西楼'
@@ -130,21 +133,27 @@ onMounted(async () => {
   // ===== HERO =====
   const heroEl = document.querySelector('.hero-pin') as HTMLElement
   if (heroEl) {
-    const heroTl = gsap.timeline({
-      scrollTrigger: { trigger: heroEl, start: 'top top', end: '+=2000', scrub: 1, pin: true }
-    })
-    heroTl
-      .fromTo('.hero-img-0', { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0)
-      .fromTo('.hero-img-1', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.1)
-      .fromTo('.hero-img-2', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.2)
-      .fromTo('.hero-img-3', { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.3)
-      .fromTo('.hero-img-4', { clipPath: 'inset(50% 50% 50% 50%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power2.inOut' }, 0.4)
-      .to('.hero-images', { scale: 0.6, opacity: 0.3, filter: 'blur(8px)', duration: 1, ease: 'power2.inOut' }, 0.8)
-      .to('.hero-content', { scale: 0.5, opacity: 0, y: -100, filter: 'blur(10px)', duration: 1, ease: 'power2.inOut' }, 0.8)
-      .to('.hero-overlay', { opacity: 1, duration: 0.8 }, 0.8)
-      .fromTo('.hero-statement', { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' }, 1.5)
+    if (heroPlayed) {
+      // 已播放过，直接设置最终状态
+      gsap.set('.hero-img-0, .hero-img-1, .hero-img-2, .hero-img-3, .hero-img-4', { clipPath: 'inset(0% 0% 0% 0%)' })
+    } else {
+      const heroTl = gsap.timeline({
+        scrollTrigger: { trigger: heroEl, start: 'top top', end: '+=2000', scrub: 1, pin: true },
+        onComplete: () => { heroPlayed = true }
+      })
+      heroTl
+        .fromTo('.hero-img-0', { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0)
+        .fromTo('.hero-img-1', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.1)
+        .fromTo('.hero-img-2', { clipPath: 'inset(0% 0% 0% 100%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.2)
+        .fromTo('.hero-img-3', { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0.3)
+        .fromTo('.hero-img-4', { clipPath: 'inset(50% 50% 50% 50%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.7, ease: 'power2.inOut' }, 0.4)
+        .to('.hero-images', { scale: 0.6, opacity: 0.3, filter: 'blur(8px)', duration: 1, ease: 'power2.inOut' }, 0.8)
+        .to('.hero-content', { scale: 0.5, opacity: 0, y: -100, filter: 'blur(10px)', duration: 1, ease: 'power2.inOut' }, 0.8)
+        .to('.hero-overlay', { opacity: 1, duration: 0.8 }, 0.8)
+        .fromTo('.hero-statement', { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' }, 1.5)
+    }
 
-    // Title + subtitle letter-spacing: loose → tight as you scroll
+    // Title + subtitle letter-spacing
     gsap.to('.hero-title', {
       letterSpacing: '0.05em',
       ease: 'none',
@@ -159,7 +168,7 @@ onMounted(async () => {
 
   // ===== TEXT SCRAMBLE — hero title =====
   const heroTitle = document.querySelector('.hero-title')
-  if (heroTitle) {
+  if (heroTitle && !heroPlayed) {
     scrambleText(heroTitle, 'LOUXILOU', { duration: 1.5, delay: 0.3 })
   }
 

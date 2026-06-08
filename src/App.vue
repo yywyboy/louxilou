@@ -225,23 +225,45 @@ onMounted(() => {
     })
   }
 
-  // Loading sequence — skip animation for reduced motion preference
+  // Loading sequence — 等待页面资源加载完成
   if (prefersReducedMotion()) {
     showLoader.value = false; loaded.value = true
   } else {
-    const loaderTl = gsap.timeline({
-      onComplete: () => {
-        showLoader.value = false; loaded.value = true
-        gsap.fromTo('.nav-brand', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', delay: 0.15 })
-        nextTick(() => {
-          document.querySelectorAll('.nav-link').forEach(el => initMagnetic(el as HTMLElement, { strength: 0.2 }))
+    // 等待所有图片加载完成
+    const waitForImages = () => {
+      const images = document.querySelectorAll('img')
+      const promises = Array.from(images).map(img => {
+        if (img.complete) return Promise.resolve()
+        return new Promise<void>(resolve => {
+          img.onload = () => resolve()
+          img.onerror = () => resolve() // 错误也继续
         })
-      }
+      })
+      return Promise.all(promises)
+    }
+
+    // 最少显示 1.5 秒，最多 4 秒
+    const minTime = new Promise(r => setTimeout(r, 1500))
+    const maxTime = new Promise(r => setTimeout(r, 4000))
+
+    Promise.race([
+      Promise.all([waitForImages(), minTime]),
+      maxTime
+    ]).then(() => {
+      const loaderTl = gsap.timeline({
+        onComplete: () => {
+          showLoader.value = false; loaded.value = true
+          gsap.fromTo('.nav-brand', { opacity: 0, x: -20 }, { opacity: 1, x: 0, duration: 0.7, ease: 'power3.out', delay: 0.15 })
+          nextTick(() => {
+            document.querySelectorAll('.nav-link').forEach(el => initMagnetic(el as HTMLElement, { strength: 0.2 }))
+          })
+        }
+      })
+      loaderTl
+        .fromTo('.loader-char', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 0.3)
+        .to('.loader-char', { opacity: 0, y: -20, duration: 0.4, stagger: 0.03, ease: 'power2.in' }, 0.5)
+        .to('.loader-screen', { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, 0.9)
     })
-    loaderTl
-      .fromTo('.loader-char', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 0.3)
-      .to('.loader-char', { opacity: 0, y: -20, duration: 0.4, stagger: 0.03, ease: 'power2.in' }, 1.8)
-      .to('.loader-screen', { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, 2.2)
   }
 
 // Scroll color transitions removed — was overriding theme CSS variables
@@ -456,7 +478,7 @@ html, body { overflow-x: hidden; }
 /* ===== NAV ===== */
 .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; padding: 1rem 1.5rem 0; transition: transform 0.5s var(--ease); }
 .nav.hidden { transform: translateY(calc(-100% - 2rem)); }
-.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; gap: 0.5rem; padding: 0 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--r-full); box-shadow: 0 4px 30px var(--shadow); }
+.nav-shell { max-width: 900px; margin: 0 auto; height: 52px; display: flex; align-items: center; gap: 0.25rem; padding: 0 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--r-full); box-shadow: 0 4px 30px var(--shadow); }
 .nav-brand { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; flex: 1; min-width: 0; }
 .logo-glyph { font-family: var(--font-body); font-size: 1.15rem; font-weight: 700; color: var(--gold); width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--gold-dim); border-radius: 50%; }
 .logo-text { font-family: var(--font-display); font-size: 0.82rem; font-weight: 600; color: var(--ink); letter-spacing: 0.15em; }
