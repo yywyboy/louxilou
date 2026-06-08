@@ -134,9 +134,13 @@ function openBook(book: Book, e: MouseEvent) {
   document.body.style.overflow = 'hidden'
 
   nextTick(() => {
+    const overlay = document.querySelector('.card-overlay') as HTMLElement
     const card = document.querySelector('.book-card') as HTMLElement
     const cardCoverImg = document.querySelector('.card-cover-img') as HTMLImageElement
     if (!card || !cardCoverImg) return
+
+    // 背景淡入
+    if (overlay) gsap.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' })
 
     // Hide card cover until flying cover arrives
     cardCoverImg.style.opacity = '0'
@@ -144,36 +148,37 @@ function openBook(book: Book, e: MouseEvent) {
 
     const targetRect = cardCoverImg.getBoundingClientRect()
 
-    // Animate flying cover
+    // Animate flying cover — 更丝滑的曲线
     const fly = document.querySelector('.fly-cover') as HTMLElement
     if (fly) {
-      gsap.set(fly, { willChange: 'transform' })
+      gsap.set(fly, { willChange: 'transform, filter' })
       gsap.fromTo(fly, {
         x: 0, y: 0,
         width: rect.width, height: rect.height,
         opacity: 1, borderRadius: 4,
+        filter: 'blur(0px)',
       }, {
         x: targetRect.left - rect.left,
         y: targetRect.top - rect.top,
         width: targetRect.width,
         height: targetRect.height,
         borderRadius: 6,
-        duration: 0.5,
-        ease: 'power2.inOut',
+        duration: 0.55,
+        ease: 'expo.out',
         onComplete: () => {
-          flyCover.value = null
+          gsap.to(fly, { opacity: 0, duration: 0.15, ease: 'power1.out', onComplete: () => { flyCover.value = null } })
           cardCoverImg.style.opacity = '1'
         }
       })
     }
 
-    // Card fades in with slight upward motion
+    // Card fades in — 弹性效果
     gsap.set(card, { willChange: 'transform, opacity' })
-    gsap.fromTo(card, { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power2.out', delay: 0.08 })
+    gsap.fromTo(card, { opacity: 0, y: 40, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'back.out(1.2)', delay: 0.1 })
 
     // Content fades in
-    gsap.fromTo('.card-info', { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out', delay: 0.25 })
-    gsap.fromTo('.card-chapters', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', delay: 0.35 })
+    gsap.fromTo('.card-info', { opacity: 0, x: 15 }, { opacity: 1, x: 0, duration: 0.45, ease: 'expo.out', delay: 0.3 })
+    gsap.fromTo('.card-chapters', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out', delay: 0.4 })
   })
 }
 
@@ -183,7 +188,9 @@ function closeCard() {
   gsap.killTweensOf('.book-card')
   gsap.killTweensOf('.card-info')
   gsap.killTweensOf('.card-chapters')
+  gsap.killTweensOf('.card-overlay')
 
+  const overlay = document.querySelector('.card-overlay') as HTMLElement
   const card = document.querySelector('.book-card') as HTMLElement
   if (!card) { finishClose(); return }
 
@@ -216,15 +223,18 @@ function closeCard() {
       x: startX, y: startY, w: startW, h: startH
     }
     if (cardCoverImg) cardCoverImg.style.opacity = '0'
-    nextTick(() => doCloseFlyAnim(document.querySelector('.fly-cover') as HTMLElement, card, startX, startY))
+    nextTick(() => doCloseFlyAnim(document.querySelector('.fly-cover') as HTMLElement, card, overlay, startX, startY))
   } else {
     if (cardCoverImg) cardCoverImg.style.opacity = '0'
-    doCloseFlyAnim(fly, card, startX, startY)
+    doCloseFlyAnim(fly, card, overlay, startX, startY)
   }
 }
 
-function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, startX: number, startY: number) {
+function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, overlay: HTMLElement | null, startX: number, startY: number) {
   if (!fly || !origCoverRect) { finishClose(); return }
+
+  // 背景淡出
+  if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
 
   gsap.to(fly, {
     x: origCoverRect.left - startX,
@@ -232,7 +242,7 @@ function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, startX: number, sta
     width: origCoverRect.width,
     height: origCoverRect.height,
     borderRadius: 4,
-    duration: 0.45,
+    duration: 0.5,
     ease: 'expo.inOut',
     onComplete: () => {
       if (origCoverEl) origCoverEl.style.opacity = '1'
@@ -247,7 +257,7 @@ function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, startX: number, sta
     }
   })
 
-  gsap.to(card, { opacity: 0, y: 20, duration: 0.35, ease: 'power2.in' })
+  gsap.to(card, { opacity: 0, y: 25, scale: 0.97, duration: 0.4, ease: 'power2.in' })
 }
 
 function finishClose() {
