@@ -26,7 +26,7 @@ export default defineConfig({
   },
   server: {
     watch: {
-      ignored: ['**/node_modules/**', '**/.git/**', '**/node-v24*/**', '**/.env', '**/vite.config.ts']
+      ignored: ['**/node_modules/**', '**/.git/**', '**/$RECYCLE.BIN/**', '**/node-v24*/**', '**/.env', '**/vite.config.ts']
     },
     fs: {
       allow: [__dirname, resolve(__dirname, 'public')]

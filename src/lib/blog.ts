@@ -323,7 +323,9 @@ export async function addComment(
   postId: string,
   userName: string,
   content: string,
-  userAvatar?: string
+  userAvatar?: string,
+  parentId?: string,
+  replyToName?: string
 ): Promise<Comment | null> {
   if (!supabase) return null
   const { data, error } = await supabase
@@ -332,7 +334,9 @@ export async function addComment(
       post_id: postId,
       user_name: userName,
       user_avatar: userAvatar || null,
-      content
+      content,
+      parent_id: parentId || null,
+      reply_to_name: replyToName || null
     })
     .select()
     .single()

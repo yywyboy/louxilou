@@ -4,6 +4,8 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { gsap, initMagnetic, prefersReducedMotion } from './composables/useGsap'
 import { scrollTo as lenisScrollTo } from './composables/useLenis'
 import { updateThemeState } from './composables/useTheme'
+import { useAuth } from './composables/useAuth'
+import AuthModal from './components/AuthModal.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -18,6 +20,8 @@ const mobileOpen = ref(false)
 
 // Theme toggle
 const theme = ref<'light' | 'dark'>('light')
+const { user, loading: authLoading, signOut, getDisplayName } = useAuth()
+const showAuthModal = ref(false)
 
 function applyTheme(t: 'light' | 'dark') {
   const r = document.documentElement.style
@@ -303,6 +307,14 @@ onUnmounted(() => {
           <svg v-if="theme === 'light'" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg v-else viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         </button>
+        <div v-if="!authLoading" class="nav-user">
+          <button v-if="user" class="user-btn interactive" @click="signOut()" :title="'退出登录 (' + getDisplayName() + ')'">
+            <span class="user-avatar">{{ getDisplayName().charAt(0).toUpperCase() }}</span>
+          </button>
+          <button v-else class="user-btn interactive" @click="showAuthModal = true" title="登录">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </button>
+        </div>
         <button class="nav-burger" :class="{ open: mobileOpen }" @click="mobileOpen = !mobileOpen">
           <span></span><span></span>
         </button>
@@ -314,7 +326,7 @@ onUnmounted(() => {
             {{ item.name }}
           </router-link>
         
-          <button class="mob-link" @click="toggleTheme($event)" style="border:none;cursor:pointer;width:100%;text-align:left">
+          <button class="mob-link" @click="toggleTheme()" style="border:none;cursor:pointer;width:100%;text-align:left">
             <span class="mob-num">☀</span>
             {{ theme === 'light' ? '切换暗色' : '切换亮色' }}
           </button>
@@ -361,6 +373,8 @@ onUnmounted(() => {
         <span class="foot-copy">© 2026</span>
       </div>
     </footer>
+
+    <AuthModal :visible="showAuthModal" @close="showAuthModal = false" />
   </div>
 </template>
 
@@ -455,6 +469,12 @@ onUnmounted(() => {
 .nav-burger.open span:last-child { transform: rotate(-45deg) translate(2px, -2px); }
 .theme-toggle { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--ink-ghost); transition: all 0.3s; flex-shrink: 0; }
 .theme-toggle:hover { color: var(--gold); background: var(--gold-dim); }
+
+/* User button */
+.nav-user { flex-shrink: 0; }
+.user-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; color: var(--ink-ghost); transition: all 0.3s; cursor: pointer; background: none; border: none; }
+.user-btn:hover { color: var(--gold); background: var(--gold-dim); }
+.user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--gold); color: #fff; display: flex; align-items: center; justify-content: center; font-family: var(--font-sans); font-size: 0.7rem; font-weight: 600; }
 .nav-mobile { max-width: 900px; margin: 0.5rem auto 0; padding: 0.75rem; background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--r-xl); box-shadow: 0 4px 30px var(--shadow); }
 .mob-link { display: flex; align-items: center; gap: 0.6rem; padding: 0.65rem 1rem; font-family: var(--font-sans); font-size: 0.82rem; font-weight: 500; color: var(--ink-dim); text-decoration: none; border-radius: 10px; transition: all 0.3s; }
 .mob-link:hover { color: var(--gold); background: var(--gold-dim); }

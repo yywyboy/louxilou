@@ -5,22 +5,16 @@ import { getPost, getPosts, getComments, addComment, toggleLike, hasUserLiked, g
 import type { Post, Comment } from '../lib/blog'
 import { gsap } from '../composables/useGsap'
 import { scrollTo as lenisScrollTo } from '../composables/useLenis'
+import { useAuth } from '../composables/useAuth'
+import DOMPurify from 'dompurify'
+import CommentSection from '../components/CommentSection.vue'
+import ImageLightbox from '../components/ImageLightbox.vue'
+import TableOfContents from '../components/TableOfContents.vue'
+import AuthModal from '../components/AuthModal.vue'
 
 declare const marked: any
 declare const hljs: any
 
-/** 轻量 HTML 消毒 — 移除 script/iframe/事件处理器，防止 XSS */
-function sanitize(html: string): string {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, '')
-    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
-    .replace(/<object[\s\S]*?<\/object>/gi, '')
-    .replace(/<embed[\s\S]*?>/gi, '')
-    .replace(/<form[\s\S]*?<\/form>/gi, '')
-    .replace(/\son\w+\s*=\s*(["'])[\s\S]*?\1/gi, '')
-    .replace(/\son\w+\s*=\s*[^\s>]*/gi, '')
-    .replace(/javascript\s*:/gi, '')
-}
 const router = useRouter()
 const route = useRoute()
 const post = ref<Post | null>(null)
@@ -29,25 +23,9 @@ const comments = ref<Comment[]>([])
 const loading = ref(true)
 const liked = ref(false)
 const likes = ref(0)
-const cName = ref('')
-const cBody = ref('')
-const replyTo = ref<{ id: string; name: string } | null>(null)
 const commentLikes = ref<Record<string, { liked: boolean; count: number }>>({})
-
-// Nested comments
-const nestedComments = computed(() => {
-  const map = new Map<string, Comment[]>()
-  comments.value.forEach(c => {
-    const pid = c.parent_id || '_root'
-    if (!map.has(pid)) map.set(pid, [])
-    map.get(pid)!.push(c)
-  })
-  return map
-})
-const rootComments = computed(() => nestedComments.value.get('_root') || [])
-function getReplies(parentId: string): Comment[] {
-  return nestedComments.value.get(parentId) || []
-}
+const { user, getDisplayName } = useAuth()
+const showAuthModal = ref(false)
 const prog = ref(0)
 const lightboxSrc = ref('')
 const lightboxVisible = ref(false)
@@ -80,7 +58,7 @@ const html = computed(() => {
       try { return `<pre><code class="hljs language-${lang}">${hljs.highlight(decodeURIComponent(code), { language: lang }).value}</code></pre>` } catch { return match }
     })
   }
-  return sanitize(parsed)
+  return DOMPurify.sanitize(parsed)
 })
 
 function extractToc() {
@@ -160,7 +138,7 @@ async function load() {
       extractToc()
       await Promise.all([loadComments(), loadLike()])
       await loadCommentLikes()
-      unsub = subscribeToComments(route.params.id as string, c => comments.value.push(c))
+      unsub = subscribeToComments(route.params.id as string, c => { if (!comments.value.some(e => e.id === c.id)) comments.value.push(c) })
     }
   } catch (e) { console.error(e) }
   loading.value = false
@@ -180,14 +158,11 @@ async function load() {
 async function loadComments() { comments.value = await getComments(route.params.id as string) }
 async function loadLike() { const u = uid(); liked.value = await hasUserLiked(route.params.id as string, u); likes.value = await getLikeCount(route.params.id as string) }
 async function doLike() { const u = uid(); const s = await toggleLike(route.params.id as string, u); liked.value = s; likes.value += s ? 1 : -1 }
-async function doComment() {
-  if (!cName.value.trim() || !cBody.value.trim()) return
-  const c = await addComment(route.params.id as string, cName.value.trim(), cBody.value.trim(), undefined, replyTo.value?.id, replyTo.value?.name)
-  if (c) { comments.value.push(c); cBody.value = ''; replyTo.value = null }
+async function doComment(content: string, parentId?: string, replyToName?: string) {
+  if (!user.value || !content) return
+  const c = await addComment(route.params.id as string, getDisplayName(), content, undefined, parentId, replyToName)
+  if (c) { comments.value.push(c) }
 }
-function startReply(id: string, name: string) { replyTo.value = { id, name }; nextTick(() => { document.querySelector('.cm-form textarea')?.scrollIntoView({ behavior: 'smooth', block: 'center' }) }) }
-function cancelReply() { replyTo.value = null }
-
 async function loadCommentLikes() {
   const userId = uid()
   for (const c of comments.value) {
@@ -253,60 +228,7 @@ watch(() => route.params.id, () => { if (route.params.id) load() })
           </div>
         </nav>
 
-        <!-- Comments -->
-        <section class="cm-sec">
-          <h2 class="cm-title">评论 ({{ comments.length }})</h2>
-          <div class="rule" style="margin-bottom:2rem"></div>
-          <div class="cm-form" ref="cmFormRef">
-            <div v-if="replyTo" class="reply-hint">
-              <span>回复 @{{ replyTo.name }}</span>
-              <button class="reply-cancel interactive" @click="cancelReply">×</button>
-            </div>
-            <input v-model="cName" type="text" placeholder="你的名字" class="fi" />
-            <textarea v-model="cBody" :placeholder="replyTo ? `回复 @${replyTo.name}…` : '写下你的想法…'" class="ft" rows="3"></textarea>
-            <button class="cta-fill interactive" @click="doComment">{{ replyTo ? '发布回复' : '发布评论' }}</button>
-          </div>
-
-          <!-- Comment list with nested replies -->
-          <div class="cm-list">
-            <template v-for="c in rootComments" :key="c.id">
-              <div class="cm">
-                <div class="cm-av">{{ c.user_avatar || c.user_name?.charAt(0) || '?' }}</div>
-                <div class="cm-body">
-                  <div class="cm-head"><span class="cm-name">{{ c.user_name }}</span><span class="cm-date">{{ fmtDate(c.created_at) }}</span></div>
-                  <p class="cm-text">{{ c.content }}</p>
-                  <div class="cm-actions">
-                    <button class="cm-action interactive" @click="startReply(c.id, c.user_name)">回复</button>
-                    <button class="cm-action interactive" :class="{ on: commentLikes[c.id]?.liked }" @click="doCommentLike(c.id)">
-                      <svg viewBox="0 0 24 24" width="12" height="12" :stroke="commentLikes[c.id]?.liked ? '#c8a45e' : 'currentColor'" stroke-width="2" :fill="commentLikes[c.id]?.liked ? '#c8a45e' : 'none'"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      <span v-if="commentLikes[c.id]?.count">{{ commentLikes[c.id].count }}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <!-- Nested replies -->
-              <div v-for="r in getReplies(c.id)" :key="r.id" class="cm cm-reply-item">
-                <div class="cm-av cm-av-sm">{{ r.user_avatar || r.user_name?.charAt(0) || '?' }}</div>
-                <div class="cm-body">
-                  <div class="cm-head">
-                    <span class="cm-name">{{ r.user_name }}</span>
-                    <span v-if="r.reply_to_name" class="cm-reply-to">回复 @{{ r.reply_to_name }}</span>
-                    <span class="cm-date">{{ fmtDate(r.created_at) }}</span>
-                  </div>
-                  <p class="cm-text">{{ r.content }}</p>
-                  <div class="cm-actions">
-                    <button class="cm-action interactive" @click="startReply(c.id, r.user_name)">回复</button>
-                    <button class="cm-action interactive" :class="{ on: commentLikes[r.id]?.liked }" @click="doCommentLike(r.id)">
-                      <svg viewBox="0 0 24 24" width="12" height="12" :stroke="commentLikes[r.id]?.liked ? '#c8a45e' : 'currentColor'" stroke-width="2" :fill="commentLikes[r.id]?.liked ? '#c8a45e' : 'none'"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      <span v-if="commentLikes[r.id]?.count">{{ commentLikes[r.id].count }}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </div>
-          <div v-if="!comments.length" class="no-cm"><p>还没有评论，来抢沙发吧</p></div>
-        </section>
+        <CommentSection :comments="comments" :commentLikes="commentLikes" :userName="getDisplayName()" :isLoggedIn="!!user" @submit="doComment" @like="doCommentLike" @login="showAuthModal = true" />
       </article>
 
       <!-- RIGHT: Sticky sidebar -->
@@ -319,14 +241,7 @@ watch(() => route.params.id, () => { if (route.params.id) load() })
           </button>
 
           <!-- TOC -->
-          <div class="sb-section" v-if="toc.length > 1">
-            <h3 class="sb-title">目录</h3>
-            <ul class="toc-list">
-              <li v-for="item in toc" :key="item.id" :class="'toc-l' + item.level">
-                <a :href="'#' + item.id" @click.prevent="scrollToHeading(item.id)" :class="{ active: activeTocId === item.id }">{{ item.text }}</a>
-              </li>
-            </ul>
-          </div>
+          <TableOfContents :items="toc" :activeId="activeTocId" @navigate="scrollToHeading" />
 
           <!-- Actions: Like + Copy Link -->
           <div class="sb-section sb-actions">
@@ -409,17 +324,8 @@ watch(() => route.params.id, () => { if (route.params.id) load() })
     </div>
     </template>
 
-    <!-- Image lightbox -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="lightboxVisible" class="lb" @click.self="closeLightbox">
-          <button class="lb-close interactive" @click="closeLightbox">
-            <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          </button>
-          <img :src="lightboxSrc" class="lb-img" alt="" />
-        </div>
-      </Transition>
-    </Teleport>
+    <ImageLightbox :src="lightboxSrc" :visible="lightboxVisible" @close="closeLightbox" />
+    <AuthModal :visible="showAuthModal" @close="showAuthModal = false" />
   </div>
 </template>
 
