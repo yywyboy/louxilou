@@ -69,9 +69,13 @@ function open(idx: number, e: MouseEvent) {
   document.body.style.overflow = 'hidden'
 
   nextTick(() => {
+    const lb = document.querySelector('.lb') as HTMLElement
     const lbImg = document.querySelector('.lb-img') as HTMLImageElement
     const lbBar = document.querySelector('.lb-bar') as HTMLElement
-    if (!lbImg) return
+    if (!lb || !lbImg) return
+
+    // 背景淡入
+    gsap.fromTo(lb, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' })
 
     // 隐藏 lightbox 图片，等飞图到位
     lbImg.style.opacity = '0'
@@ -79,42 +83,46 @@ function open(idx: number, e: MouseEvent) {
 
     const targetRect = lbImg.getBoundingClientRect()
 
-    // 飞图动画
+    // 飞图动画 — 更丝滑的曲线
     const fly = document.querySelector('.fly-img') as HTMLElement
     if (fly) {
-      gsap.set(fly, { willChange: 'transform' })
+      gsap.set(fly, { willChange: 'transform, opacity, filter' })
       gsap.fromTo(fly, {
         x: 0, y: 0,
         width: rect.width, height: rect.height,
-        opacity: 1, borderRadius: 4,
+        opacity: 1, borderRadius: 6,
+        filter: 'blur(0px) brightness(1)',
       }, {
         x: targetRect.left - rect.left,
         y: targetRect.top - rect.top,
         width: targetRect.width,
         height: targetRect.height,
         borderRadius: 0,
-        duration: 0.5,
-        ease: 'power2.inOut',
+        filter: 'blur(0px) brightness(1.05)',
+        duration: 0.55,
+        ease: 'expo.out',
         onComplete: () => {
-          flyImg.value = null
+          // 柔和切换
+          gsap.to(fly, { opacity: 0, duration: 0.15, ease: 'power1.out', onComplete: () => { flyImg.value = null } })
           lbImg.style.opacity = '1'
         }
       })
     }
 
-    // 底部栏浮出
+    // 底部栏浮出 — 弹性效果
     if (lbBar) {
-      gsap.set(lbBar, { y: 60, opacity: 0 })
-      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.4, delay: 0.3, ease: 'power3.out' })
+      gsap.set(lbBar, { y: 80, opacity: 0 })
+      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.6, delay: 0.25, ease: 'back.out(1.2)' })
     }
   })
 }
 
 function close() {
+  const lb = document.querySelector('.lb') as HTMLElement
   const lbImg = document.querySelector('.lb-img') as HTMLImageElement
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
 
-  if (!lbImg || !origImgEl) {
+  if (!lb || !lbImg || !origImgEl) {
     finishClose()
     return
   }
@@ -132,25 +140,29 @@ function close() {
   // 隐藏 lightbox 图片
   lbImg.style.opacity = '0'
 
+  // 背景淡出
+  gsap.to(lb, { opacity: 0, duration: 0.5, delay: 0.2, ease: 'power2.inOut' })
+
   // 底部栏消失
   if (lbBar) {
-    gsap.to(lbBar, { y: 30, opacity: 0, duration: 0.2, ease: 'power2.in' })
+    gsap.to(lbBar, { y: 40, opacity: 0, duration: 0.3, ease: 'power2.in' })
   }
 
   nextTick(() => {
     const fly = document.querySelector('.fly-img') as HTMLElement
     if (fly) {
-      gsap.set(fly, { willChange: 'transform' })
+      gsap.set(fly, { willChange: 'transform, opacity' })
       gsap.to(fly, {
         x: origRect.left - targetRect.left,
         y: origRect.top - targetRect.top,
         width: origRect.width,
         height: origRect.height,
-        opacity: 0.8,
-        borderRadius: 4,
-        duration: 0.4,
-        ease: 'power2.inOut',
-        onComplete: finishClose
+        borderRadius: 6,
+        duration: 0.5,
+        ease: 'expo.inOut',
+        onComplete: () => {
+          gsap.to(fly, { opacity: 0, duration: 0.1, ease: 'power1.out', onComplete: finishClose })
+        }
       })
     } else {
       finishClose()
@@ -174,7 +186,12 @@ function prev() {
     selIdx.value--
     nextTick(() => {
       const lbImg = document.querySelector('.lb-img') as HTMLElement
-      if (lbImg) gsap.fromTo(lbImg, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
+      if (lbImg) {
+        gsap.fromTo(lbImg,
+          { x: 80, opacity: 0, scale: 0.95 },
+          { x: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' }
+        )
+      }
     })
   }
 }
@@ -184,7 +201,12 @@ function next() {
     selIdx.value++
     nextTick(() => {
       const lbImg = document.querySelector('.lb-img') as HTMLElement
-      if (lbImg) gsap.fromTo(lbImg, { x: -60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
+      if (lbImg) {
+        gsap.fromTo(lbImg,
+          { x: -80, opacity: 0, scale: 0.95 },
+          { x: 0, opacity: 1, scale: 1, duration: 0.4, ease: 'expo.out' }
+        )
+      }
     })
   }
 }
