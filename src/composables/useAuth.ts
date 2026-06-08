@@ -1,4 +1,4 @@
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { supabase } from '../lib/supabase'
 import type { User, Session } from '@supabase/supabase-js'
 
@@ -6,25 +6,35 @@ const user = ref<User | null>(null)
 const session = ref<Session | null>(null)
 const loading = ref(true)
 
-let initialized = false
+let initPromise: Promise<void> | null = null
 
-export function useAuth() {
-  async function init() {
-    if (!supabase || initialized) return
-    initialized = true
+function ensureInit() {
+  if (initPromise) return initPromise
+  if (!supabase) { loading.value = false; return Promise.resolve() }
 
-    const { data } = await supabase.auth.getSession()
+  const client = supabase
+
+  // 先注册监听，确保 hash token 不丢失
+  client.auth.onAuthStateChange((_event, s) => {
+    session.value = s
+    user.value = s?.user ?? null
+    loading.value = false
+  })
+
+  // 处理 URL hash 中的 token
+  initPromise = client.auth.getSession().then(({ data }) => {
     session.value = data.session
     user.value = data.session?.user ?? null
     loading.value = false
+  })
 
-    const client = supabase
-    client.auth.onAuthStateChange((_event, s) => {
-      session.value = s
-      user.value = s?.user ?? null
-    })
-  }
+  return initPromise
+}
 
+// 模块加载时立即初始化
+ensureInit()
+
+export function useAuth() {
   /** 发送魔法链接 */
   async function sendMagicLink(email: string) {
     if (!supabase) return { error: 'Supabase 未配置' }
@@ -60,8 +70,6 @@ export function useAuth() {
     if (!user.value) return ''
     return user.value.user_metadata?.username || user.value.email?.split('@')[0] || '用户'
   }
-
-  onMounted(() => { init() })
 
   return { user, session, loading, sendMagicLink, updateUsername, signOut, getDisplayName }
 }
