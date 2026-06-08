@@ -139,7 +139,7 @@ function openBook(book: Book, e: MouseEvent) {
     const cardCoverImg = document.querySelector('.card-cover-img') as HTMLImageElement
     if (!card || !cardCoverImg) return
 
-    // 背景淡入
+    // 背景淡入（与图库一致）
     if (overlay) gsap.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.4, ease: 'power2.out' })
 
     // Hide card cover until flying cover arrives
@@ -148,37 +148,37 @@ function openBook(book: Book, e: MouseEvent) {
 
     const targetRect = cardCoverImg.getBoundingClientRect()
 
-    // Animate flying cover — 更丝滑的曲线
+    // 飞图动画（与图库一致）
     const fly = document.querySelector('.fly-cover') as HTMLElement
     if (fly) {
-      gsap.set(fly, { willChange: 'transform, filter' })
+      gsap.set(fly, { willChange: 'transform' })
       gsap.fromTo(fly, {
         x: 0, y: 0,
         width: rect.width, height: rect.height,
         opacity: 1, borderRadius: 4,
-        filter: 'blur(0px)',
       }, {
         x: targetRect.left - rect.left,
         y: targetRect.top - rect.top,
         width: targetRect.width,
         height: targetRect.height,
-        borderRadius: 6,
+        borderRadius: 0,
         duration: 0.55,
         ease: 'expo.out',
         onComplete: () => {
+          // 柔和切换（与图库一致）
           gsap.to(fly, { opacity: 0, duration: 0.15, ease: 'power1.out', onComplete: () => { flyCover.value = null } })
           cardCoverImg.style.opacity = '1'
         }
       })
     }
 
-    // Card fades in — 弹性效果
+    // 卡片弹出（与图库一致）
     gsap.set(card, { willChange: 'transform, opacity' })
-    gsap.fromTo(card, { opacity: 0, y: 40, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'back.out(1.2)', delay: 0.1 })
+    gsap.fromTo(card, { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 0.55, ease: 'back.out(1.2)', delay: 0.25 })
 
-    // Content fades in
-    gsap.fromTo('.card-info', { opacity: 0, x: 15 }, { opacity: 1, x: 0, duration: 0.45, ease: 'expo.out', delay: 0.3 })
-    gsap.fromTo('.card-chapters', { opacity: 0, y: 15 }, { opacity: 1, y: 0, duration: 0.45, ease: 'expo.out', delay: 0.4 })
+    // 内容淡入
+    gsap.fromTo('.card-info', { opacity: 0, x: 10 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power2.out', delay: 0.4 })
+    gsap.fromTo('.card-chapters', { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out', delay: 0.5 })
   })
 }
 
@@ -233,16 +233,17 @@ function closeCard() {
 function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, overlay: HTMLElement | null, startX: number, startY: number) {
   if (!fly || !origCoverRect) { finishClose(); return }
 
-  // 背景淡出
+  // 背景淡出（与图库一致）
   if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
 
+  // 飞图飞回（与图库一致）
   gsap.to(fly, {
     x: origCoverRect.left - startX,
     y: origCoverRect.top - startY,
     width: origCoverRect.width,
     height: origCoverRect.height,
     borderRadius: 4,
-    duration: 0.5,
+    duration: 0.45,
     ease: 'expo.inOut',
     onComplete: () => {
       if (origCoverEl) origCoverEl.style.opacity = '1'
@@ -257,7 +258,8 @@ function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, overlay: HTMLElemen
     }
   })
 
-  gsap.to(card, { opacity: 0, y: 25, scale: 0.97, duration: 0.4, ease: 'power2.in' })
+  // 卡片消失
+  gsap.to(card, { opacity: 0, y: 20, duration: 0.35, ease: 'power2.in' })
 }
 
 function finishClose() {
