@@ -77,11 +77,63 @@ function openSearchOverlay(e: MouseEvent) {
 }
 
 function closeSearchOverlay() {
-  // 恢复原搜索栏
+  const overlayBar = document.querySelector('.search-overlay-bar') as HTMLElement
+  const overlay = document.querySelector('.search-overlay') as HTMLElement
+
+  if (!overlayBar || !searchOrigEl) {
+    doCloseSearch()
+    return
+  }
+
+  // 杀掉所有进行中的动画
+  gsap.killTweensOf('.fly-search')
+  gsap.killTweensOf('.search-overlay')
+  gsap.killTweensOf('.search-overlay-bar')
+  gsap.killTweensOf('.search-overlay-tags .tag-btn')
+
+  const targetRect = overlayBar.getBoundingClientRect()
+  const origRect = searchOrigEl.getBoundingClientRect()
+
+  // 隐藏目标搜索栏
+  overlayBar.style.opacity = '0'
+
+  // 创建飞搜索栏
+  flySearch.value = { x: targetRect.left, y: targetRect.top, w: targetRect.width, h: targetRect.height }
+
+  // 遮罩淡出
+  if (overlay) gsap.to(overlay, { opacity: 0, duration: 0.4, ease: 'power2.inOut' })
+
+  nextTick(() => {
+    const fly = document.querySelector('.fly-search') as HTMLElement
+    if (!fly) { doCloseSearch(); return }
+
+    // 飞搜索栏飞回原位
+    gsap.to(fly, {
+      x: origRect.left - targetRect.left,
+      y: origRect.top - targetRect.top,
+      width: origRect.width,
+      height: origRect.height,
+      duration: 0.45,
+      ease: 'expo.inOut',
+      onComplete: () => {
+        if (searchOrigEl) searchOrigEl.style.opacity = '1'
+        requestAnimationFrame(() => {
+          flySearch.value = null
+          searchOverlay.value = false
+          document.body.style.overflow = ''
+          searchOrigEl = null
+        })
+      }
+    })
+  })
+}
+
+function doCloseSearch() {
   if (searchOrigEl) searchOrigEl.style.opacity = ''
   flySearch.value = null
   searchOverlay.value = false
   document.body.style.overflow = ''
+  searchOrigEl = null
 }
 
 function toggleTag(id: string) {
