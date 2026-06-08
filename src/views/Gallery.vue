@@ -14,9 +14,9 @@ const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
 const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
-// 存储点击位置
-const originRect = ref<DOMRect | null>(null)
-const clickedEl = ref<HTMLElement | null>(null)
+// 飞图动画状态
+const flyImg = ref<{ src: string; x: number; y: number; w: number; h: number } | null>(null)
+let origImgEl: HTMLElement | null = null
 
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
@@ -49,93 +49,124 @@ function toggle(id: string) {
 }
 
 function open(idx: number, e: MouseEvent) {
-  const phEl = (e.target as HTMLElement).closest('.ph') as HTMLElement
+  const phEl = (e.currentTarget as HTMLElement).querySelector('.ph-img') as HTMLImageElement
   if (!phEl) return
 
-  const imgEl = phEl.querySelector('.ph-img') as HTMLElement
-  if (!imgEl) return
+  const rect = phEl.getBoundingClientRect()
 
-  originRect.value = imgEl.getBoundingClientRect()
-  clickedEl.value = phEl
+  // 隐藏原图
+  origImgEl = phEl
+  phEl.style.opacity = '0'
+
+  // 设置飞图起点
+  flyImg.value = {
+    src: filtered.value[idx].src,
+    x: rect.left, y: rect.top,
+    w: rect.width, h: rect.height
+  }
+
   selIdx.value = idx
   document.body.style.overflow = 'hidden'
 
-  // 隐藏原图
-  phEl.style.visibility = 'hidden'
-
   nextTick(() => {
-    const lb = document.querySelector('.lb') as HTMLElement
-    const lbImg = document.querySelector('.lb-img') as HTMLElement
+    const lbImg = document.querySelector('.lb-img') as HTMLImageElement
     const lbBar = document.querySelector('.lb-bar') as HTMLElement
-    if (!lb || !lbImg || !originRect.value) return
+    if (!lbImg) return
 
-    // 背景初始透明
-    gsap.set(lb, { opacity: 0 })
-    gsap.to(lb, { opacity: 1, duration: 0.35, ease: 'power2.out' })
+    // 隐藏 lightbox 图片，等飞图到位
+    lbImg.style.opacity = '0'
+    lbImg.style.transition = 'none'
 
-    // 计算目标位置（屏幕中央）
     const targetRect = lbImg.getBoundingClientRect()
-    const dx = originRect.value.left - targetRect.left
-    const dy = originRect.value.top - targetRect.top
-    const scaleX = originRect.value.width / targetRect.width
-    const scaleY = originRect.value.height / targetRect.height
 
-    // 图片从原位放大到中央
-    gsap.set(lbImg, { x: dx, y: dy, scaleX, scaleY, borderRadius: '6px' })
-    gsap.to(lbImg, {
-      x: 0, y: 0, scaleX: 1, scaleY: 1, borderRadius: 0,
-      duration: 0.5, ease: 'power3.out'
-    })
+    // 飞图动画
+    const fly = document.querySelector('.fly-img') as HTMLElement
+    if (fly) {
+      gsap.set(fly, { willChange: 'transform' })
+      gsap.fromTo(fly, {
+        x: 0, y: 0,
+        width: rect.width, height: rect.height,
+        opacity: 1, borderRadius: 4,
+      }, {
+        x: targetRect.left - rect.left,
+        y: targetRect.top - rect.top,
+        width: targetRect.width,
+        height: targetRect.height,
+        borderRadius: 0,
+        duration: 0.5,
+        ease: 'power2.inOut',
+        onComplete: () => {
+          flyImg.value = null
+          lbImg.style.opacity = '1'
+        }
+      })
+    }
 
     // 底部栏浮出
     if (lbBar) {
       gsap.set(lbBar, { y: 60, opacity: 0 })
-      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.4, delay: 0.25, ease: 'power3.out' })
+      gsap.to(lbBar, { y: 0, opacity: 1, duration: 0.4, delay: 0.3, ease: 'power3.out' })
     }
   })
 }
 
 function close() {
-  const lb = document.querySelector('.lb') as HTMLElement
-  const lbImg = document.querySelector('.lb-img') as HTMLElement
+  const lbImg = document.querySelector('.lb-img') as HTMLImageElement
   const lbBar = document.querySelector('.lb-bar') as HTMLElement
 
-  if (!lb || !lbImg || !originRect.value) {
-    doClose()
+  if (!lbImg || !origImgEl) {
+    finishClose()
     return
   }
 
   const targetRect = lbImg.getBoundingClientRect()
-  const dx = originRect.value.left - targetRect.left
-  const dy = originRect.value.top - targetRect.top
-  const scaleX = originRect.value.width / targetRect.width
-  const scaleY = originRect.value.height / targetRect.height
+  const origRect = origImgEl.getBoundingClientRect()
 
-  // 底部栏先消失
+  // 创建飞图从 lightbox 位置飞回原位
+  flyImg.value = {
+    src: sel.value?.src || '',
+    x: targetRect.left, y: targetRect.top,
+    w: targetRect.width, h: targetRect.height
+  }
+
+  // 隐藏 lightbox 图片
+  lbImg.style.opacity = '0'
+
+  // 底部栏消失
   if (lbBar) {
     gsap.to(lbBar, { y: 30, opacity: 0, duration: 0.2, ease: 'power2.in' })
   }
 
-  // 背景淡出
-  gsap.to(lb, { opacity: 0, duration: 0.4, delay: 0.15, ease: 'power2.in' })
-
-  // 图片缩放回原位
-  gsap.to(lbImg, {
-    x: dx, y: dy, scaleX, scaleY, borderRadius: '6px',
-    duration: 0.4, ease: 'power3.in',
-    onComplete: doClose
+  nextTick(() => {
+    const fly = document.querySelector('.fly-img') as HTMLElement
+    if (fly) {
+      gsap.set(fly, { willChange: 'transform' })
+      gsap.to(fly, {
+        x: origRect.left - targetRect.left,
+        y: origRect.top - targetRect.top,
+        width: origRect.width,
+        height: origRect.height,
+        opacity: 0.8,
+        borderRadius: 4,
+        duration: 0.4,
+        ease: 'power2.inOut',
+        onComplete: finishClose
+      })
+    } else {
+      finishClose()
+    }
   })
 }
 
-function doClose() {
-  // 恢复原图可见
-  if (clickedEl.value) {
-    clickedEl.value.style.visibility = ''
+function finishClose() {
+  // 恢复原图
+  if (origImgEl) {
+    origImgEl.style.opacity = ''
   }
+  flyImg.value = null
   selIdx.value = -1
   document.body.style.overflow = ''
-  originRect.value = null
-  clickedEl.value = null
+  origImgEl = null
 }
 
 function prev() {
@@ -249,7 +280,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 
     <!-- Lightbox -->
     <Teleport to="body">
-      <div v-if="sel" class="lb" @click.self="close">
+      <div v-if="sel" class="lb">
         <div class="lb-body" @click.self="close">
           <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
         </div>
@@ -275,6 +306,11 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
             <span class="lb-counter">{{ selIdx + 1 }} / {{ filtered.length }}</span>
           </div>
         </div>
+      </div>
+
+      <!-- 飞图（独立元素，覆盖在最上层） -->
+      <div v-if="flyImg" class="fly-img" :style="{ left: flyImg.x + 'px', top: flyImg.y + 'px', width: flyImg.w + 'px', height: flyImg.h + 'px' }">
+        <img :src="flyImg.src" class="fly-img-inner" />
       </div>
     </Teleport>
   </div>
@@ -360,7 +396,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   flex: 1; display: flex; align-items: center; justify-content: center;
   width: 100%; min-height: 0; padding: 2rem;
 }
-.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; will-change: transform; }
+.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; }
 
 .lb-bar {
   position: fixed; bottom: 0.75rem; left: 50%; transform: translateX(-50%);
@@ -388,6 +424,15 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold);
 }
 .lb-counter { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); white-space: nowrap; }
+
+/* 飞图 */
+.fly-img {
+  position: fixed; z-index: 10002; pointer-events: none;
+  overflow: hidden;
+}
+.fly-img-inner {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
 
 @media (max-width: 768px) {
   .lb-bar-shell { padding: 0 0.6rem; }
