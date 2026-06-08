@@ -66,10 +66,31 @@ export function useAuth() {
     session.value = null
   }
 
+  /** 注销账号 */
+  async function deleteAccount() {
+    if (!supabase || !session.value?.access_token) return { error: '未登录' }
+    try {
+      const res = await fetch(`${supabase.supabaseUrl}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.value.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+      const data = await res.json()
+      if (!res.ok) return { error: data.error || '注销失败' }
+      // 注销成功，清除本地状态
+      await signOut()
+      return { error: null }
+    } catch {
+      return { error: '网络错误' }
+    }
+  }
+
   function getDisplayName(): string {
     if (!user.value) return ''
     return user.value.user_metadata?.username || user.value.email?.split('@')[0] || '用户'
   }
 
-  return { user, session, loading, sendMagicLink, updateUsername, signOut, getDisplayName }
+  return { user, session, loading, sendMagicLink, updateUsername, signOut, deleteAccount, getDisplayName }
 }

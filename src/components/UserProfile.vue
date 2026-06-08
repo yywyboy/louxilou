@@ -5,13 +5,14 @@ import { useAuth } from '../composables/useAuth'
 const props = defineProps<{ visible: boolean }>()
 const emit = defineEmits<{ close: [] }>()
 
-const { user, signOut, updateUsername } = useAuth()
+const { user, signOut, updateUsername, deleteAccount } = useAuth()
 
 const editing = ref(false)
 const newName = ref('')
 const error = ref('')
 const saving = ref(false)
 const showDeleteConfirm = ref(false)
+const deleting = ref(false)
 
 watch(() => props.visible, (v) => {
   if (v) {
@@ -38,10 +39,14 @@ function handleSignOut() {
 }
 
 async function handleDelete() {
-  // Supabase 客户端无法直接删除账号，需通过 Edge Function
-  // 暂时提示用户
-  alert('账号注销功能暂不可用，请联系管理员。')
-  showDeleteConfirm.value = false
+  deleting.value = true
+  const { error: err } = await deleteAccount()
+  if (err) {
+    alert(err)
+    deleting.value = false
+    return
+  }
+  emit('close')
 }
 
 function onOverlayClick(e: MouseEvent) {
@@ -108,7 +113,7 @@ function onOverlayClick(e: MouseEvent) {
               <p class="profile-confirm-text">确定要注销账号吗？此操作不可撤销。</p>
               <div class="profile-confirm-btns">
                 <button class="profile-cancel-btn interactive" @click="showDeleteConfirm = false">取消</button>
-                <button class="profile-delete-btn interactive" @click="handleDelete">确定注销</button>
+                <button class="profile-delete-btn interactive" :disabled="deleting" @click="handleDelete">{{ deleting ? '注销中…' : '确定注销' }}</button>
               </div>
             </div>
           </Transition>
