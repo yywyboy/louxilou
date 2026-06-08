@@ -485,7 +485,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .pg-title { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5rem); font-weight: 900; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
 
-.shelf-wrap { margin-bottom: 3rem; }
+.shelf-wrap { margin-bottom: 3rem; overflow: visible; }
 .shelf-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 0 0.5rem; }
 .shelf-num { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; color: var(--ink-dim); }
 .shelf-hint { font-family: var(--font-mono); font-size: 0.6rem; color: var(--ink-vanish); }
@@ -570,8 +570,11 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   color: var(--ink-ghost); transition: border-color 0.3s;
   position: relative; z-index: 20;
   pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .search-mobile:hover { border-color: var(--border-hover); }
+.search-mobile:active { border-color: var(--gold); }
 .search-mobile-text { flex: 1; font-size: 0.88rem; color: var(--ink-ghost); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 2rem; margin-bottom: 2rem; }
