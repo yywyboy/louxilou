@@ -114,6 +114,7 @@ function loadMore() { if (hasMore.value) displayCount.value = Math.min(displayCo
 
 // Store original cover element for hiding/restoring
 let origCoverEl: HTMLElement | null = null
+let origCoverRect: DOMRect | null = null
 
 function openBook(book: Book, e: MouseEvent) {
   const el = e.currentTarget as HTMLElement
@@ -121,8 +122,9 @@ function openBook(book: Book, e: MouseEvent) {
   if (!img) return
   const rect = img.getBoundingClientRect()
 
-  // Hide original cover
+  // Hide original cover, store original rect
   origCoverEl = img
+  origCoverRect = rect
   img.style.opacity = '0'
 
   // Store cover info for flying animation
@@ -176,47 +178,81 @@ function openBook(book: Book, e: MouseEvent) {
 }
 
 function closeCard() {
+  // Kill all running animations
+  gsap.killTweensOf('.fly-cover')
+  gsap.killTweensOf('.book-card')
+  gsap.killTweensOf('.card-info')
+  gsap.killTweensOf('.card-chapters')
+
   const card = document.querySelector('.book-card') as HTMLElement
   if (!card) { finishClose(); return }
 
   const cardCoverImg = document.querySelector('.card-cover-img') as HTMLImageElement
-  const targetRect = cardCoverImg?.getBoundingClientRect()
+  const fly = document.querySelector('.fly-cover') as HTMLElement
 
-  if (origCoverEl && targetRect) {
-    const origRect = origCoverEl.getBoundingClientRect()
+  if (!origCoverEl || !origCoverRect) { finishClose(); return }
+
+  // Get current fly position (may be mid-animation)
+  let startX = 0, startY = 0, startW = 0, startH = 0
+
+  if (fly) {
+    const flyRect = fly.getBoundingClientRect()
+    startX = flyRect.left
+    startY = flyRect.top
+    startW = flyRect.width
+    startH = flyRect.height
+  } else if (cardCoverImg) {
+    const imgRect = cardCoverImg.getBoundingClientRect()
+    startX = imgRect.left
+    startY = imgRect.top
+    startW = imgRect.width
+    startH = imgRect.height
+  }
+
+  // Ensure fly exists
+  if (!fly) {
     flyCover.value = {
       src: activeBook.value?.cover || '',
-      x: targetRect.left, y: targetRect.top,
-      w: targetRect.width, h: targetRect.height
+      x: startX, y: startY, w: startW, h: startH
     }
     if (cardCoverImg) cardCoverImg.style.opacity = '0'
-
-    nextTick(() => {
-      const fly = document.querySelector('.fly-cover') as HTMLElement
-      if (fly) {
-        gsap.set(fly, { willChange: 'transform' })
-        gsap.to(fly, {
-          x: origRect.left - targetRect.left,
-          y: origRect.top - targetRect.top,
-          width: origRect.width,
-          height: origRect.height,
-          opacity: 0.8,
-          duration: 0.4,
-          ease: 'power2.inOut',
-          onComplete: () => finishClose()
-        })
-      } else {
-        finishClose()
-      }
-      gsap.to(card, { opacity: 0, y: 20, duration: 0.3, ease: 'power2.in' })
-    })
+    nextTick(() => doCloseFlyAnim(document.querySelector('.fly-cover') as HTMLElement, card, startX, startY))
   } else {
-    gsap.to(card, { opacity: 0, y: 20, duration: 0.25, ease: 'power2.in', onComplete: () => finishClose() })
+    if (cardCoverImg) cardCoverImg.style.opacity = '0'
+    doCloseFlyAnim(fly, card, startX, startY)
   }
+}
+
+function doCloseFlyAnim(fly: HTMLElement, card: HTMLElement, startX: number, startY: number) {
+  if (!fly || !origCoverRect) { finishClose(); return }
+
+  gsap.to(fly, {
+    x: origCoverRect.left - startX,
+    y: origCoverRect.top - startY,
+    width: origCoverRect.width,
+    height: origCoverRect.height,
+    borderRadius: 4,
+    duration: 0.45,
+    ease: 'expo.inOut',
+    onComplete: () => {
+      if (origCoverEl) origCoverEl.style.opacity = '1'
+      requestAnimationFrame(() => {
+        flyCover.value = null
+        cardOpen.value = false
+        activeBook.value = null
+        document.body.style.overflow = ''
+        origCoverEl = null
+        origCoverRect = null
+      })
+    }
+  })
+
+  gsap.to(card, { opacity: 0, y: 20, duration: 0.35, ease: 'power2.in' })
 }
 
 function finishClose() {
   if (origCoverEl) { origCoverEl.style.opacity = ''; origCoverEl = null }
+  origCoverRect = null
   cardOpen.value = false
   activeBook.value = null
   flyCover.value = null
