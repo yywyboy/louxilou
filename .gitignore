@@ -63,3 +63,6 @@ scripts/set-r2-cors.mjs
 scripts/rename-xiaoshimin.mjs
 scripts/upload-mobitchi.mjs
 scripts/rename-mobitchi.mjs
+
+# Admin project
+admin/
