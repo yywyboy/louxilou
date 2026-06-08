@@ -14,6 +14,9 @@ const gridRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
 const allCats = [{ id: 'all', name: '全部' }, ...CATEGORIES]
 
+// 存储点击位置用于返回动画
+const originRect = ref<DOMRect | null>(null)
+
 const mapped = computed(() => photos.value.map((p, i) => ({
   ...p,
   src: getR2Url(`gallery/photos/${p.filename}`),
@@ -31,7 +34,6 @@ const displayed = computed(() => filtered.value.slice(0, displayCount.value))
 const hasMore = computed(() => displayCount.value < filtered.value.length)
 const sel = computed(() => selIdx.value >= 0 ? filtered.value[selIdx.value] : null)
 
-// 分类计数
 const catCounts = computed(() => {
   const counts: Record<string, number> = { all: mapped.value.length }
   CATEGORIES.forEach(c => {
@@ -45,22 +47,94 @@ function toggle(id: string) {
   else { const i = cats.value.indexOf(id); i === -1 ? cats.value.push(id) : cats.value.splice(i, 1) }
 }
 
-function open(idx: number) {
+function open(idx: number, e: MouseEvent) {
+  const imgEl = (e.target as HTMLElement).closest('.ph')?.querySelector('.ph-img') as HTMLElement
+  if (imgEl) {
+    originRect.value = imgEl.getBoundingClientRect()
+  }
   selIdx.value = idx
   document.body.style.overflow = 'hidden'
+
+  nextTick(() => {
+    const lbImg = document.querySelector('.lb-img') as HTMLElement
+    const lbBar = document.querySelector('.lb-bar') as HTMLElement
+    if (!lbImg || !originRect.value) return
+
+    const targetRect = lbImg.getBoundingClientRect()
+    const dx = originRect.value.left - targetRect.left
+    const dy = originRect.value.top - targetRect.top
+    const scaleX = originRect.value.width / targetRect.width
+    const scaleY = originRect.value.height / targetRect.height
+
+    // 图片从原位飞入
+    gsap.set(lbImg, { x: dx, y: dy, scaleX, scaleY, opacity: 0.8 })
+    gsap.to(lbImg, {
+      x: 0, y: 0, scaleX: 1, scaleY: 1, opacity: 1,
+      duration: 0.5, ease: 'power3.out'
+    })
+
+    // 底部栏浮出
+    if (lbBar) {
+      gsap.fromTo(lbBar, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, delay: 0.2, ease: 'power3.out' })
+    }
+  })
 }
 
 function close() {
-  selIdx.value = -1
-  document.body.style.overflow = ''
+  const lbImg = document.querySelector('.lb-img') as HTMLElement
+  const lbBar = document.querySelector('.lb-bar') as HTMLElement
+
+  if (!lbImg || !originRect.value) {
+    selIdx.value = -1
+    document.body.style.overflow = ''
+    return
+  }
+
+  const targetRect = lbImg.getBoundingClientRect()
+  const dx = originRect.value.left - targetRect.left
+  const dy = originRect.value.top - targetRect.top
+  const scaleX = originRect.value.width / targetRect.width
+  const scaleY = originRect.value.height / targetRect.height
+
+  // 底部栏先消失
+  if (lbBar) {
+    gsap.to(lbBar, { y: 30, opacity: 0, duration: 0.2, ease: 'power2.in' })
+  }
+
+  // 图片缩放回原位
+  gsap.to(lbImg, {
+    x: dx, y: dy, scaleX, scaleY, opacity: 0.5,
+    duration: 0.4, ease: 'power3.in',
+    onComplete: () => {
+      selIdx.value = -1
+      document.body.style.overflow = ''
+      originRect.value = null
+    }
+  })
 }
 
 function prev() {
-  if (selIdx.value > 0) selIdx.value--
+  if (selIdx.value > 0) {
+    selIdx.value--
+    nextTick(() => {
+      const lbImg = document.querySelector('.lb-img') as HTMLElement
+      if (lbImg) {
+        gsap.fromTo(lbImg, { x: 80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
+      }
+    })
+  }
 }
 
 function next() {
-  if (selIdx.value < filtered.value.length - 1) selIdx.value++
+  if (selIdx.value < filtered.value.length - 1) {
+    selIdx.value++
+    nextTick(() => {
+      const lbImg = document.querySelector('.lb-img') as HTMLElement
+      if (lbImg) {
+        gsap.fromTo(lbImg, { x: -80, opacity: 0 }, { x: 0, opacity: 1, duration: 0.3, ease: 'power3.out' })
+      }
+    })
+  }
 }
 
 function onKey(e: KeyboardEvent) {
@@ -89,11 +163,9 @@ function setupObserver() {
   observer.observe(sentinelRef.value)
 }
 
-// 筛选变化时重置并重新动画
 watch(cats, () => {
   displayCount.value = 12
   nextTick(() => {
-    // 强制所有图片可见（移除动画依赖）
     if (gridRef.value) {
       gridRef.value.querySelectorAll('.ph').forEach(c => c.classList.add('shown'))
     }
@@ -134,7 +206,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
         </button>
       </div>
 
-      <!-- Loading skeleton -->
       <div v-if="loading" class="skeleton-grid">
         <div v-for="i in 9" :key="i" class="skeleton-card">
           <div class="skeleton-img"></div>
@@ -144,7 +215,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
       <div v-else-if="filtered.length === 0" class="empty">没有找到匹配的图片</div>
 
       <div v-else ref="gridRef" class="grid">
-        <div v-for="(p, i) in displayed" :key="p.id" class="ph interactive shown" @click="open(i)">
+        <div v-for="(p, i) in displayed" :key="p.id" class="ph interactive shown" @click="open(i, $event)">
           <div class="ph-placeholder">
             <img :src="p.src" :alt="p.alt" loading="lazy" class="ph-img" />
           </div>
@@ -161,38 +232,35 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
       </div>
     </div>
 
-    <!-- Lightbox — teleported to body -->
+    <!-- Lightbox -->
     <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="sel" class="lb" @click.self="close">
-          <div class="lb-body" @click.self="close">
-            <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
-          </div>
+      <div v-if="sel" class="lb" @click.self="close">
+        <div class="lb-body" @click.self="close">
+          <img :src="sel.src" :alt="sel.alt" class="lb-img" decoding="async" />
+        </div>
 
-          <!-- Bottom bar -->
-          <div class="lb-bar">
-            <div class="lb-bar-shell">
-              <button class="lb-btn interactive" @click="close" title="关闭">
-                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-              </button>
-              <div class="lb-div"></div>
-              <button class="lb-btn interactive" @click.stop="prev" :disabled="selIdx <= 0" title="上一张">
-                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
-              </button>
-              <button class="lb-btn interactive" @click.stop="next" :disabled="selIdx >= filtered.length - 1" title="下一张">
-                <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
-              </button>
-              <div class="lb-div"></div>
-              <span class="lb-num">#{{ sel.idx }}</span>
-              <div class="lb-cats">
-                <span v-for="cn in sel.catNames" :key="cn" class="lb-cat">{{ cn }}</span>
-              </div>
-              <div class="lb-div"></div>
-              <span class="lb-counter">{{ selIdx + 1 }} / {{ filtered.length }}</span>
+        <div class="lb-bar">
+          <div class="lb-bar-shell">
+            <button class="lb-btn interactive" @click="close" title="关闭">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="lb-div"></div>
+            <button class="lb-btn interactive" @click.stop="prev" :disabled="selIdx <= 0" title="上一张">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <button class="lb-btn interactive" @click.stop="next" :disabled="selIdx >= filtered.length - 1" title="下一张">
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"/></svg>
+            </button>
+            <div class="lb-div"></div>
+            <span class="lb-num">#{{ sel.idx }}</span>
+            <div class="lb-cats">
+              <span v-for="cn in sel.catNames" :key="cn" class="lb-cat">{{ cn }}</span>
             </div>
+            <div class="lb-div"></div>
+            <span class="lb-counter">{{ selIdx + 1 }} / {{ filtered.length }}</span>
           </div>
         </div>
-      </Transition>
+      </div>
     </Teleport>
   </div>
 </template>
@@ -211,7 +279,6 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .cat-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
 .cat-count { font-family: var(--font-mono); font-size: 0.6rem; opacity: 0.6; }
 
-/* Skeleton loading */
 .skeleton-grid { columns: 3; column-gap: 0.5rem; }
 .skeleton-card { break-inside: avoid; margin-bottom: 0.5rem; }
 .skeleton-img {
@@ -226,12 +293,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   100% { background-position: -200% 0; }
 }
 
-/* Grid — masonry */
-.grid {
-  columns: 3;
-  column-gap: 0.5rem;
-  margin-bottom: 2rem;
-}
+.grid { columns: 3; column-gap: 0.5rem; margin-bottom: 2rem; }
 
 .ph {
   break-inside: avoid;
@@ -246,29 +308,19 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .ph.shown { opacity: 1; }
 .ph:hover { z-index: 2; transform: scale(1.01); }
 
-.ph-placeholder {
-  background: var(--bg-elevated);
-  min-height: 100px;
-}
+.ph-placeholder { background: var(--bg-elevated); min-height: 100px; }
 
 .ph-img {
-  width: 100%;
-  height: auto;
-  display: block;
+  width: 100%; height: auto; display: block;
   transition: transform 0.5s var(--ease), filter 0.4s;
 }
 .ph:hover .ph-img { transform: scale(1.04); filter: brightness(1.08); }
 
 .ph-over {
-  position: absolute;
-  inset: 0;
+  position: absolute; inset: 0;
   background: linear-gradient(to top, rgba(var(--bg-rgb),0.6) 0%, transparent 40%);
-  opacity: 0;
-  transition: opacity 0.3s;
-  display: flex;
-  align-items: flex-end;
-  padding: 0.6rem;
-  gap: 0.3rem;
+  opacity: 0; transition: opacity 0.3s;
+  display: flex; align-items: flex-end; padding: 0.6rem; gap: 0.3rem;
 }
 .ph:hover .ph-over { opacity: 1; }
 .ph-cat {
@@ -276,21 +328,11 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   background: rgba(159,53,58,0.2);
   backdrop-filter: blur(6px);
   border-radius: var(--r-full);
-  font-family: var(--font-sans);
-  font-size: 0.6rem;
-  color: var(--gold-light);
+  font-family: var(--font-sans); font-size: 0.6rem; color: var(--gold-light);
 }
 
 .sentinel { display: flex; justify-content: center; padding: 2rem; }
-
-.counter {
-  text-align: center;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--ink-ghost);
-  padding: 1rem 0;
-}
-
+.counter { text-align: center; font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); padding: 1rem 0; }
 .empty { text-align: center; padding: 4rem; color: var(--ink-ghost); }
 
 @media (max-width: 768px) {
@@ -304,103 +346,46 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 </style>
 
 <style>
-/* Lightbox — global (teleported outside scoped component) */
+/* Lightbox — global */
 .lb {
   position: fixed; inset: 0; z-index: 10000;
   background: rgba(var(--bg-rgb),0.97);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: pointer;
 }
-
 .lb-body {
   flex: 1; display: flex; align-items: center; justify-content: center;
   width: 100%; min-height: 0; padding: 2rem;
-  cursor: pointer;
 }
+.lb-img { max-width: 90vw; max-height: 80vh; object-fit: contain; }
 
-.lb-img {
-  max-width: 90vw; max-height: 80vh; object-fit: contain;
-  cursor: default;
-}
-
-/* Bottom bar */
 .lb-bar {
-  position: fixed;
-  bottom: 0.75rem;
-  left: 50%;
-  transform: translateX(-50%);
+  position: fixed; bottom: 0.75rem; left: 50%; transform: translateX(-50%);
   z-index: 10001;
 }
-
 .lb-bar-shell {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 0.8rem;
-  background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  gap: 0;
+  display: flex; align-items: center; height: 48px; padding: 0 0.8rem;
+  background: var(--bg-card); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border); border-radius: var(--r-full);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08); gap: 0;
 }
-
 .lb-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  background: none;
-  border: none;
-  color: var(--ink-ghost);
-  transition: color 0.2s;
-  cursor: pointer;
-  border-radius: 50%;
-  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; background: none; border: none;
+  color: var(--ink-ghost); transition: color 0.2s; cursor: pointer;
+  border-radius: 50%; flex-shrink: 0;
 }
 .lb-btn:hover { color: var(--gold); }
-
-.lb-div {
-  width: 1px;
-  height: 20px;
-  background: var(--border);
-  margin: 0 0.4rem;
-  flex-shrink: 0;
-}
-
-.lb-num {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--ink-ghost);
-  padding: 0 0.3rem;
-}
-
-.lb-cats {
-  display: flex;
-  gap: 0.3rem;
-  padding: 0 0.3rem;
-}
-
+.lb-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.lb-div { width: 1px; height: 20px; background: var(--border); margin: 0 0.4rem; flex-shrink: 0; }
+.lb-num { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); padding: 0 0.3rem; }
+.lb-cats { display: flex; gap: 0.3rem; padding: 0 0.3rem; }
 .lb-cat {
-  padding: 0.15rem 0.5rem;
-  background: var(--gold-dim);
-  border-radius: var(--r-full);
-  font-family: var(--font-sans);
-  font-size: 0.65rem;
-  color: var(--gold);
+  padding: 0.15rem 0.5rem; background: var(--gold-dim); border-radius: var(--r-full);
+  font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold);
 }
-
-.lb-counter {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--ink-ghost);
-  white-space: nowrap;
-}
+.lb-counter { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); white-space: nowrap; }
 
 @media (max-width: 768px) {
-  .lb-nav { display: none; }
   .lb-bar-shell { padding: 0 0.6rem; }
 }
 </style>
