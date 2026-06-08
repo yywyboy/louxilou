@@ -41,6 +41,14 @@ const filtered = computed(() => {
   return r
 })
 
+const catCounts = computed(() => {
+  const counts: Record<string, number> = { all: posts.value.length }
+  cats.forEach(c => {
+    if (c.id !== 'all') counts[c.id] = posts.value.filter(p => p.category === c.id).length
+  })
+  return counts
+})
+
 function go(id: string) { router.push(`/blog/${id}`) }
 function fmt(d: string) { if (!d) return ''; return new Date(d).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' }) }
 function catName(c: string) { return cats.find(t => t.id === c)?.name || c || '随笔' }
@@ -150,7 +158,10 @@ onUnmounted(() => {  })
       <!-- Categories -->
       <div class="cat-bar">
         <button v-for="c in cats" :key="c.id" class="cat-btn interactive"
-          :class="{ on: activeCat === c.id }" @click="activeCat = c.id">{{ c.name }}</button>
+          :class="{ on: activeCat === c.id }" @click="activeCat = c.id">
+          {{ c.name }}
+          <span class="cat-count">{{ catCounts[c.id] || 0 }}</span>
+        </button>
       </div>
 
       <!-- Loading -->
@@ -214,9 +225,10 @@ onUnmounted(() => {  })
 .search-clear:hover { color: var(--ink); }
 
 .cat-bar { display: flex; justify-content: center; gap: 0.4rem; margin-bottom: 3.5rem; opacity: 0; }
-.cat-btn { padding: 0.4rem 1.2rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; }
+.cat-btn { padding: 0.4rem 1.2rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; display: flex; align-items: center; gap: 0.4rem; }
 .cat-btn:hover { color: var(--ink-dim); border-color: var(--border-hover); }
 .cat-btn.on { color: var(--gold); border-color: var(--gold); background: var(--gold-dim); }
+.cat-count { font-family: var(--font-mono); font-size: 0.6rem; opacity: 0.6; }
 
 .post-list { display: flex; flex-direction: column; position: relative; z-index: 1; }
 .post-card {

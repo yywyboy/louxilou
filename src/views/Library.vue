@@ -16,27 +16,25 @@ const displayCount = ref(12)
 
 // Search overlay state
 const searchOverlay = ref(false)
-const searchInputReady = ref(false)
 const searchInputRef = ref<HTMLInputElement | null>(null)
 
 function openSearchOverlay() {
   searchOverlay.value = true
-  searchInputReady.value = false
   document.body.style.overflow = 'hidden'
-}
-
-function onSearchBarClick() {
-  if (!searchOverlay.value) {
-    openSearchOverlay()
-  } else if (!searchInputReady.value) {
-    searchInputReady.value = true
-    nextTick(() => { searchInputRef.value?.focus() })
-  }
+  nextTick(() => {
+    // 搜索栏从下方移入
+    const bar = document.querySelector('.search-overlay-bar') as HTMLElement
+    if (bar) gsap.fromTo(bar, { y: -30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power3.out' })
+    // 筛选按钮逐个出现
+    const tags = document.querySelectorAll('.search-overlay-tags .tag-btn')
+    gsap.fromTo(tags, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.05, ease: 'power2.out', delay: 0.15 })
+    // 聚焦输入框
+    setTimeout(() => searchInputRef.value?.focus(), 300)
+  })
 }
 
 function closeSearchOverlay() {
   searchOverlay.value = false
-  searchInputReady.value = false
   document.body.style.overflow = ''
 }
 
@@ -380,29 +378,25 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 
       <!-- Mobile: search overlay -->
       <Teleport to="body">
-        <Transition name="search-overlay">
-          <div v-if="searchOverlay" class="search-overlay" @click.self="closeSearchOverlay">
-            <div class="search-overlay-inner">
-              <div class="search-overlay-bar">
-                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                <input
-                  ref="searchInputRef"
-                  v-model="kw"
-                  type="text"
-                  placeholder="搜索书籍或作者…"
-                  class="search-overlay-input"
-                  :readonly="!searchInputReady"
-                  @click="searchInputReady = true"
-                />
-                <button class="search-overlay-close interactive" @click="closeSearchOverlay">完成</button>
-              </div>
-              <div class="search-overlay-tags">
-                <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部</button>
-                <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }}</button>
-              </div>
+        <div v-if="searchOverlay" class="search-overlay" @click.self="closeSearchOverlay">
+          <div class="search-overlay-inner">
+            <div class="search-overlay-bar">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input
+                ref="searchInputRef"
+                v-model="kw"
+                type="text"
+                placeholder="搜索书籍或作者…"
+                class="search-overlay-input"
+              />
+              <button class="search-overlay-close interactive" @click="closeSearchOverlay">完成</button>
+            </div>
+            <div class="search-overlay-tags">
+              <button class="tag-btn interactive" :class="{ on: selectedTags.length === 0 }" @click="clearTags">全部</button>
+              <button v-for="t in BOOK_TAGS" :key="t.id" class="tag-btn interactive" :class="{ on: selectedTags.includes(t.id) }" @click="toggleTag(t.id)">{{ t.name }}</button>
             </div>
           </div>
-        </Transition>
+        </div>
       </Teleport>
 
       <div v-if="loading" style="display:flex;justify-content:center;padding:4rem"><div class="loader"></div></div>
@@ -531,7 +525,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   padding: 0.75rem 1rem;
   background: var(--bg-card); border: 1px solid var(--border);
   border-radius: var(--r-full);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   color: var(--ink-ghost);
 }
 .search-overlay-input {
@@ -539,21 +533,14 @@ onUnmounted(() => { if (observer) observer.disconnect() })
   font-size: 0.95rem; color: var(--ink); font-family: var(--font-body);
 }
 .search-overlay-input::placeholder { color: var(--ink-ghost); }
-.search-overlay-input:read-only { cursor: pointer; }
 .search-overlay-close {
   font-family: var(--font-sans); font-size: 0.78rem; color: var(--gold);
   background: none; border: none; cursor: pointer; padding: 0.3rem 0.5rem;
 }
 .search-overlay-tags {
   display: flex; flex-wrap: wrap; gap: 0.4rem;
-  padding: 1rem;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--r-lg);
+  justify-content: center;
 }
-.search-overlay-enter-active { transition: all 0.35s ease-out; }
-.search-overlay-leave-active { transition: all 0.25s ease-in; }
-.search-overlay-enter-from { opacity: 0; transform: translateY(-20px); }
-.search-overlay-leave-to { opacity: 0; transform: translateY(-10px); }
 
 /* Selected tags display */
 .selected-tags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
@@ -650,7 +637,7 @@ onUnmounted(() => { if (observer) observer.disconnect() })
 .card-close:hover { color: var(--gold); border-color: var(--gold); }
 
 .card-top { display: grid; grid-template-columns: 160px 1fr; gap: 2rem; padding: 2rem; flex-shrink: 0; }
-.card-cover { overflow: hidden; border-radius: var(--r-sm); border: 1px solid var(--border); }
+.card-cover { overflow: hidden; border-radius: var(--r-sm); background: var(--bg-elevated); }
 .card-cover-img { width: 100%; display: block; }
 .card-info { display: flex; flex-direction: column; justify-content: center; }
 .card-title { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }

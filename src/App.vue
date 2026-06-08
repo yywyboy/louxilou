@@ -212,10 +212,10 @@ watch(() => route.path, () => { cleanupInkDots() })
 
 onMounted(() => {
   
-  // Init theme — auto-detect system preference on first visit
+  // Init theme — 默认亮色，跟随系统偏好
   const saved = localStorage.getItem('theme') as 'light' | 'dark' | null
   const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  const initTheme = saved || 'dark'
+  const initTheme = saved || (systemDark ? 'dark' : 'light')
   applyTheme(initTheme)
 
   // Listen for system theme changes (only if user hasn't set a preference)
