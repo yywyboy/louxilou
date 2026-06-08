@@ -134,12 +134,15 @@ onMounted(async () => {
   const heroEl = document.querySelector('.hero-pin') as HTMLElement
   if (heroEl) {
     if (heroPlayed) {
-      // 已播放过，直接设置最终状态
-      gsap.set('.hero-img-0, .hero-img-1, .hero-img-2, .hero-img-3, .hero-img-4', { clipPath: 'inset(0% 0% 0% 0%)' })
+      // 已播放过，直接显示所有元素，跳过动画
+      gsap.set('.hero-img-0, .hero-img-1, .hero-img-2, .hero-img-3, .hero-img-4', { clipPath: 'inset(0% 0% 0% 0%)', clearProps: 'all' })
+      gsap.set('.hero-images', { clearProps: 'all' })
+      gsap.set('.hero-content', { clearProps: 'all' })
+      gsap.set('.hero-statement', { opacity: 1, y: 0, scale: 1, clearProps: 'all' })
     } else {
+      heroPlayed = true
       const heroTl = gsap.timeline({
-        scrollTrigger: { trigger: heroEl, start: 'top top', end: '+=2000', scrub: 1, pin: true },
-        onComplete: () => { heroPlayed = true }
+        scrollTrigger: { trigger: heroEl, start: 'top top', end: '+=2000', scrub: 1, pin: true }
       })
       heroTl
         .fromTo('.hero-img-0', { clipPath: 'inset(0% 100% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.6, ease: 'power2.inOut' }, 0)
@@ -151,19 +154,19 @@ onMounted(async () => {
         .to('.hero-content', { scale: 0.5, opacity: 0, y: -100, filter: 'blur(10px)', duration: 1, ease: 'power2.inOut' }, 0.8)
         .to('.hero-overlay', { opacity: 1, duration: 0.8 }, 0.8)
         .fromTo('.hero-statement', { opacity: 0, y: 80, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 1, ease: 'power3.out' }, 1.5)
-    }
 
-    // Title + subtitle letter-spacing
-    gsap.to('.hero-title', {
-      letterSpacing: '0.05em',
-      ease: 'none',
-      scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
-    })
-    gsap.to('.hero-sub', {
-      letterSpacing: '0.15em',
-      ease: 'none',
-      scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
-    })
+      // Title + subtitle letter-spacing
+      gsap.to('.hero-title', {
+        letterSpacing: '0.05em',
+        ease: 'none',
+        scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
+      })
+      gsap.to('.hero-sub', {
+        letterSpacing: '0.15em',
+        ease: 'none',
+        scrollTrigger: { trigger: heroEl, start: 'top top', end: 'bottom top', scrub: 1 }
+      })
+    }
   }
 
   // ===== TEXT SCRAMBLE — hero title =====

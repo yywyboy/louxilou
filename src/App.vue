@@ -236,15 +236,15 @@ onMounted(() => {
         if (img.complete) return Promise.resolve()
         return new Promise<void>(resolve => {
           img.onload = () => resolve()
-          img.onerror = () => resolve() // 错误也继续
+          img.onerror = () => resolve()
         })
       })
       return Promise.all(promises)
     }
 
-    // 最少显示 1.5 秒，最多 4 秒
-    const minTime = new Promise(r => setTimeout(r, 1500))
-    const maxTime = new Promise(r => setTimeout(r, 4000))
+    // 最少显示 2.5 秒（保证动画完整），最多 5 秒
+    const minTime = new Promise(r => setTimeout(r, 2500))
+    const maxTime = new Promise(r => setTimeout(r, 5000))
 
     Promise.race([
       Promise.all([waitForImages(), minTime]),
@@ -260,9 +260,9 @@ onMounted(() => {
         }
       })
       loaderTl
-        .fromTo('.loader-char', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 0.3)
-        .to('.loader-char', { opacity: 0, y: -20, duration: 0.4, stagger: 0.03, ease: 'power2.in' }, 0.5)
-        .to('.loader-screen', { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, 0.9)
+        .fromTo('.loader-char', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.06, ease: 'power3.out' }, 0)
+        .to('.loader-char', { opacity: 0, y: -20, duration: 0.4, stagger: 0.03, ease: 'power2.in' }, 1.5)
+        .to('.loader-screen', { opacity: 0, duration: 0.5, ease: 'power2.inOut' }, 2.0)
     })
   }
 
