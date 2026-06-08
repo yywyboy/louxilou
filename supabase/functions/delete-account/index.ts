@@ -1,8 +1,6 @@
-import "@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 Deno.serve(async (req) => {
-  // 只接受 POST 请求
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
@@ -11,7 +9,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // 从请求头获取用户的 access_token
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "未授权" }), {
@@ -21,8 +18,6 @@ Deno.serve(async (req) => {
     }
 
     const token = authHeader.replace("Bearer ", "")
-
-    // 使用 service_role key 创建 admin 客户端
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
 
@@ -30,7 +25,6 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     })
 
-    // 通过 token 获取用户信息
     const { data: { user }, error: getUserError } = await supabaseAdmin.auth.getUser(token)
 
     if (getUserError || !user) {
@@ -40,7 +34,6 @@ Deno.serve(async (req) => {
       })
     }
 
-    // 删除用户
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(user.id)
 
     if (deleteError) {
