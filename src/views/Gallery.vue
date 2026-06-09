@@ -173,9 +173,9 @@ function close() {
       src: sel.value?.src || '',
       x: startX, y: startY, w: startW, h: startH
     }
-    nextTick(() => doCloseAnim(document.querySelector('.fly-img') as HTMLElement, origRect, startX, startY))
+    nextTick(() => doCloseAnim(document.querySelector('.fly-img') as HTMLElement, startX, startY))
   } else {
-    doCloseAnim(fly, origRect, startX, startY)
+    doCloseAnim(fly, startX, startY)
   }
 
   // 底部栏消失
@@ -184,7 +184,7 @@ function close() {
   if (lb) gsap.to(lb, { opacity: 0, duration: 0.45, ease: 'power2.inOut' })
 }
 
-function doCloseAnim(fly: HTMLElement, targetRect: DOMRect, startX: number, startY: number) {
+function doCloseAnim(fly: HTMLElement, startX: number, startY: number) {
   if (!fly || !origRect) { finishClose(); return }
 
   gsap.to(fly, {

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { scrollTo as lenisScrollTo, getLenis } from '../composables/useLenis'
+import { getLenis } from '../composables/useLenis'
 
 const routes = [
   {

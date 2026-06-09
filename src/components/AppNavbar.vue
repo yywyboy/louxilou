@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-const props = defineProps<{
+defineProps<{
   hidden: boolean
   theme: 'light' | 'dark'
   isReader: boolean

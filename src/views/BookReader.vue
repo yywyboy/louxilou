@@ -24,7 +24,6 @@ let obs: IntersectionObserver | null = null
 
 const bookTitle = computed(() => book.value?.title || '')
 const chTitle = computed(() => chs.value[idx.value]?.title || '')
-const total = computed(() => chs.value.length)
 const paras = computed(() => content.value ? content.value.split(/[\n\r]+/).filter(p => p.trim()).map(p => p.trim()) : [])
 const visParas = computed(() => paras.value.slice(0, visCount.value))
 
@@ -73,18 +72,13 @@ function goBack() {
 }
 function adjFs(d: number) { fs.value = Math.max(14, Math.min(22, fs.value + d)) }
 function goChapter() { router.push(`/library/${route.params.bookId}/read/${chs.value[idx.value].id}`) }
-function prev() { if (idx.value > 0) { idx.value--; goChapter() } }
-function next() { if (idx.value < chs.value.length - 1) { idx.value++; goChapter() } }
 function goTo(i: number) { idx.value = i; showNav.value = false; goChapter() }
 function toggleTrans() { trans.value = !trans.value; if (trans.value) doTrans() }
 function isEn(t: string) { const m = t.match(/[a-zA-Z]/g); return m ? m.length / t.length > 0.3 : false }
 async function doTrans() { const ps = paras.value; for (let i = 0; i < ps.length && trans.value; i += 3) { const batch = []; for (let j = i; j < Math.min(i + 3, ps.length); j++) { if (!transMap.value[j] && !transSet.value.has(j) && isEn(ps[j])) batch.push(j) } if (!batch.length) continue; batch.forEach(x => transSet.value.add(x)); transSet.value = new Set(transSet.value); const res = await Promise.all(batch.map(x => trText(ps[x]))); batch.forEach((x, k) => { transMap.value[x] = res[k]; transSet.value.delete(x) }); transMap.value = { ...transMap.value }; transSet.value = new Set(transSet.value) } }
 async function trText(t: string): Promise<string> { try { const r = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-CN&dt=t&q=${encodeURIComponent(t.slice(0, 300))}`); if (r.ok) { const d = await r.json(); if (d[0]) return d[0].map((s: string[]) => s[0]).join('') } } catch {} return '翻译失败' }
 
-// SVG circle progress
-const circleR = 14
-const circleC = 2 * Math.PI * circleR
-const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
+function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }
 </script>
 
 <template>
@@ -127,7 +121,7 @@ const circleOffset = computed(() => circleC - (prog.value / 100) * circleC)
           <span class="mb-book-title" :class="{ scroll: bookTitle.length > 10 }">{{ bookTitle }}</span>
         </div>
         <div class="mb-div"></div>
-        <div class="mb-prog" @click="window.scrollTo({ top: 0, behavior: 'smooth' })" title="回到顶部">
+        <div class="mb-prog" @click="scrollToTop" title="回到顶部">
           <svg width="28" height="28" viewBox="0 0 28 28">
             <circle cx="14" cy="14" r="12" fill="none" stroke="var(--border)" stroke-width="2" />
             <circle cx="14" cy="14" r="12" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" :stroke-dasharray="2 * Math.PI * 12" :stroke-dashoffset="2 * Math.PI * 12 * (1 - prog / 100)" transform="rotate(-90 14 14)" style="transition: stroke-dashoffset 0.1s linear" />

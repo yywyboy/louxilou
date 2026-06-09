@@ -170,7 +170,7 @@ onMounted(async () => {
   }
 
   // ===== TEXT SCRAMBLE — hero title =====
-  const heroTitle = document.querySelector('.hero-title')
+  const heroTitle = document.querySelector('.hero-title') as HTMLElement | null
   if (heroTitle && !heroPlayed) {
     scrambleText(heroTitle, 'LOUXILOU', { duration: 1.5, delay: 0.3 })
   }
@@ -304,7 +304,6 @@ onMounted(async () => {
   document.querySelectorAll('.flip-counter').forEach(counter => {
     const digits = counter.querySelectorAll('.flip-digit')
     digits.forEach((digit, i) => {
-      const finalVal = digit.textContent || '0'
       const delay = i * 0.15
       // Set initial state
       gsap.set(digit, { rotateX: -90, opacity: 0 })
@@ -497,7 +496,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
           <span class="breath-text">LOUXILOU</span>
         </div>
 
-        <div v-for="(book, i) in books.slice(0, 8)" :key="book.id" class="showcase-book">
+        <div v-for="book in books.slice(0, 8)" :key="book.id" class="showcase-book">
           <div class="showcase-hover">
             <div class="showcase-card">
               <div class="showcase-cover" @mouseenter="onBookEnter(book, $event)" @mouseleave="onBookLeave($event)">

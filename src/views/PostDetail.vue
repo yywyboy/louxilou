@@ -116,7 +116,7 @@ function processMarkdown() {
   let parsed = renderer.render(content)
 
   // Add IDs to headings
-  parsed = parsed.replace(/<h([1-3])>([\s\S]*?)<\/h\1>/g, (match: string, level: string, inner: string) => {
+  parsed = parsed.replace(/<h([1-3])>([\s\S]*?)<\/h\1>/g, (_match: string, level: string, inner: string) => {
     const text = inner.replace(/<[^>]+>/g, '').trim()
     const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w一-鿿-]/g, '')
     return `<h${level} id="${id}">${inner}</h${level}>`
@@ -125,7 +125,7 @@ function processMarkdown() {
   // Append footnotes
   if (footnoteOrder.length > 0) {
     let footnotesHtml = '<div class="footnotes"><ol>'
-    footnoteOrder.forEach((id, i) => {
+    footnoteOrder.forEach((id) => {
       const text = footnoteDefs[id] || ''
       footnotesHtml += `<li id="fn-${id}">${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></li>`
     })
@@ -202,7 +202,6 @@ const jsonLd = computed(() => {
 
 const catMap: Record<string, string> = { tech: '技术', life: '生活', reading: '读书', thoughts: '随想' }
 function catName(c: string) { return catMap[c] || c || '随笔' }
-function fmtDate(d: string) { const date = new Date(d), now = new Date(), ms = now.getTime() - date.getTime(), min = Math.floor(ms/60000), hr = Math.floor(ms/3600000), day = Math.floor(ms/86400000); if (min < 1) return '刚刚'; if (min < 60) return `${min}分钟前`; if (hr < 24) return `${hr}小时前`; if (day < 7) return `${day}天前`; return formatDate(d) }
 function uid() { let u = localStorage.getItem('blog_user_id'); if (!u) { u = 'u_' + Math.random().toString(36).slice(2) + Date.now().toString(36); localStorage.setItem('blog_user_id', u) } return u }
 
 function updateMeta(p: Post) {
@@ -277,8 +276,6 @@ function scrollToHeading(id: string) {
   if (el) { lenisScrollTo(el.offsetTop - 80, { duration: 1.2 }) }
 }
 
-function shareToWeibo() { const url = encodeURIComponent(window.location.href); const text = encodeURIComponent(post.value?.title || ''); window.open(`https://service.weibo.com/share/share.php?url=${url}&title=${text}`) }
-function shareToTwitter() { const url = encodeURIComponent(window.location.href); const text = encodeURIComponent(post.value?.title || ''); window.open(`https://twitter.com/intent/tweet?url=${url}&text=${text}`) }
 function copyLink() { navigator.clipboard.writeText(window.location.href); alert('链接已复制') }
 
 function onBodyClick(e: Event) {

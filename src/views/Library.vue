@@ -21,7 +21,7 @@ const flySearch = ref<{ x: number; y: number; w: number; h: number } | null>(nul
 let searchOrigEl: HTMLElement | null = null
 
 function openSearchOverlay(e: MouseEvent) {
-  const el = (e.currentTarget as HTMLElement).querySelector('.search-mobile') || e.currentTarget as HTMLElement
+  const el = ((e.currentTarget as HTMLElement).querySelector('.search-mobile') || e.currentTarget) as HTMLElement
   const rect = el.getBoundingClientRect()
 
   // 隐藏原搜索栏

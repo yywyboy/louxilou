@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { ref, computed, onMounted, nextTick, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { getPosts } from '../lib/blog'
 import type { Post } from '../lib/blog'
@@ -115,7 +115,7 @@ onMounted(async () => {
   gsap.fromTo('.pg-head', { opacity: 0, y: 40 }, { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.1 })
   gsap.fromTo('.cat-bar', { opacity: 0 }, { opacity: 1, duration: 0.6, delay: 0.4 })
 
-  document.querySelectorAll('.post-card').forEach((el, i) => {
+  document.querySelectorAll('.post-card').forEach((el) => {
     gsap.fromTo(el,
       { opacity: 0, y: 30 },
       { opacity: 1, y: 0, duration: 0.7, stagger: 0.1, ease: 'power3.out',

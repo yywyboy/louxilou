@@ -21,7 +21,7 @@ const mobileOpen = ref(false)
 
 // Theme toggle
 const theme = ref<'light' | 'dark'>('light')
-const { user, loading: authLoading, signOut, getDisplayName } = useAuth()
+const { user, loading: authLoading, getDisplayName } = useAuth()
 const showAuthModal = ref(false)
 const showProfile = ref(false)
 

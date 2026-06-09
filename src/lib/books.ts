@@ -44,7 +44,6 @@ export async function getAllBooks(): Promise<Book[]> {
     }))
   }))
 
-  const dbIds = new Set(dbResult.map(b => b.id))
   // Merge: static books first (always preferred), then DB-only books
   const merged: Book[] = [...staticResult]
   // Add DB books that aren't in static data
@@ -102,6 +101,7 @@ export async function getBookByIdFromDB(id: string): Promise<Book | undefined> {
     author: book.author,
     cover: book.cover || staticBook?.cover || '',
     description: book.description || staticBook?.description || '',
+    tags: book.tags || staticBook?.tags || [],
     chapters: finalChapters
   }
 }
