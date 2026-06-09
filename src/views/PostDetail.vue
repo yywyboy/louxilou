@@ -12,8 +12,29 @@ import ImageLightbox from '../components/ImageLightbox.vue'
 import TableOfContents from '../components/TableOfContents.vue'
 import AuthModal from '../components/AuthModal.vue'
 
-declare const marked: any
+declare const markdownit: any
 declare const hljs: any
+declare const katex: any
+
+// Initialize markdown-it
+let md: any = null
+function getMd() {
+  if (md) return md
+  if (typeof markdownit === 'undefined') return null
+  md = markdownit({
+    html: true,
+    linkify: true,
+    typographer: true,
+    breaks: true,
+    highlight: function (str: string, lang: string) {
+      if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+        try { return hljs.highlight(str, { language: lang }).value } catch {}
+      }
+      return ''
+    }
+  })
+  return md
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -45,21 +66,105 @@ const wordCount = computed(() => {
   return post.value.content.replace(/[#*`\n\r]/g, '').length
 })
 
-const html = computed(() => {
-  if (!post.value?.content) return ''
-  let parsed = marked.parse(post.value.content)
+const html = ref('')
+
+// Store math expressions for post-processing
+let mathStore: { expr: string; display: boolean }[] = []
+
+function processMarkdown() {
+  if (!post.value?.content) { html.value = ''; return }
+  const renderer = getMd()
+  if (!renderer) {
+    setTimeout(() => processMarkdown(), 300)
+    return
+  }
+
+  let content = post.value.content
+
+  // Pre-process: ==highlight== syntax
+  content = content.replace(/==(.*?)==/g, '<mark>$1</mark>')
+
+  // Pre-process: footnotes
+  const footnoteDefs: Record<string, string> = {}
+  content = content.replace(/^\[\^(\w+)\]:\s+(.+)$/gm, (_: string, id: string, text: string) => {
+    footnoteDefs[id] = text
+    return ''
+  })
+  const footnoteOrder: string[] = []
+  content = content.replace(/\[\^(\w+)\]/g, (_: string, id: string) => {
+    if (!footnoteOrder.includes(id)) footnoteOrder.push(id)
+    const idx = footnoteOrder.indexOf(id) + 1
+    return `<sup class="footnote-ref"><a href="#fn-${id}" id="fnref-${id}">${idx}</a></sup>`
+  })
+
+  // Pre-process: extract math BEFORE markdown-it
+  mathStore = []
+  // Block math: $$...$$
+  content = content.replace(/\$\$([\s\S]+?)\$\$/g, (_: string, math: string) => {
+    const idx = mathStore.length
+    mathStore.push({ expr: math.trim(), display: true })
+    return `%%MATH${idx}%%`
+  })
+  // Inline math: $...$
+  content = content.replace(/\$([^\$\n]+?)\$/g, (_: string, math: string) => {
+    const idx = mathStore.length
+    mathStore.push({ expr: math.trim(), display: false })
+    return `%%MATH${idx}%%`
+  })
+
+  // Parse markdown
+  let parsed = renderer.render(content)
+
+  // Add IDs to headings
   parsed = parsed.replace(/<h([1-3])>([\s\S]*?)<\/h\1>/g, (match: string, level: string, inner: string) => {
     const text = inner.replace(/<[^>]+>/g, '').trim()
     const id = text.toLowerCase().replace(/\s+/g, '-').replace(/[^\w一-鿿-]/g, '')
     return `<h${level} id="${id}">${inner}</h${level}>`
   })
-  if (typeof hljs !== 'undefined') {
-    parsed = parsed.replace(/<pre><code class="language-(\w+)">([\s\S]*?)<\/code><\/pre>/g, (match: string, lang: string, code: string) => {
-      try { return `<pre><code class="hljs language-${lang}">${hljs.highlight(decodeURIComponent(code), { language: lang }).value}</code></pre>` } catch { return match }
+
+  // Append footnotes
+  if (footnoteOrder.length > 0) {
+    let footnotesHtml = '<div class="footnotes"><ol>'
+    footnoteOrder.forEach((id, i) => {
+      const text = footnoteDefs[id] || ''
+      footnotesHtml += `<li id="fn-${id}">${text} <a href="#fnref-${id}" class="footnote-backref">↩</a></li>`
     })
+    footnotesHtml += '</ol></div>'
+    parsed += footnotesHtml
   }
-  return DOMPurify.sanitize(parsed)
-})
+
+  // Sanitize FIRST (placeholders survive sanitization)
+  let sanitized = DOMPurify.sanitize(parsed, { ADD_ATTR: ['id'] })
+
+  // THEN replace placeholders with KaTeX (after sanitization)
+  if (typeof katex !== 'undefined') {
+    mathStore.forEach((m, idx) => {
+      const placeholder = `%%MATH${idx}%%`
+      if (sanitized.includes(placeholder)) {
+        try {
+          const rendered = katex.renderToString(m.expr, { displayMode: m.display, throwOnError: false, trust: true })
+          const wrapper = m.display ? 'div' : 'span'
+          const cls = m.display ? 'math-block' : 'math-inline'
+          sanitized = sanitized.replace(placeholder, `<${wrapper} class="${cls}">${rendered}</${wrapper}>`)
+        } catch {
+          const fallback = m.display ? `$$${m.expr}$$` : `$${m.expr}$`
+          sanitized = sanitized.replace(placeholder, `<span class="math-error">${fallback}</span>`)
+        }
+      }
+    })
+    html.value = sanitized
+  } else {
+    // KaTeX not loaded, show raw and retry
+    mathStore.forEach((m, idx) => {
+      const fallback = m.display ? `$$${m.expr}$$` : `$${m.expr}$`
+      sanitized = sanitized.replace(`%%MATH${idx}%%`, `<span class="math-placeholder">${fallback}</span>`)
+    })
+    html.value = sanitized
+    setTimeout(() => {
+      if (typeof katex !== 'undefined' && post.value?.content) processMarkdown()
+    }, 500)
+  }
+}
 
 function extractToc() {
   if (!post.value?.content) return
@@ -147,6 +252,24 @@ function onScroll() {
   for (let i = headings.length - 1; i >= 0; i--) {
     if (headings[i].getBoundingClientRect().top <= 120) { activeTocId.value = headings[i].id; break }
   }
+  handleSidebar()
+}
+
+function handleSidebar() {
+  const sidebar = document.querySelector('.sidebar') as HTMLElement
+  const postNav = document.querySelector('.post-nav') as HTMLElement
+  if (!sidebar || !postNav) return
+
+  const sidebarHeight = sidebar.offsetHeight
+  const navTop = postNav.getBoundingClientRect().top
+  const gap = 30
+
+  if (navTop < 100 + sidebarHeight + gap) {
+    const offset = 100 + sidebarHeight + gap - navTop
+    sidebar.style.transform = `translateY(-${offset}px)`
+  } else {
+    sidebar.style.transform = 'translateY(0)'
+  }
 }
 
 function scrollToHeading(id: string) {
@@ -176,6 +299,7 @@ async function load() {
     if (post.value) {
       updateMeta(post.value)
       extractToc()
+      processMarkdown()
       await Promise.all([loadComments(), loadLike()])
       await loadCommentLikes()
       unsub = subscribeToComments(route.params.id as string, c => { if (!comments.value.some(e => e.id === c.id)) comments.value.push(c) })
@@ -374,7 +498,10 @@ watch(() => route.params.id, () => { if (route.params.id) load() })
 .prog { position: fixed; top: 0; left: 0; height: 2px; background: linear-gradient(90deg, var(--gold), var(--gold-light)); z-index: 1001; transition: width 0.1s; }
 
 /* Two-column layout */
-.layout { display: grid; grid-template-columns: 1fr 280px; gap: 3rem; max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 4rem; align-items: start; }
+.layout { display: grid; grid-template-columns: 1fr 280px; gap: 3rem; max-width: 1100px; margin: 0 auto; padding: 2rem 2rem 4rem; }
+
+/* Left: Article */
+.art { min-width: 0; align-self: start; }
 
 /* Left: Article */
 .art { min-width: 0; }
@@ -410,8 +537,58 @@ watch(() => route.params.id, () => { if (route.params.id) load() })
 .art-body :deep(.heading-anchor) { color: var(--ink-vanish); margin-left: 0.5rem; font-size: 0.8em; opacity: 0; transition: opacity 0.3s; text-decoration: none; }
 .art-body :deep(h1:hover .heading-anchor), .art-body :deep(h2:hover .heading-anchor), .art-body :deep(h3:hover .heading-anchor) { opacity: 1; }
 
+/* Markdown: horizontal rule */
+.art-body :deep(hr) { border: none; height: 1px; background: var(--border); margin: 2.5rem 0; }
+
+/* Markdown: strikethrough */
+.art-body :deep(del) { text-decoration: line-through; color: var(--ink-ghost); }
+
+/* Markdown: task lists */
+.art-body :deep(.contains-task-list) { list-style: none; padding-left: 0; }
+.art-body :deep(.task-list-item) { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.3rem 0; }
+.art-body :deep(.task-list-item input[type="checkbox"]) { margin-top: 0.35rem; accent-color: var(--gold); width: 16px; height: 16px; cursor: default; }
+
+/* Markdown: footnotes */
+.art-body :deep(.footnotes) { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--border); font-size: 0.9rem; }
+.art-body :deep(.footnotes ol) { padding-left: 1.5rem; }
+.art-body :deep(.footnotes li) { margin: 0.4rem 0; color: var(--ink-dim); }
+.art-body :deep(.footnote-ref) { font-size: 0.75em; vertical-align: super; color: var(--gold); text-decoration: none; }
+.art-body :deep(.footnote-backref) { color: var(--gold); text-decoration: none; margin-left: 0.3rem; font-size: 0.85em; }
+
+/* Markdown: definition lists */
+.art-body :deep(dl) { margin: 1.5rem 0; }
+.art-body :deep(dt) { font-weight: 600; margin-top: 1rem; }
+.art-body :deep(dd) { margin-left: 1.5rem; margin-top: 0.3rem; color: var(--ink-dim); }
+
+/* Markdown: abbreviations */
+.art-body :deep(abbr[title]) { text-decoration: underline dotted var(--ink-ghost); cursor: help; }
+
+/* Markdown: keyboard keys */
+.art-body :deep(kbd) { display: inline-block; padding: 0.15rem 0.5rem; font-family: var(--font-mono); font-size: 0.8em; background: var(--bg-warm); border: 1px solid var(--border); border-radius: var(--r-xs); box-shadow: 0 1px 0 var(--border); }
+
+/* Markdown: mark/highlight */
+.art-body :deep(mark) { background: rgba(200, 164, 94, 0.2); padding: 0.1rem 0.2rem; border-radius: 2px; }
+
+/* Markdown: details/summary */
+.art-body :deep(details) { margin: 1.5rem 0; padding: 1rem 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-xs); }
+.art-body :deep(summary) { cursor: pointer; font-weight: 600; color: var(--ink-dim); user-select: none; }
+.art-body :deep(summary:hover) { color: var(--gold); }
+.art-body :deep(details[open]) { padding-bottom: 1rem; }
+
+/* Markdown: superscript/subscript */
+.art-body :deep(sup) { font-size: 0.75em; vertical-align: super; }
+.art-body :deep(sub) { font-size: 0.75em; vertical-align: sub; }
+
+/* Markdown: math formulas (KaTeX) */
+.art-body :deep(.math-block) { margin: 1.5rem 0; padding: 1rem; overflow-x: auto; text-align: center; background: var(--bg-warm); border-radius: var(--r-xs); border: 1px solid var(--border); }
+.art-body :deep(.math-block .katex) { font-size: 1.15em; }
+.art-body :deep(.math-inline) { padding: 0 0.15em; }
+.art-body :deep(.math-inline .katex) { font-size: 1.05em; }
+.art-body :deep(.math-error) { color: #e74c3c; font-family: var(--font-mono); font-size: 0.9em; }
+.art-body :deep(.math-placeholder) { color: var(--ink-ghost); font-family: var(--font-mono); font-size: 0.9em; background: var(--gold-dim); padding: 0.1rem 0.3rem; border-radius: var(--r-xs); }
+
 /* Right: Sidebar */
-.sidebar { position: sticky; top: 100px; }
+.sidebar { position: fixed; top: 100px; right: calc((100vw - 1100px) / 2 + 2rem); width: 280px; transition: transform 0.3s ease-out; will-change: transform; }
 .sidebar-inner { display: flex; flex-direction: column; gap: 1.5rem; }
 .sb-section { padding: 1.25rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-sm); }
 .sb-title { font-family: var(--font-display); font-size: 0.85rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--ink-dim); letter-spacing: 0.04em; }

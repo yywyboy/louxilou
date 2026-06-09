@@ -831,7 +831,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 
 @media (max-width: 768px) {
   /* Hero — simplified for mobile */
-  .hero-title { font-size: clamp(3rem, 14vw, 5rem); }
+  .hero-title { font-size: clamp(3rem, 14vw, 5rem); letter-spacing: 0.08em; }
   .hero-statement p { font-size: 1.2rem; line-height: 1.8; }
   .hero-overlay { opacity: 0.7; }
 
