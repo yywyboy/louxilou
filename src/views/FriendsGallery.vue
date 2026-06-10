@@ -628,14 +628,14 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 
 /* 卡片顶部：头像 + 信息 */
 .card-top { padding: 2rem 2rem 1.5rem; flex-shrink: 0; }
-.card-header { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; }
+.card-header { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; min-height: 72px; }
 .card-avatar { overflow: hidden; border-radius: 50%; background: var(--bg-elevated); width: 72px; height: 72px; flex-shrink: 0; }
 .card-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
 .card-title-area { flex: 1; min-width: 0; }
 .card-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.2rem; line-height: 1.3; }
 .card-intro { font-size: 0.82rem; color: var(--ink-ghost); line-height: 1.5; }
 
-.card-meta { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border); }
+.card-meta { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border); margin-top: 1rem; }
 .card-contact { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-sans); font-size: 0.75rem; color: var(--gold); text-decoration: none; transition: opacity 0.3s; }
 .card-contact:hover { opacity: 0.75; }
 .contact-icon { flex-shrink: 0; opacity: 0.85; }
@@ -684,11 +684,11 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 
 @media (max-width: 768px) {
   .card-top { padding: 1.25rem; }
-  .card-header { gap: 0.75rem; margin-bottom: 0.75rem; }
+  .card-header { gap: 0.75rem; margin-bottom: 1rem; min-height: 48px; }
   .card-avatar { width: 48px; height: 48px; }
   .card-name { font-size: 1.1rem; }
   .card-intro { font-size: 0.75rem; }
-  .card-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding-top: 0.75rem; }
+  .card-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding-top: 0.75rem; margin-top: 0.75rem; }
   .card-stat { font-size: 0.75rem; }
   .card-stat-num { font-size: 0.9rem; }
   .card-contact { font-size: 0.72rem; }
