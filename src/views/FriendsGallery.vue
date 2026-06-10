@@ -478,13 +478,16 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
           </button>
 
           <div class="card-top">
-            <div class="card-avatar">
-              <img :src="avatarUrl(activeFriend.avatar)" :alt="activeFriend.name" class="card-avatar-img" />
+            <div class="card-header">
+              <div class="card-avatar">
+                <img :src="avatarUrl(activeFriend.avatar)" :alt="activeFriend.name" class="card-avatar-img" />
+              </div>
+              <div class="card-title-area">
+                <h2 class="card-name">{{ activeFriend.name }}</h2>
+                <p class="card-intro">{{ activeFriend.intro }}</p>
+              </div>
             </div>
-            <div class="card-info">
-              <h2 class="card-name">{{ activeFriend.name }}</h2>
-              <p class="card-intro">{{ activeFriend.intro }}</p>
-              <div class="card-rule"></div>
+            <div class="card-meta">
               <a v-if="activeFriend.contact && parseContact(activeFriend.contact)" :href="parseContact(activeFriend.contact)!.isLink ? parseContact(activeFriend.contact)!.value : undefined" :target="parseContact(activeFriend.contact)!.isLink ? '_blank' : undefined" rel="noopener" class="card-contact">
                 <svg v-if="parseContact(activeFriend.contact)!.icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" class="contact-icon"><path :d="parseContact(activeFriend.contact)!.icon"/></svg>
                 <span>{{ parseContact(activeFriend.contact)!.platform }}</span>
@@ -606,7 +609,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
   overflow: hidden;
 }
 .friend-card {
-  width: 640px; max-width: calc(100vw - 2rem);
+  width: 520px; max-width: calc(100vw - 2rem);
   max-height: calc(100vh - 4rem);
   background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--r-xl);
   box-shadow: 0 24px 80px rgba(0,0,0,0.12);
@@ -615,38 +618,40 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
   opacity: 0; will-change: transform, opacity;
 }
 .card-close {
-  position: absolute; top: 1rem; right: 1rem; z-index: 10;
-  width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 1.25rem; right: 1.25rem; z-index: 10;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
   background: var(--bg-warm); border: 1px solid var(--border); border-radius: 50%;
   color: var(--ink-ghost); transition: all 0.3s; cursor: pointer;
 }
 .card-close:hover { color: var(--gold); border-color: var(--gold); }
 
 /* 卡片顶部：头像 + 信息 */
-.card-top { display: grid; grid-template-columns: 100px 1fr; gap: 1.5rem; padding: 2rem; flex-shrink: 0; }
-.card-avatar { overflow: hidden; border-radius: 50%; background: var(--bg-elevated); width: 100px; height: 100px; }
+.card-top { padding: 2rem 2rem 1.5rem; flex-shrink: 0; }
+.card-header { display: flex; align-items: center; gap: 1.25rem; margin-bottom: 1.25rem; }
+.card-avatar { overflow: hidden; border-radius: 50%; background: var(--bg-elevated); width: 72px; height: 72px; flex-shrink: 0; }
 .card-avatar-img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 50%; }
-.card-info { display: flex; flex-direction: column; justify-content: center; }
-.card-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
-.card-intro { font-size: 0.88rem; color: var(--ink-ghost); margin-bottom: 0.8rem; }
-.card-rule { width: 40px; height: 1px; background: var(--gold); opacity: 0.5; margin-bottom: 0.8rem; }
-.card-contact { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-sans); font-size: 0.78rem; color: var(--gold); margin-bottom: 0.8rem; text-decoration: none; transition: opacity 0.3s; }
-.card-contact:hover { opacity: 0.8; }
-.contact-icon { flex-shrink: 0; }
-.card-stat { display: flex; align-items: baseline; gap: 0.25rem; }
-.card-stat-num { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--gold); }
-.card-stat-label { font-size: 0.78rem; color: var(--ink-ghost); }
+.card-title-area { flex: 1; min-width: 0; }
+.card-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.2rem; line-height: 1.3; }
+.card-intro { font-size: 0.82rem; color: var(--ink-ghost); line-height: 1.5; }
+
+.card-meta { display: flex; align-items: center; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.card-contact { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-sans); font-size: 0.75rem; color: var(--gold); text-decoration: none; transition: opacity 0.3s; }
+.card-contact:hover { opacity: 0.75; }
+.contact-icon { flex-shrink: 0; opacity: 0.85; }
+.card-stat { display: flex; align-items: baseline; gap: 0.2rem; margin-left: auto; }
+.card-stat-num { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--gold); }
+.card-stat-label { font-size: 0.72rem; color: var(--ink-ghost); }
 
 /* 卡片图片区域 */
 .card-photos {
-  padding: 0 2rem 2rem; flex: 1; min-height: 0;
+  padding: 0 1.5rem 1.5rem; flex: 1; min-height: 0;
   overflow-y: auto; overflow-x: hidden;
   overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .card-photos::-webkit-scrollbar { display: none; }
-.card-photo-grid { columns: 2; column-gap: 0.4rem; }
-.card-photo { break-inside: avoid; margin-bottom: 0.4rem; overflow: hidden; border-radius: var(--r-xs); cursor: pointer; line-height: 0; }
+.card-photo-grid { columns: 2; column-gap: 0.35rem; }
+.card-photo { break-inside: avoid; margin-bottom: 0.35rem; overflow: hidden; border-radius: var(--r-xs); cursor: pointer; line-height: 0; }
 .card-photo img { width: 100%; height: auto; display: block; transition: transform 0.4s var(--ease), filter 0.3s; }
 .card-photo:hover img { transform: scale(1.03); filter: brightness(1.05); }
 
@@ -677,12 +682,17 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 .flb-counter { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); white-space: nowrap; }
 
 @media (max-width: 768px) {
-  .card-top { grid-template-columns: 72px 1fr; gap: 1rem; padding: 1.25rem; }
-  .card-avatar { width: 72px; height: 72px; }
+  .card-top { padding: 1.5rem 1.25rem 1rem; }
+  .card-header { gap: 1rem; margin-bottom: 1rem; }
+  .card-avatar { width: 60px; height: 60px; }
   .card-name { font-size: 1.2rem; }
-  .card-intro { font-size: 0.82rem; }
-  .card-photos { padding: 0 1.25rem 1.25rem; }
-  .card-photo-grid { columns: 2; column-gap: 0.3rem; }
+  .card-intro { font-size: 0.78rem; }
+  .card-meta { gap: 1rem; padding-top: 0.75rem; }
+  .card-contact { font-size: 0.7rem; }
+  .card-stat-num { font-size: 1rem; }
+  .card-photos { padding: 0 1rem 1rem; }
+  .card-photo-grid { columns: 2; column-gap: 0.25rem; }
+  .card-photo { margin-bottom: 0.25rem; }
   .flb-bar-shell { padding: 0 0.6rem; }
 }
 </style>
