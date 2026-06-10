@@ -7,6 +7,15 @@ export interface Photo {
   created_at: string
 }
 
+export interface Friend {
+  id: string
+  name: string
+  avatar: string
+  intro: string
+  contact?: string
+  photos: { filename: string; caption?: string }[]
+}
+
 export const CATEGORIES = [
   { id: 'landscape', name: '风景' },
   { id: 'city', name: '城市' },
@@ -44,6 +53,51 @@ export async function getPhotos(): Promise<Photo[]> {
     })
   } catch {
     return STATIC_PHOTOS
+  }
+}
+
+/* Friends — static fallback */
+const STATIC_FRIENDS: Friend[] = [
+  {
+    id: 'xiaomi',
+    name: '小米',
+    avatar: '小米.jpg',
+    intro: '跟着光',
+    photos: Array.from({ length: 15 }, (_, i) => ({
+      filename: `小米 (${i + 1}).jpg`,
+    })),
+  },
+]
+
+/* 获取所有朋友（含图片） */
+export async function getFriends(): Promise<Friend[]> {
+  if (!supabase) return STATIC_FRIENDS
+
+  try {
+    const { data: friends, error } = await supabase
+      .from('friends')
+      .select('*')
+      .order('created_at', { ascending: true })
+
+    if (error || !friends || friends.length === 0) return STATIC_FRIENDS
+
+    const { data: photos } = await supabase
+      .from('friend_photos')
+      .select('*')
+      .order('id', { ascending: true })
+
+    return friends.map((f: any) => ({
+      id: f.id,
+      name: f.name,
+      avatar: f.avatar,
+      intro: f.intro || '',
+      contact: f.contact || '',
+      photos: (photos || [])
+        .filter((p: any) => p.friend_id === f.id)
+        .map((p: any) => ({ filename: p.filename, caption: p.caption || '' })),
+    }))
+  } catch {
+    return STATIC_FRIENDS
   }
 }
 

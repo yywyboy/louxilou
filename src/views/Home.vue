@@ -234,8 +234,11 @@ onMounted(async () => {
     })
 
     // Side labels
+    tl.set(labelBooks, { pointerEvents: 'auto' }, 0.5)
     tl.to(labelBooks, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 0.5)
     tl.to(labelBooks, { opacity: 0, duration: 0.4, ease: 'power2.in' }, 3.3)
+    tl.set(labelBooks, { pointerEvents: 'none' }, 3.7)
+    tl.set(labelPhotos, { pointerEvents: 'auto' }, 4.2)
     tl.to(labelPhotos, { opacity: 1, duration: 0.5, ease: 'power2.out' }, 4.2)
 
     // Stage 1: Books slide in
@@ -680,7 +683,7 @@ onUnmounted(() => { ScrollTrigger.getAll().forEach(t => t.kill());  })
 /* SHOWCASE */
 .showcase-pin { height: 100vh; overflow: hidden; display: flex; align-items: center; justify-content: center; perspective: 1200px; }
 .showcase-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; transform-style: preserve-3d; }
-.showcase-label { position: absolute; left: 2.5rem; z-index: 10; display: flex; flex-direction: column; gap: 0.3rem; opacity: 0; }
+.showcase-label { position: absolute; left: 2.5rem; z-index: 10; display: flex; flex-direction: column; gap: 0.3rem; opacity: 0; pointer-events: none; }
 .showcase-label-books { top: 50%; transform: translateY(-50%); }
 .showcase-label-photos { top: 50%; transform: translateY(-50%); }
 .sl-num { font-family: var(--font-mono); font-size: 0.55rem; color: var(--gold); letter-spacing: 0.1em; }

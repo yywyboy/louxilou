@@ -28,6 +28,10 @@ export const R2_PATHS = {
   gallery: {
     photos: 'gallery/photos/',
   },
+  friends: {
+    avatars: 'friends/avatars/',
+    photos: 'friends/photos/',
+  },
 } as const
 
 /**

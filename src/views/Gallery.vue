@@ -304,6 +304,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
         <span class="eyebrow">Photography</span>
         <h1 class="pg-title">图库</h1>
         <p class="pg-desc">精选图片，记录美好瞬间</p>
+        <router-link to="/friends-gallery" class="friends-link interactive">查看朋友的图 →</router-link>
       </header>
 
       <div class="cat-bar">
@@ -384,6 +385,8 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
 .eyebrow { font-family: var(--font-sans); font-size: 0.65rem; color: var(--gold); letter-spacing: 0.3em; text-transform: uppercase; display: block; margin-bottom: 1rem; }
 .pg-title { font-family: var(--font-display); font-size: clamp(3rem, 7vw, 5rem); font-weight: 900; letter-spacing: 0.06em; margin-bottom: 0.75rem; }
 .pg-desc { font-size: 0.88rem; color: var(--ink-ghost); letter-spacing: 0.05em; }
+.friends-link { font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); text-decoration: none; letter-spacing: 0.04em; transition: color 0.3s; display: inline-block; margin-top: 0.75rem; cursor: pointer; }
+.friends-link:hover { color: var(--gold); }
 
 .cat-bar { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; margin-bottom: 3rem; opacity: 0; }
 .cat-btn { padding: 0.35rem 1rem; font-family: var(--font-sans); font-size: 0.72rem; color: var(--ink-ghost); background: none; border: 1px solid var(--border); border-radius: var(--r-full); transition: all 0.3s; display: flex; align-items: center; gap: 0.4rem; }
@@ -444,6 +447,7 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey); if (observer
   .cat-bar { flex-wrap: wrap; justify-content: center; gap: 0.35rem; margin-bottom: 2rem; }
   .cat-btn { padding: 0.3rem 0.7rem; font-size: 0.68rem; }
 }
+
 </style>
 
 <style>
