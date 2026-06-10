@@ -8,6 +8,34 @@ import { gsap } from '../composables/useGsap'
 const friends = ref<Friend[]>([])
 const loading = ref(true)
 
+// 联系方式解析
+interface ContactInfo {
+  platform: string
+  value: string
+  isLink: boolean
+  icon: string  // SVG path
+}
+
+const PLATFORM_ICONS: Record<string, string> = {
+  '抖音': 'M16.6 5.82s.51.5 0 0A4.278 4.278 0 0 1 15.54 3h-3.09v12.4a2.592 2.592 0 0 1-2.59 2.5c-1.42 0-2.6-1.16-2.6-2.6 0-1.72 1.66-3.01 3.37-2.48V9.66c-3.45-.46-6.47 2.22-6.47 5.64 0 3.33 2.76 5.7 5.69 5.7 3.14 0 5.69-2.55 5.69-5.7V9.01a7.35 7.35 0 0 0 4.3 1.38V7.3s-1.88.09-3.24-1.48z',
+  'WeChat': 'M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.295.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05a6.329 6.329 0 0 1-.235-1.69c0-3.54 3.29-6.41 7.34-6.41.15 0 .305.003.457.01C16.563 4.457 12.97 2.188 8.691 2.188zm-2.6 4.408c-.58 0-1.05-.47-1.05-1.05s.47-1.05 1.05-1.05 1.05.47 1.05 1.05-.47 1.05-1.05 1.05zm5.2 0c-.58 0-1.05-.47-1.05-1.05s.47-1.05 1.05-1.05 1.05.47 1.05 1.05-.47 1.05-1.05 1.05zM16.52 10.18c-3.56 0-6.45 2.45-6.45 5.47 0 3.02 2.89 5.47 6.45 5.47.72 0 1.42-.11 2.07-.31a.67.67 0 0 1 .55.07l1.46.855a.25.25 0 0 0 .128.042.226.226 0 0 0 .226-.226c0-.054-.022-.108-.036-.162l-.298-1.132a.452.452 0 0 1 .163-.51c1.4-1.03 2.29-2.55 2.29-4.257 0-3.02-2.89-5.47-6.55-5.47zm-2.46 3.39c-.45 0-.81-.36-.81-.81s.36-.81.81-.81.81.36.81.81-.36.81-.81.81zm4.92 0c-.45 0-.81-.36-.81-.81s.36-.81.81-.81.81.36.81.81-.36.81-.81.81z',
+  'Instagram': 'M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z',
+  '微博': 'M10.098 20.323c-3.977.391-7.414-1.406-7.672-4.02-.259-2.609 2.759-5.047 6.74-5.441 3.979-.394 7.413 1.404 7.671 4.018.259 2.6-2.759 5.049-6.739 5.443zM20.196 9.4a4.068 4.068 0 0 0-4.668-1.33.758.758 0 0 0 .377 1.47 2.553 2.553 0 0 1 2.931.836 2.54 2.54 0 0 1 .133 2.876.758.758 0 1 0 1.227.872A4.05 4.05 0 0 0 20.196 9.4zm-1.03 3.12a1.52 1.52 0 0 1-1.757-.54.758.758 0 0 0-1.295.76 3.027 3.027 0 0 0 3.51 1.081.758.758 0 1 0-.458-1.301z',
+  '小红书': 'M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm4.5 14.5h-9v-1h9v1zm0-3h-9v-1h9v1zm0-3h-9v-1h9v1zm0-3h-9v-1h9v1z',
+  'Email': 'M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm16 2l-8 5-8-5v2l8 5 8-5V6zm0 12V8l-8 5-8-5v10h16z',
+}
+
+function parseContact(contact: string): ContactInfo | null {
+  if (!contact) return null
+  const match = contact.match(/^([^:]+):\s*(.+)$/)
+  if (!match) return { platform: '链接', value: contact, isLink: contact.startsWith('http'), icon: '' }
+  const platform = match[1].trim()
+  const value = match[2].trim()
+  const isLink = value.startsWith('http')
+  const icon = PLATFORM_ICONS[platform] || ''
+  return { platform, value, isLink, icon }
+}
+
 // 卡片状态
 const cardOpen = ref(false)
 const activeFriend = ref<Friend | null>(null)
@@ -457,7 +485,10 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
               <h2 class="card-name">{{ activeFriend.name }}</h2>
               <p class="card-intro">{{ activeFriend.intro }}</p>
               <div class="card-rule"></div>
-              <p v-if="activeFriend.contact" class="card-contact">{{ activeFriend.contact }}</p>
+              <a v-if="activeFriend.contact && parseContact(activeFriend.contact)" :href="parseContact(activeFriend.contact)!.isLink ? parseContact(activeFriend.contact)!.value : undefined" :target="parseContact(activeFriend.contact)!.isLink ? '_blank' : undefined" rel="noopener" class="card-contact">
+                <svg v-if="parseContact(activeFriend.contact)!.icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" class="contact-icon"><path :d="parseContact(activeFriend.contact)!.icon"/></svg>
+                <span>{{ parseContact(activeFriend.contact)!.platform }}</span>
+              </a>
               <div class="card-stat">
                 <span class="card-stat-num">{{ activeFriend.photos.length }}</span>
                 <span class="card-stat-label">张照片</span>
@@ -599,7 +630,9 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 .card-name { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.3rem; }
 .card-intro { font-size: 0.88rem; color: var(--ink-ghost); margin-bottom: 0.8rem; }
 .card-rule { width: 40px; height: 1px; background: var(--gold); opacity: 0.5; margin-bottom: 0.8rem; }
-.card-contact { font-family: var(--font-sans); font-size: 0.78rem; color: var(--gold); margin-bottom: 0.8rem; }
+.card-contact { display: inline-flex; align-items: center; gap: 0.4rem; font-family: var(--font-sans); font-size: 0.78rem; color: var(--gold); margin-bottom: 0.8rem; text-decoration: none; transition: opacity 0.3s; }
+.card-contact:hover { opacity: 0.8; }
+.contact-icon { flex-shrink: 0; }
 .card-stat { display: flex; align-items: baseline; gap: 0.25rem; }
 .card-stat-num { font-family: var(--font-display); font-size: 1.5rem; font-weight: 700; color: var(--gold); }
 .card-stat-label { font-size: 0.78rem; color: var(--ink-ghost); }

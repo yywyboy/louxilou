@@ -63,6 +63,7 @@ const STATIC_FRIENDS: Friend[] = [
     name: '小米',
     avatar: '小米.jpg',
     intro: '跟着光',
+    contact: '抖音: https://www.douyin.com/user/MS4wLjABAAAAKStP97tpScBpPxW7elur9WQ-br1KIWoafXDROW65Ok8?from_tab_name=main',
     photos: Array.from({ length: 15 }, (_, i) => ({
       filename: `小米 (${i + 1}).jpg`,
     })),

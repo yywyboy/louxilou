@@ -1,6 +1,6 @@
 -- 插入小米的数据
 insert into friends (id, name, avatar, intro, contact) values
-  ('xiaomi', '小米', '小米.jpg', '跟着光', '');
+  ('xiaomi', '小米', '小米.jpg', '跟着光', '抖音: https://www.douyin.com/user/MS4wLjABAAAAKStP97tpScBpPxW7elur9WQ-br1KIWoafXDROW65Ok8?from_tab_name=main');
 
 insert into friend_photos (friend_id, filename, caption) values
   ('xiaomi', '小米 (1).jpg', ''),
