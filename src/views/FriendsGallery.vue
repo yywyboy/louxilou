@@ -488,14 +488,15 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
               </div>
             </div>
             <div class="card-meta">
+              <div class="card-stat">
+                <span class="card-stat-label">共</span>
+                <span class="card-stat-num">{{ activeFriend.photos.length }}</span>
+                <span class="card-stat-label">张照片</span>
+              </div>
               <a v-if="activeFriend.contact && parseContact(activeFriend.contact)" :href="parseContact(activeFriend.contact)!.isLink ? parseContact(activeFriend.contact)!.value : undefined" :target="parseContact(activeFriend.contact)!.isLink ? '_blank' : undefined" rel="noopener" class="card-contact">
                 <svg v-if="parseContact(activeFriend.contact)!.icon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" class="contact-icon"><path :d="parseContact(activeFriend.contact)!.icon"/></svg>
                 <span>{{ parseContact(activeFriend.contact)!.platform }}</span>
               </a>
-              <div class="card-stat">
-                <span class="card-stat-num">{{ activeFriend.photos.length }}</span>
-                <span class="card-stat-label">张照片</span>
-              </div>
             </div>
           </div>
 
@@ -634,11 +635,11 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 .card-name { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.2rem; line-height: 1.3; }
 .card-intro { font-size: 0.82rem; color: var(--ink-ghost); line-height: 1.5; }
 
-.card-meta { display: flex; align-items: center; gap: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.card-meta { display: flex; align-items: center; justify-content: space-between; padding-top: 1rem; border-top: 1px solid var(--border); }
 .card-contact { display: inline-flex; align-items: center; gap: 0.35rem; font-family: var(--font-sans); font-size: 0.75rem; color: var(--gold); text-decoration: none; transition: opacity 0.3s; }
 .card-contact:hover { opacity: 0.75; }
 .contact-icon { flex-shrink: 0; opacity: 0.85; }
-.card-stat { display: flex; align-items: baseline; gap: 0.2rem; margin-left: auto; }
+.card-stat { display: flex; align-items: baseline; gap: 0.15rem; }
 .card-stat-num { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; color: var(--gold); }
 .card-stat-label { font-size: 0.72rem; color: var(--ink-ghost); }
 
