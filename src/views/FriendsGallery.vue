@@ -683,14 +683,15 @@ onUnmounted(() => { document.removeEventListener('keydown', onKey) })
 .flb-counter { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-ghost); white-space: nowrap; }
 
 @media (max-width: 768px) {
-  .card-top { padding: 1.5rem 1.25rem 1rem; }
-  .card-header { gap: 1rem; margin-bottom: 1rem; }
-  .card-avatar { width: 60px; height: 60px; }
-  .card-name { font-size: 1.2rem; }
-  .card-intro { font-size: 0.78rem; }
-  .card-meta { gap: 1rem; padding-top: 0.75rem; }
-  .card-contact { font-size: 0.7rem; }
-  .card-stat-num { font-size: 1rem; }
+  .card-top { padding: 1.25rem; }
+  .card-header { gap: 0.75rem; margin-bottom: 0.75rem; }
+  .card-avatar { width: 48px; height: 48px; }
+  .card-name { font-size: 1.1rem; }
+  .card-intro { font-size: 0.75rem; }
+  .card-meta { flex-direction: column; align-items: flex-start; gap: 0.5rem; padding-top: 0.75rem; }
+  .card-stat { font-size: 0.75rem; }
+  .card-stat-num { font-size: 0.9rem; }
+  .card-contact { font-size: 0.72rem; }
   .card-photos { padding: 0 1rem 1rem; }
   .card-photo-grid { columns: 2; column-gap: 0.25rem; }
   .card-photo { margin-bottom: 0.25rem; }
