@@ -64,7 +64,4 @@ scripts/rename-xiaoshimin.mjs
 scripts/upload-mobitchi.mjs
 scripts/rename-mobitchi.mjs
 
-# Admin project
-admin/
-
 louxilou-2.0/
